@@ -1,9 +1,9 @@
-// quests.js - 題庫專屬檔案（已結合整篇課文架構與段落標籤）
+// quests.js - 題庫專屬檔案
 
 // Unit 35 完整課文（供全域螢光筆對照使用）
 const FULL_ARTICLE_TEXTS = {
   u35: {
-    title: "Unit 35: Crows — The Feathered Geniuses",
+    title: "Unit 35: Is a Crow Smarter Than a Seven-Year-Old?",
     paragraphs: [
       { id: "u35_p1", text: "When we think of intelligent animals, we usually think dogs, cats, and apes. But a crow is among the most intelligent animals in the world." },
       { id: "u35_p2", text: "Crows have memories and they are able to imagine the future. A crow can hold a tiny stick in its mouth and use it to get at tasty insects." },
