@@ -13,9 +13,7 @@
   <style>
     :root {
       --bg-dark: #070a13;
-      --bezel-color: #1e293b;
       --bezel-border: #334155;
-      --accent-cyan: #38bdf8;
     }
 
     * {
@@ -49,19 +47,22 @@
       pointer-events: none;
     }
 
-    /* 遊戲裝置容器：桌機上包裝成掌機/機台，手機上滿版 */
+    /* 掌機/手機外框容器 */
     #device-wrapper {
       position: relative;
       z-index: 10;
       display: flex;
       justify-content: center;
       align-items: center;
-      transition: all 0.3s ease;
+      width: 100%;
+      height: 100%;
+      max-width: 440px;
+      max-height: 860px;
     }
 
-    /* ── 桌機專用：街機展示機台外框 ── */
     @media (min-width: 600px) {
       #device-wrapper {
+        height: 92vh;
         padding: 16px 14px 20px;
         background: linear-gradient(145deg, #1e293b, #0f172a);
         border: 4px solid var(--bezel-border);
@@ -71,30 +72,14 @@
           0 0 40px rgba(56, 189, 248, 0.15),
           inset 0 2px 4px rgba(255, 255, 255, 0.15);
       }
-
-      /* 掌機頂部小聽筒/攝像頭裝飾點 */
-      #device-wrapper::before {
-        content: '';
-        position: absolute;
-        top: 8px;
-        width: 48px;
-        height: 4px;
-        background: #334155;
-        border-radius: 4px;
-      }
     }
 
-    /* ── 手機/平板端：徹底消除邊框，100% 滿版無縫 ── */
     @media (max-width: 599px) {
-      body {
-        background-color: #000;
-      }
-      .desktop-backdrop {
-        display: none;
-      }
+      body { background-color: #000; }
+      .desktop-backdrop { display: none; }
       #device-wrapper {
-        width: 100vw !important;
-        height: 100vh !important;
+        max-width: 100vw !important;
+        max-height: 100vh !important;
         padding: 0 !important;
         border: none !important;
         border-radius: 0 !important;
@@ -110,34 +95,27 @@
       align-items: center;
       border-radius: 24px;
       overflow: hidden;
-      cursor: pointer;
     }
 
     @media (max-width: 599px) {
-      #game-canvas-container {
-        border-radius: 0;
-      }
+      #game-canvas-container { border-radius: 0; }
     }
 
     canvas {
       display: block;
+      margin: auto;
     }
   </style>
 </head>
 <body>
 
-  <!-- 桌機背景光輝 -->
   <div class="desktop-backdrop"></div>
 
-  <!-- 主機台容器 (桌機掌機 / 手機滿版自適應) -->
   <div id="device-wrapper">
     <div id="game-canvas-container"></div>
   </div>
 
   <script>
-    // ========================================================
-    // ⚙️ 每週更新專區 (下課 30 秒更新此處)
-    // ========================================================
     const WEEK_DATA = {
       levelLabel: "WORLD 4: RAINY FOREST",
       words: [
@@ -158,9 +136,6 @@
       { name: "MOLDY TOAST", rarity: "COMMON", color: 0x94a3b8, power: "25", quote: "雖然戰鬥力很低，但烤過挺好吃的" }
     ];
 
-    // ========================================================
-    // 🎮 PHASER 3 遊戲場景
-    // ========================================================
     class GameScene extends Phaser.Scene {
       constructor() {
         super({ key: 'GameScene' });
@@ -175,8 +150,8 @@
         this.maxCharges = 4;
         this.completedItems = new Set();
 
-        const W = this.cameras.main.width;
-        const H = this.cameras.main.height;
+        const W = 400;
+        const H = 720;
 
         // 背景
         this.add.rectangle(W / 2, H / 2, W, H, 0x0a0f1d);
@@ -185,11 +160,11 @@
         // 頂部 HUD
         this.createHUD(W);
 
-        // 中央開箱神蛋
-        this.createChestPedestal(W, H * 0.35);
+        // 中央神蛋 (精確絕對居中 W/2)
+        this.createChestPedestal(W / 2, H * 0.35);
 
-        // 下方符文石板
-        this.createRuneDeck(W, H * 0.61);
+        // 下方符文石板 (精確居中)
+        this.createRuneDeck(W / 2, H * 0.61);
 
         // 粒子發射器
         this.particleEmitter = this.add.particles(0, 0, 'glowParticle', {
@@ -251,8 +226,9 @@
         }).setOrigin(0.5);
       }
 
-      createChestPedestal(x, y) {
-        this.pedestal = this.add.ellipse(x, y + 80, 160, 40, 0x38bdf8, 0.2);
+      createChestPedestal(centerX, centerY) {
+        // 底座光圈絕對居中
+        this.pedestal = this.add.ellipse(centerX, centerY + 80, 160, 40, 0x38bdf8, 0.2);
         this.tweens.add({
           targets: this.pedestal,
           scaleX: 1.15,
@@ -262,23 +238,27 @@
           repeat: -1
         });
 
+        // 建立蛋的容器，確保旋轉與點擊中心都在 centerX
+        this.eggContainer = this.add.container(centerX, centerY);
         this.egg = this.add.graphics();
         this.drawEgg(0x38bdf8, 0x1d4ed8);
-        this.egg.setPosition(x, y);
+        this.eggContainer.add(this.egg);
 
+        // 浮空動畫
         this.eggTween = this.tweens.add({
-          targets: this.egg,
-          y: y - 14,
+          targets: this.eggContainer,
+          y: centerY - 14,
           duration: 1500,
           yoyo: true,
           repeat: -1,
           ease: 'Sine.easeInOut'
         });
 
-        this.egg.setInteractive(new Phaser.Geom.Circle(0, 0, 60), Phaser.Geom.Circle.Contains);
-        this.egg.on('pointerdown', () => this.handleEggTap());
+        this.eggContainer.setSize(120, 140);
+        this.eggContainer.setInteractive(new Phaser.Geom.Circle(0, 0, 60), Phaser.Geom.Circle.Contains);
+        this.eggContainer.on('pointerdown', () => this.handleEggTap());
 
-        this.stageLabel = this.add.text(x, y + 115, '⚡ 點擊下方符文注入能量', {
+        this.stageLabel = this.add.text(centerX, centerY + 115, '⚡ 點擊下方符文注入能量', {
           fontFamily: 'sans-serif',
           fontSize: '14px',
           fontWeight: 'bold',
@@ -296,13 +276,13 @@
         this.egg.strokeCircle(0, 0, 54);
       }
 
-      createRuneDeck(w, startY) {
+      createRuneDeck(centerX, startY) {
         WEEK_DATA.words.forEach((item, idx) => {
-          this.createRuneButton(w / 2, startY + idx * 62, item, `word_${idx}`);
+          this.createRuneButton(centerX, startY + idx * 62, item, `word_${idx}`);
         });
 
         const sentenceY = startY + 3 * 62 + 8;
-        this.createSentenceRune(w / 2, sentenceY);
+        this.createSentenceRune(centerX, sentenceY);
       }
 
       createRuneButton(x, y, item, key) {
@@ -392,8 +372,8 @@
           this.particleEmitter.explode(16, originX, originY);
           this.tweens.add({
             targets: { x: originX, y: originY },
-            x: this.egg.x,
-            y: this.egg.y,
+            x: this.eggContainer.x,
+            y: this.eggContainer.y,
             duration: 400,
             onUpdate: (tween) => {
               const val = tween.getValue();
@@ -412,7 +392,7 @@
         this.eggTween.stop();
 
         this.tweens.add({
-          targets: this.egg,
+          targets: this.eggContainer,
           scaleX: 1.15,
           scaleY: 0.9,
           angle: 12,
@@ -442,8 +422,8 @@
       }
 
       showGachaCardModal(loot) {
-        const W = this.cameras.main.width;
-        const H = this.cameras.main.height;
+        const W = 400;
+        const H = 720;
 
         const overlay = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0.88).setInteractive();
         const cardBox = this.add.container(W / 2, H / 2);
@@ -552,13 +532,11 @@
       }
     }
 
-    // 啟動高畫質 Phaser 3 配置 (開啟 Retina 2x 高解析度適配)
     const config = {
       type: Phaser.AUTO,
       parent: 'game-canvas-container',
       width: 400,
       height: 720,
-      resolution: Math.min(window.devicePixelRatio || 1, 2), // 高解析度防模糊
       scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH
