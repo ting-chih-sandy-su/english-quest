@@ -689,11 +689,11 @@
     </div>
   </div>
 
-  <!-- 隨堂考準備 Modal (10 題高頻實戰版) -->
+  <!-- 隨堂考準備 Modal (10 題深度混合題型) -->
   <div class="modal-overlay" id="quiz-modal">
     <div class="modal-box">
       <h3 style="font-size:1.35rem; color:var(--purple); margin-bottom:4px;">📝 隨堂考衝刺模擬 (10 題)</h3>
-      <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px;">涵蓋拼字形近字辨析、克漏字與發音陷阱！</div>
+      <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px;">涵蓋拼字形近字魔王題、克漏字與精準發音陷阱！</div>
       
       <div class="quiz-score-header">
         <span id="quiz-progress-indicator">測驗進度：0 / 10 題</span>
@@ -1155,9 +1155,19 @@
       generateChallengeStage();
     }
 
-    /* ─── 隨堂考準備模組 (升級 10 題實戰版) ─── */
+    /* ─── 4 大高誘答力混合題型引擎 (10 題實戰版) ─── */
     let quizCurrentAnswered = 0;
     let quizCorrectCount = 0;
+
+    // 動態生成微型高仿拼字錯誤（替換常見易錯母音）
+    function generateSubtleSpellingTrap(word) {
+      if (word.length <= 3) return word + "e";
+      if (word.includes("i")) return word.replace(/i/, "e");
+      if (word.includes("e")) return word.replace(/e/, "a");
+      if (word.includes("a")) return word.replace(/a/, "e");
+      if (word.includes("o")) return word.replace(/o/, "u");
+      return word.slice(0, -1);
+    }
 
     function openQuizModal() {
       const quest = ALL_QUESTS[currentQuestIdx];
@@ -1170,7 +1180,6 @@
       quizCorrectCount = 0;
       updateQuizScoreDisplay();
 
-      // 建立包含 10 題的題庫清單（若單字少於 10 個則循環補齊）
       let wordsPool = [...quest.words].sort(() => Math.random() - 0.5);
       while (wordsPool.length < 10) {
         wordsPool = wordsPool.concat([...quest.words].sort(() => Math.random() - 0.5));
@@ -1181,7 +1190,6 @@
         const otherWords = quest.words.filter(w => w.en !== targetWord.en);
         const distractorsPool = otherWords.sort(() => Math.random() - 0.5);
 
-        // 輪替 4 種題型
         const questionType = qIdx % 4;
         let typeBadge = "";
         let promptText = "";
@@ -1189,56 +1197,86 @@
         let explanationText = "";
 
         if (questionType === 0) {
+          // 題型 1：中選英拼字辨析
           typeBadge = "拼字辨析";
-          promptText = `Q${qIdx + 1}. 中文「${targetWord.zh}」的正確英文拼法是？`;
+          const trapA = targetWord.distractor || (distractorsPool[0] ? distractorsPool[0].en : "wrong");
+          const trapB = generateSubtleSpellingTrap(targetWord.en);
+
+          promptText = `Q${qIdx + 1}. 中文「${targetWord.zh}」的正確拼法是？（小心相似字）`;
           options = [
             { text: targetWord.en, isCorrect: true },
-            { text: targetWord.distractor || (distractorsPool[0] ? distractorsPool[0].en : "wrong"), isCorrect: false },
-            { text: distractorsPool[1] ? distractorsPool[1].en : "error", isCorrect: false }
+            { text: trapA, isCorrect: false },
+            { text: trapB, isCorrect: false }
           ].sort(() => Math.random() - 0.5);
-          explanationText = `正解為「${targetWord.en}」，注意不要與干擾字「${targetWord.distractor}」混淆。`;
+          explanationText = `正確拼寫為【${targetWord.en}】。`;
 
         } else if (questionType === 1) {
+          // 題型 2：段落語境克漏字
           typeBadge = "語境克漏字";
           let sentenceText = quest.sentence.en;
           const reg = new RegExp(`\\b${targetWord.en}\\b`, "i");
 
           if (reg.test(sentenceText)) {
-            const maskedSentence = sentenceText.replace(reg, "【 _____ 】");
-            promptText = `Q${qIdx + 1}. 根據段落語意，空格應填入哪一個單字？<br><span style="color:#93c5fd; font-size:0.95rem;">"${maskedSentence}"</span>`;
+            const masked = sentenceText.replace(reg, "______");
+            promptText = `Q${qIdx + 1}. 根據文意語境，空格應填入？<br><span style="color:#93c5fd; font-size:0.95rem; font-style:italic;">"${masked}"</span>`;
           } else {
-            promptText = `Q${qIdx + 1}. 根據本段課文語境，「${targetWord.zh}」應使用哪一個詞彙？`;
+            promptText = `Q${qIdx + 1}. 根據本段課文語境，「${targetWord.zh}」在此處的精確英文是？`;
           }
 
           options = [
             { text: targetWord.en, isCorrect: true },
-            { text: distractorsPool[0] ? distractorsPool[0].en : "distractor", isCorrect: false },
-            { text: distractorsPool[1] ? distractorsPool[1].en : "sample", isCorrect: false }
+            { text: distractorsPool[0] ? distractorsPool[0].en : "tool", isCorrect: false },
+            { text: distractorsPool[1] ? distractorsPool[1].en : "problem", isCorrect: false }
           ].sort(() => Math.random() - 0.5);
           explanationText = `此處語境對應單字【${targetWord.en}】（${targetWord.zh}）。`;
 
         } else if (questionType === 2) {
-          typeBadge = "發音規則與音素";
-          promptText = `Q${qIdx + 1}. 關於單字【${targetWord.en}】（${targetWord.zh}）的讀音特徵，下列何者正確？`;
-
-          let hintText = targetWord.hint || "注意重音位置與母音長短音。";
-          options = [
-            { text: hintText, isCorrect: true },
-            { text: "字首不發音且尾音需長聲拉長（錯誤選項）", isCorrect: false },
-            { text: "全部音節皆為重讀發音，不含弱化母音（錯誤選項）", isCorrect: false }
-          ].sort(() => Math.random() - 0.5);
-          explanationText = `發音重點：${hintText}`;
+          // 題型 3：真音標與發音陷阱對決（IPA & Minimal Pair Challenge）
+          typeBadge = "音素與母音辨析";
+          
+          if (targetWord.en.startsWith("cr") || targetWord.en.startsWith("stick")) {
+            promptText = `Q${qIdx + 1}. 單字【${targetWord.en}】開頭的子音群發音是？`;
+            const correctSound = targetWord.en.startsWith("cr") ? "/kr/" : "/st/";
+            const fakeSoundA = targetWord.en.startsWith("cr") ? "/gl/" : "/sk/";
+            const fakeSoundB = targetWord.en.startsWith("cr") ? "/gr/" : "/sp/";
+            options = [
+              { text: correctSound, isCorrect: true },
+              { text: fakeSoundA, isCorrect: false },
+              { text: fakeSoundB, isCorrect: false }
+            ].sort(() => Math.random() - 0.5);
+            explanationText = `【${targetWord.en}】字首子音為無聲爆破群 ${correctSound}。`;
+          } else if (targetWord.en.includes("th")) {
+            promptText = `Q${qIdx + 1}. 單字【${targetWord.en}】中的 -th- 發哪一個咬舌音？`;
+            options = [
+              { text: "濁音 /ð/（帶聲帶振動）", isCorrect: true },
+              { text: "清音 /θ/（純氣音）", isCorrect: false },
+              { text: "清音 /s/（齒齦摩擦音）", isCorrect: false }
+            ].sort(() => Math.random() - 0.5);
+            explanationText = `【${targetWord.en}】的 th 發咬舌濁音 /ð/。`;
+          } else {
+            promptText = `Q${qIdx + 1}. 單字【${targetWord.en}】（${targetWord.zh}）的第一個母音核心讀音為？`;
+            options = [
+              { text: "短母音（短促收音）", isCorrect: true },
+              { text: "長雙母音（滑音拉長）", isCorrect: false },
+              { text: "完全不發音（弱化無聲）", isCorrect: false }
+            ].sort(() => Math.random() - 0.5);
+            explanationText = `發音重點：${targetWord.hint || "注意母音短促讀音與重音位置。"}`;
+          }
 
         } else {
-          typeBadge = "形近字挑戰";
-          promptText = `Q${qIdx + 1}. 請辨別下列何者才是正確的【${targetWord.zh}】？（小心形近假字）`;
-          
+          // 題型 4：高擬真形近字／假詞對決（Hardcore Distractor Challenge）
+          typeBadge = "形近字魔王題";
+          const realWord = targetWord.en;
+          const confuser = targetWord.distractor || generateSubtleSpellingTrap(realWord);
+          const trapWord = generateSubtleSpellingTrap(confuser);
+
+          promptText = `Q${qIdx + 1}. 請抓出正確拼寫！下列哪一個才是符合【${targetWord.zh}】的「正字」？（兩者皆為干擾偽字）`;
           options = [
-            { text: targetWord.en, isCorrect: true },
-            { text: targetWord.distractor, isCorrect: false },
-            { text: `${targetWord.en}s`, isCorrect: false }
+            { text: realWord, isCorrect: true },
+            { text: confuser, isCorrect: false },
+            { text: trapWord, isCorrect: false }
           ].sort(() => Math.random() - 0.5);
-          explanationText = `目標字為【${targetWord.en}】，常見混淆字為【${targetWord.distractor}】。`;
+          explanationText = `只有【${realWord}】才是正確單字，【${confuser}】為形近干擾字！`;
         }
 
         const card = document.createElement("div");
@@ -1271,7 +1309,7 @@
               btn.classList.add("wrong");
               btn.innerText = `❌ 錯誤！你的答案：${opt.text}`;
               allBtns.forEach(b => {
-                if (b.innerText === targetWord.en || b.innerText === targetWord.hint) {
+                if (options.find(o => o.text === b.innerText && o.isCorrect)) {
                   b.classList.add("correct");
                 }
               });
