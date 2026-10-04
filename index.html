@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>兒童菁英班_每週英文任務</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Noto+Sans+TC:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b1120;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --accent-yellow: #facc15;
+      --accent-green: #22c55e;
+      --accent-blue: #38bdf8;
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Fredoka', 'Noto Sans TC', sans-serif; -webkit-tap-highlight-color: transparent; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 14px;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .container {
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* 頂部 Roblox 頭像與狀態列 */
+    .status-bar {
+      background: var(--card-bg);
+      border: 2px solid var(--card-border);
+      border-radius: 20px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    }
+    .roblox-avatar {
+      width: 52px;
+      height: 52px;
+      background: #ffd000;
+      border-radius: 8px;
+      border: 3px solid #000;
+      position: relative;
+      flex-shrink: 0;
+      animation: float 2.5s ease-in-out infinite;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.3);
+    }
+    .roblox-avatar .eye {
+      position: absolute;
+      width: 6px;
+      height: 10px;
+      background: #000;
+      border-radius: 2px;
+      top: 14px;
+    }
+    .roblox-avatar .eye.left { left: 12px; }
+    .roblox-avatar .eye.right { right: 12px; }
+    .roblox-avatar .mouth {
+      position: absolute;
+      width: 16px;
+      height: 4px;
+      background: #000;
+      bottom: 12px;
+      left: 15px;
+      border-radius: 0 0 4px 4px;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    .status-info { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+    .status-top { display: flex; justify-content: space-between; align-items: center; }
+    .quest-title { font-size: 1.1rem; font-weight: 700; color: var(--accent-yellow); }
+    .level-badge {
+      background: #0284c7;
+      color: white;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 700;
+      border: 1px solid #38bdf8;
+    }
+    .xp-track {
+      background: #0f172a;
+      height: 10px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--card-border);
+    }
+    .xp-bar {
+      background: linear-gradient(90deg, #38bdf8, #22c55e);
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* 歷史關卡切換器 (橫向滑動按鈕) */
+    .quest-selector-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    .quest-selector-box::-webkit-scrollbar { display: none; }
+    .quest-tab {
+      background: #1e293b;
+      border: 1px solid var(--card-border);
+      color: var(--text-dim);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .quest-tab.active {
+      background: var(--accent-blue);
+      color: #0b1120;
+      border-color: var(--accent-blue);
+      box-shadow: 0 2px 8px rgba(56, 189, 248, 0.4);
+    }
+
+    /* 卡片模組 */
+    .card {
+      background: var(--card-bg);
+      border: 2px solid var(--card-border);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    }
+    .section-label {
+      font-size: 0.85rem;
+      color: var(--accent-blue);
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 單字卡 3D 翻面 */
+    .flip-card {
+      background-color: transparent;
+      perspective: 1000px;
+      height: 76px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .flip-card:last-child { margin-bottom: 0; }
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.4s ease;
+      transform-style: preserve-3d;
+      border-radius: 14px;
+    }
+    .flip-card.is-flipped .flip-card-inner { transform: rotateY(180deg); }
+    .flip-front, .flip-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      border-radius: 14px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid #334155;
+    }
+    .flip-front { background: #0f172a; }
+    .flip-back {
+      background: linear-gradient(135deg, #1e3a8a, #0f172a);
+      border-color: #38bdf8;
+      transform: rotateY(180deg);
+      justify-content: center;
+      text-align: center;
+      padding: 8px 12px;
+    }
+    .word-en { font-size: 1.25rem; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
+    .word-zh { font-size: 0.9rem; color: var(--text-dim); margin-top: 2px; }
+    .flip-tip {
+      font-size: 0.7rem;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.15);
+      padding: 2px 6px;
+      border-radius: 6px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .back-fun-text { font-size: 0.9rem; color: #38bdf8; font-weight: 700; line-height: 1.4; }
+
+    /* 語音按鈕 */
+    .sound-btn {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      border: none;
+      color: white;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.2rem;
+      box-shadow: 0 4px 0 #075985;
+      transition: transform 0.1s;
+      flex-shrink: 0;
+    }
+    .sound-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #075985; }
+
+    /* 句子區塊 */
+    .sentence-box {
+      background: #0f172a;
+      border-radius: 12px;
+      padding: 12px;
+      border-left: 4px solid var(--accent-yellow);
+      margin-bottom: 10px;
+    }
+    .sentence-en { font-size: 1.05rem; font-weight: 700; line-height: 1.4; color: #fff; margin-bottom: 4px; }
+    .sentence-zh { font-size: 0.85rem; color: var(--text-dim); }
+
+    .sentence-sound-btn {
+      width: 100%;
+      background: #334155;
+      border: none;
+      color: var(--text);
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 3px 0 #1e293b;
+    }
+    .sentence-sound-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #1e293b; }
+
+    /* 家長專區 */
+    .grandparent-card {
+      background: #143526;
+      border: 2px solid #22c55e;
+      border-radius: 16px;
+      padding: 14px;
+      color: #e2e8f0;
+    }
+    .grandparent-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #86efac;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .grandparent-text { font-size: 0.9rem; line-height: 1.5; color: #d1fae5; }
+
+    /* 通關按鈕與特效畫面 */
+    .claim-btn {
+      background: linear-gradient(180deg, #22c55e, #16a34a);
+      color: white;
+      border: none;
+      border-radius: 16px;
+      padding: 16px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 5px 0 #15803d, 0 8px 20px rgba(34, 197, 94, 0.3);
+      transition: transform 0.1s;
+    }
+    .claim-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #15803d; }
+
+    .reward-screen {
+      display: none;
+      text-align: center;
+      background: #1e293b;
+      border: 2px solid var(--accent-yellow);
+      border-radius: 18px;
+      padding: 20px;
+      animation: popIn 0.3s ease;
+    }
+    @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    #confetti-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      pointer-events: none;
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="confetti-canvas"></canvas>
+
+  <div class="container">
+    <!-- 頂部頭像與經驗條 -->
+    <div class="status-bar">
+      <div class="roblox-avatar">
+        <div class="eye left"></div>
+        <div class="eye right"></div>
+        <div class="mouth"></div>
+      </div>
+      <div class="status-info">
+        <div class="status-top">
+          <div class="quest-title">ROBLOX 能量任務</div>
+          <div class="level-badge" id="lesson-tag">關卡</div>
+        </div>
+        <div class="xp-track">
+          <div class="xp-bar" id="xp-bar"></div>
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-dim); text-align: right;" id="xp-text">跟讀進度: 0%</div>
+      </div>
+    </div>
+
+    <!-- 歷史關卡切換選單 -->
+    <div class="quest-selector-box" id="quest-selector"></div>
+
+    <!-- 1. 核心單字 -->
+    <div class="card">
+      <div class="section-label">⚔️ 3 個單字 (點卡片看自然拼讀拆解)</div>
+      <div id="words-container"></div>
+    </div>
+
+    <!-- 2. 重點句子 -->
+    <div class="card">
+      <div class="section-label">📜 今日密碼通關句</div>
+      <div class="sentence-box">
+        <div class="sentence-en" id="sentence-en"></div>
+        <div class="sentence-zh" id="sentence-zh"></div>
+      </div>
+      <button class="sentence-sound-btn" id="sentence-audio-btn">
+        🔊 聽發音並大聲跟讀
+      </button>
+    </div>
+
+    <!-- 3. 家長專區 -->
+    <div class="grandparent-card">
+      <div class="grandparent-title">家長請看這：</div>
+      <div class="grandparent-text">
+        家長辛苦了！您不用管英文是什麼意思。只要看到孩子<strong>按喇叭跟著唸出聲音 3 遍</strong>，就可以讓他按下方按鈕打卡！今天他就及格囉！✨
+      </div>
+    </div>
+
+    <!-- 4. 打卡結算 -->
+    <button class="claim-btn" id="claim-btn" onclick="finishQuest()">🏆 跟讀完成，解鎖通行證！</button>
+
+    <div class="reward-screen" id="reward-screen">
+      <div style="font-size: 2.2rem; margin-bottom: 8px;">🎉 任務全數通關！</div>
+      <div style="font-size: 1.15rem; color: var(--accent-yellow); font-weight: 700; margin-bottom: 6px;">本日經驗值已滿 (+100 XP)</div>
+      <p style="font-size: 0.9rem; color: var(--text-dim);">拿去給爸媽看吧！🎮</p>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbx2POKZ_u9PRlaYedGj8IycHPBGlP8_xsGjXgcrPMKO5U2MimsWTO7zpVM4uRCXcqGJ/exec";
+
+    // 從網址獲取學生代號（例如 ?user=student1），若無則預設為 default
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentUser = urlParams.get('user') || "default";
+
+    const allQuests = [
+      {
+        lessonNumber: "第 4 關",
+        words: [
+          { en: "rain", display: "rain", zh: "下雨", hint: "🌧️ ai 唸長音 [e]！記住 r-ain 就能拼出來" },
+          { en: "weather", display: "wea · ther", zh: "天氣", hint: "☀️ 拆成兩塊：wea- (短音 e) + -ther (th咬舌頭)" },
+          { en: "outside", display: "out · side", zh: "外面", hint: "🚪 積木單字：out(出去) + side(旁邊) = 外面" }
+        ],
+        sentence: {
+          en: "It is raining outside.",
+          zh: "外面正在下雨。"
+        }
+      },
+      {
+        lessonNumber: "第 3 關",
+        words: [
+          { en: "happy", display: "hap · py", zh: "開心的", hint: "😄 a 唸大嘴巴短音 [æ]" },
+          { en: "school", display: "school", zh: "學校", hint: "🏫 ch 這裡發 [k] 的音" },
+          { en: "friend", display: "friend", zh: "朋友", hint: "🤝 ie 在這裡發短母音 [e]" }
+        ],
+        sentence: {
+          en: "I see my friend at school.",
+          zh: "我在學校看到我的朋友。"
+        }
+      }
+    ];
+    // =========================================================================
+
+    let currentQuestIdx = 0;
+    let playCount = 0;
+
+    // 關卡切換選單初始化
+    const selectorBox = document.getElementById("quest-selector");
+    allQuests.forEach((quest, idx) => {
+      const btn = document.createElement("button");
+      btn.className = `quest-tab ${idx === 0 ? 'active' : ''}`;
+      btn.innerText = quest.lessonNumber;
+      btn.onclick = () => switchQuest(idx);
+      selectorBox.appendChild(btn);
+    });
+
+    function switchQuest(idx) {
+      currentQuestIdx = idx;
+      document.querySelectorAll(".quest-tab").forEach((btn, i) => {
+        btn.classList.toggle("active", i === idx);
+      });
+      loadQuest(allQuests[idx]);
+    }
+
+    function checkCompletedStatus(lessonNumber) {
+      const completedList = JSON.parse(localStorage.getItem("roblox_completed_quests") || "[]");
+      return completedList.includes(lessonNumber);
+    }
+
+    function updateQuestTabs() {
+      const completedList = JSON.parse(localStorage.getItem("roblox_completed_quests") || "[]");
+      document.querySelectorAll(".quest-tab").forEach((btn, idx) => {
+        const questName = allQuests[idx].lessonNumber;
+        if (completedList.includes(questName)) {
+          btn.innerText = `★ ${questName}`;
+        } else {
+          btn.innerText = questName;
+        }
+      });
+    }
+
+    function loadQuest(quest) {
+      document.getElementById("lesson-tag").innerText = quest.lessonNumber;
+      document.getElementById("sentence-en").innerText = quest.sentence.en;
+      document.getElementById("sentence-zh").innerText = quest.sentence.zh;
+      document.getElementById("sentence-audio-btn").onclick = () => playAudio(quest.sentence.en);
+
+      // 檢查是否已完成存檔
+      const isDone = checkCompletedStatus(quest.lessonNumber);
+      if (isDone) {
+        document.getElementById("xp-bar").style.width = "100%";
+        document.getElementById("xp-text").innerText = "跟讀進度: 100% ⭐ 已通關";
+        document.getElementById("claim-btn").style.display = "none";
+        document.getElementById("reward-screen").style.display = "block";
+      } else {
+        document.getElementById("claim-btn").style.display = "block";
+        document.getElementById("reward-screen").style.display = "none";
+        playCount = 0;
+        document.getElementById("xp-bar").style.width = "0%";
+        document.getElementById("xp-text").innerText = "跟讀進度: 0%";
+      }
+
+      const wordsDiv = document.getElementById("words-container");
+      wordsDiv.innerHTML = "";
+      quest.words.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "flip-card";
+        card.onclick = (e) => {
+          if (e.target.closest('.sound-btn')) return;
+          card.classList.toggle('is-flipped');
+        };
+
+        card.innerHTML = `
+          <div class="flip-card-inner">
+            <div class="flip-front">
+              <div>
+                <div class="word-en">${item.display} <span class="flip-tip">拆解 💡</span></div>
+                <div class="word-zh">${item.zh}</div>
+              </div>
+              <button class="sound-btn" onclick="playAudio('${item.en}')">🔊</button>
+            </div>
+            <div class="flip-back">
+              <div class="back-fun-text">${item.hint}</div>
+            </div>
+          </div>
+        `;
+        wordsDiv.appendChild(card);
+      });
+    }
+
+    // 放慢語速原生發音
+    function playAudio(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'en-US';
+        utter.rate = 0.8;
+        window.speechSynthesis.speak(utter);
+
+        if (playCount < 4 && !checkCompletedStatus(allQuests[currentQuestIdx].lessonNumber)) {
+          playCount++;
+          const progress = Math.min(playCount * 25, 100);
+          document.getElementById("xp-bar").style.width = progress + "%";
+          document.getElementById("xp-text").innerText = `跟讀進度: ${progress}%`;
+        }
+      }
+    }
+
+    // 8-bit 電玩音效
+    function playVictorySound() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.1);
+          gain.gain.setValueAtTime(0.2, audioCtx.currentTime + idx * 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + idx * 0.1 + 0.25);
+          osc.start(audioCtx.currentTime + idx * 0.1);
+          osc.stop(audioCtx.currentTime + idx * 0.1 + 0.25);
+        });
+      } catch (e) {}
+    }
+
+    // 彩花特效
+    function startConfetti() {
+      const canvas = document.getElementById("confetti-canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const pieces = [];
+      const colors = ["#facc15", "#38bdf8", "#22c55e", "#f43f5e", "#a855f7"];
+      for (let i = 0; i < 90; i++) {
+        pieces.push({
+          x: canvas.width / 2,
+          y: canvas.height / 2,
+          r: Math.random() * 6 + 4,
+          dx: (Math.random() - 0.5) * 12,
+          dy: (Math.random() - 0.8) * 14,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          tilt: Math.random() * 10,
+          tiltSpeed: Math.random() * 0.1 + 0.05
+        });
+      }
+
+      let frame = 0;
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(p => {
+          p.x += p.dx;
+          p.y += p.dy;
+          p.dy += 0.3;
+          p.tilt += p.tiltSpeed;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = p.color;
+          ctx.fill();
+        });
+        frame++;
+        if (frame < 120) requestAnimationFrame(animate);
+        else ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      animate();
+    }
+
+    // 跨裝置同步：向 Google 試算表抓取存檔
+    async function syncFromCloud() {
+      if (!API_URL || API_URL === "https://script.google.com/macros/s/AKfycbx2POKZ_u9PRlaYedGj8IycHPBGlP8_xsGjXgcrPMKO5U2MimsWTO7zpVM4uRCXcqGJ/exec") {
+        updateQuestTabs();
+        loadQuest(allQuests[0]);
+        return;
+      }
+      try {
+        const res = await fetch(`${API_URL}?action=get&user=${encodeURIComponent(currentUser)}`);
+        const cloudCompleted = await res.json();
+        if (Array.isArray(cloudCompleted)) {
+          let localCompleted = JSON.parse(localStorage.getItem("roblox_completed_quests") || "[]");
+          const merged = Array.from(new Set([...localCompleted, ...cloudCompleted]));
+          localStorage.setItem("roblox_completed_quests", JSON.stringify(merged));
+        }
+      } catch (err) {
+        console.log("雲端同步載入中斷，使用本機快取");
+      } finally {
+        updateQuestTabs();
+        loadQuest(allQuests[0]);
+      }
+    }
+
+    // 完成打卡通關
+    function finishQuest() {
+      playVictorySound();
+      startConfetti();
+
+      const currentLesson = allQuests[currentQuestIdx].lessonNumber;
+
+      document.getElementById("xp-bar").style.width = "100%";
+      document.getElementById("xp-text").innerText = "跟讀進度: 100% ⭐ 已通關";
+      document.getElementById("claim-btn").style.display = "none";
+      document.getElementById("reward-screen").style.display = "block";
+
+      // 寫入本機存檔
+      let completedList = JSON.parse(localStorage.getItem("roblox_completed_quests") || "[]");
+      if (!completedList.includes(currentLesson)) {
+        completedList.push(currentLesson);
+        localStorage.setItem("roblox_completed_quests", JSON.stringify(completedList));
+        updateQuestTabs();
+      }
+
+      // 非同步回傳 Google 試算表（跨裝置雲端儲存）
+      if (API_URL && API_URL !== "https://script.google.com/macros/s/AKfycbx2POKZ_u9PRlaYedGj8IycHPBGlP8_xsGjXgcrPMKO5U2MimsWTO7zpVM4uRCXcqGJ/exec") {
+        fetch(`${API_URL}?action=save&user=${encodeURIComponent(currentUser)}&quest=${encodeURIComponent(currentLesson)}`, {
+          mode: 'no-cors'
+        });
+      }
+    }
+
+    // 啟動雲端同步
+    syncFromCloud();
+  </script>
+</body>
+</html>
