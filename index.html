@@ -644,7 +644,7 @@
 
     <div class="reference-deck">
       <div class="section-title">
-        <span>🔤 本段核心單字拆解（必須聽完）：</span>
+        <span>🔤 本段核心單字拆解：</span>
         <span class="word-listen-tracker-badge" id="word-tracker-badge">進度 0 / 0</span>
       </div>
       <div class="ref-cards-container" id="ref-cards-box"></div>
@@ -873,7 +873,7 @@
     function updateWordTrackerBadge(quest) {
       const badge = document.getElementById("word-tracker-badge");
       if (badge) {
-        badge.innerText = `單字拆解進度：${listenedWordsSet.size} / ${quest.words.length}`;
+        badge.innerText = `單字進度：${listenedWordsSet.size} / ${quest.words.length}`;
         if (listenedWordsSet.size >= quest.words.length) {
           badge.style.color = "#86efac";
           badge.style.borderColor = "var(--green)";
