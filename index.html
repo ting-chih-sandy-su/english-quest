@@ -13,14 +13,14 @@
 
   <style>
     :root {
-      --bg: #090e1a;
+      --bg: #0b1120;
       --card-bg: #1e293b;
       --gold: #facc15;
       --cyan: #38bdf8;
       --green: #22c55e;
       --red: #ef4444;
-      --border-dark: #334155;
-      --text-main: #ffffff;
+      --border: #334155;
+      --text-main: #f8fafc;
       --text-sub: #94a3b8;
     }
 
@@ -33,185 +33,218 @@
       font-family: 'Fredoka', 'Noto Sans TC', sans-serif;
     }
 
-    html, body {
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      background: radial-gradient(circle at 50% 20%, #1e293b 0%, #070a13 100%);
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at 50% 15%, #1e293b 0%, #070a13 100%);
       color: var(--text-main);
       display: flex;
       justify-content: center;
-      align-items: center;
+      padding: 16px 12px 40px;
+      overflow-x: hidden;
+      overflow-y: auto;
     }
 
     .app-viewport {
       width: 100%;
-      max-width: 420px;
-      height: 98vh;
-      max-height: 840px;
+      max-width: 440px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      padding: 8px 12px;
+      gap: 16px;
       position: relative;
-      z-index: 10;
     }
 
+    /* 頂部列：下拉選單（適合好幾十週）＋ 功能鍵 */
     .control-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
 
-    .quest-tabs-scroll {
+    .quest-select-wrap {
+      flex: 1;
+      position: relative;
+    }
+
+    .quest-dropdown {
+      width: 100%;
+      background: #1e293b;
+      border: 2px solid var(--border);
+      color: #38bdf8;
+      font-size: 0.85rem;
+      font-weight: 800;
+      padding: 8px 12px;
+      border-radius: 14px;
+      outline: none;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 16px;
+    }
+
+    .header-actions {
       display: flex;
       gap: 6px;
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-    .quest-tabs-scroll::-webkit-scrollbar { display: none; }
-
-    .q-btn {
-      background: var(--card-bg);
-      border: 2px solid var(--border-dark);
-      color: var(--text-sub);
-      padding: 4px 10px;
-      border-radius: 10px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .q-btn.active {
-      background: var(--cyan);
-      color: #0b1120;
-      border-color: #0284c7;
+      flex-shrink: 0;
     }
 
     .pill-btn {
       background: #1e293b;
-      border: 2px solid var(--border-dark);
+      border: 1.5px solid var(--border);
       color: #fff;
-      padding: 4px 10px;
-      border-radius: 10px;
-      font-size: 0.76rem;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 0.78rem;
       font-weight: 800;
       cursor: pointer;
       white-space: nowrap;
     }
-    .pill-btn.bag-btn { background: linear-gradient(180deg, #ec4899, #be185d); border-color: #831843; }
-    .pill-btn.parent-btn { background: rgba(34, 197, 94, 0.15); border-color: #22c55e; color: #86efac; }
-    .pill-btn.parent-btn.active { background: #22c55e; color: #052e16; }
+    .pill-btn.bag-btn { 
+      background: linear-gradient(135deg, #ec4899, #be185d); 
+      border-color: #f472b6;
+      box-shadow: 0 2px 8px rgba(236, 72, 153, 0.3);
+    }
+    .pill-btn.parent-btn { 
+      background: rgba(34, 197, 94, 0.15); 
+      border-color: #22c55e; 
+      color: #86efac; 
+    }
+    .pill-btn.parent-btn.active { 
+      background: #22c55e; 
+      color: #052e16; 
+    }
 
     .parent-overview-panel {
       display: none;
-      background: linear-gradient(135deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.98));
+      background: rgba(15, 23, 42, 0.95);
       border: 2px solid var(--green);
-      border-radius: 14px;
-      padding: 8px 12px;
-      font-size: 0.78rem;
+      border-radius: 16px;
+      padding: 12px 14px;
+      font-size: 0.82rem;
       color: #e2e8f0;
-      line-height: 1.45;
+      line-height: 1.55;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
     }
     .parent-overview-panel.show { display: block; }
-    .parent-overview-panel h4 { color: #86efac; font-size: 0.85rem; margin-bottom: 3px; }
+    .parent-overview-panel h4 { color: #86efac; font-size: 0.9rem; margin-bottom: 6px; }
 
+    /* 聽力挑戰核心舞台 */
     .challenge-arena {
-      background: linear-gradient(180deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98));
-      border: 2px solid var(--border-dark);
-      box-shadow: 0 4px 0 #000;
-      border-radius: 20px;
-      padding: 12px 14px;
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      border: 2px solid var(--border);
+      border-radius: 24px;
+      padding: 20px 16px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      min-height: 235px;
-      position: relative;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+      gap: 12px;
     }
 
     .stage-badge {
-      font-size: 0.75rem;
+      font-size: 0.78rem;
       font-weight: 800;
       color: var(--gold);
-      background: rgba(250, 204, 21, 0.15);
-      padding: 2px 10px;
+      background: rgba(250, 204, 21, 0.12);
+      border: 1px solid rgba(250, 204, 21, 0.3);
+      padding: 4px 14px;
       border-radius: 999px;
-      margin-bottom: 4px;
     }
 
     .challenge-title {
-      font-size: 1.02rem;
-      font-weight: 900;
-      text-align: center;
-      margin-bottom: 6px;
-    }
-
-    .listen-counter-pill {
-      font-size: 0.76rem;
+      font-size: 1.05rem;
       font-weight: 800;
-      color: #38bdf8;
-      background: rgba(56, 189, 248, 0.12);
-      border: 1px solid var(--cyan);
-      border-radius: 999px;
-      padding: 2px 10px;
-      margin-bottom: 8px;
-    }
-
-    .audio-speaker-pulse {
-      width: 62px;
-      height: 62px;
-      border-radius: 50%;
-      background: linear-gradient(180deg, var(--cyan), #0284c7);
-      border: 3px solid #fff;
+      text-align: center;
+      line-height: 1.4;
+      color: #f1f5f9;
+      min-height: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.8rem;
-      cursor: pointer;
-      box-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
-      margin-bottom: 12px;
-      transition: transform 0.1s;
     }
-    .audio-speaker-pulse:active { transform: scale(0.9); }
+
+    .listen-counter-pill {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid var(--cyan);
+      border-radius: 999px;
+      padding: 4px 14px;
+    }
+
+    .audio-speaker-pulse {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--cyan), #0284c7);
+      border: 3.5px solid #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.1rem;
+      cursor: pointer;
+      box-shadow: 0 0 24px rgba(56, 189, 248, 0.5);
+      margin: 4px 0 6px;
+      transition: transform 0.15s;
+    }
+    .audio-speaker-pulse:active { transform: scale(0.92); }
     .audio-speaker-pulse.playing {
       animation: pulsePlay 0.8s infinite alternate;
       border-color: var(--gold);
+      box-shadow: 0 0 32px rgba(250, 204, 21, 0.7);
     }
 
     .choices-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      gap: 12px;
       width: 100%;
+      margin-top: 4px;
     }
     .choices-grid.three-cols {
       grid-template-columns: 1fr 1fr 1fr;
-      gap: 6px;
+      gap: 8px;
     }
 
     .choice-card-btn {
-      background: #0f172a;
-      border: 2px solid var(--border-dark);
+      background: #090e1a;
+      border: 2px solid var(--border);
       color: #fff;
+      min-height: 58px;
       padding: 12px 8px;
-      border-radius: 12px;
+      border-radius: 16px;
       font-size: 1.15rem;
       font-weight: 800;
       cursor: pointer;
       text-align: center;
-      transition: all 0.15s;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .choice-card-btn:active { transform: scale(0.95); }
+    .choice-card-btn:active { transform: scale(0.96); }
     .choice-card-btn.locked {
       opacity: 0.35;
       cursor: not-allowed;
       filter: grayscale(1);
       pointer-events: none;
     }
-    .choice-card-btn.correct { background: var(--green); border-color: #fff; color: #000; }
-    .choice-card-btn.wrong { background: var(--red); border-color: #fff; animation: shakeBtn 0.3s; }
+    .choice-card-btn.correct { 
+      background: var(--green); 
+      border-color: #fff; 
+      color: #052e16; 
+      box-shadow: 0 0 16px rgba(34, 197, 94, 0.6);
+    }
+    .choice-card-btn.wrong { 
+      background: var(--red); 
+      border-color: #fff; 
+      animation: shakeBtn 0.3s; 
+    }
 
     @keyframes shakeBtn {
       0%, 100% { transform: translateX(0); }
@@ -224,136 +257,153 @@
       background: linear-gradient(180deg, #f59e0b, #d97706);
       border: 3px solid #fef08a;
       color: #000;
-      padding: 14px;
-      border-radius: 16px;
-      font-size: 1.18rem;
+      padding: 16px;
+      border-radius: 18px;
+      font-size: 1.25rem;
       font-weight: 900;
       cursor: pointer;
-      box-shadow: 0 0 25px rgba(245, 158, 11, 0.8);
+      box-shadow: 0 0 30px rgba(245, 158, 11, 0.7);
       animation: pulseGacha 0.8s infinite alternate;
-      margin-top: 6px;
+      margin: 8px 0;
     }
     @keyframes pulseGacha {
       from { transform: scale(1); }
-      to { transform: scale(1.04); }
+      to { transform: scale(1.03); }
     }
 
-    .progress-status-box {
+    .progress-box {
       width: 100%;
+      margin-top: 4px;
+    }
+    .progress-status-box {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      font-size: 0.76rem;
+      font-size: 0.78rem;
       font-weight: 800;
       color: var(--text-sub);
-      margin-top: 10px;
+      margin-bottom: 6px;
     }
     .progress-bar-wrap {
       width: 100%;
       height: 8px;
-      background: #0f172a;
+      background: #090e1a;
       border-radius: 999px;
-      margin-top: 3px;
       overflow: hidden;
-      border: 1px solid var(--border-dark);
+      border: 1px solid var(--border);
     }
     .progress-bar-fill {
       height: 100%;
       width: 0%;
       background: linear-gradient(90deg, var(--cyan), var(--gold));
-      transition: width 0.3s;
+      transition: width 0.3s ease;
     }
 
+    /* 下方卡片區 */
     .reference-deck {
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      max-height: 48vh;
-      overflow-y: auto;
-      scrollbar-width: none;
+      gap: 12px;
     }
-    .reference-deck::-webkit-scrollbar { display: none; }
 
     .section-title {
-      font-size: 0.75rem;
+      font-size: 0.82rem;
       font-weight: 800;
       color: var(--gold);
+      margin-bottom: -4px;
     }
 
+    .ref-cards-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
     .ref-card {
-      background: linear-gradient(180deg, #1e293b, #0f172a);
-      border: 1.5px solid var(--border-dark);
-      border-radius: 10px;
-      padding: 6px 10px;
+      background: rgba(30, 41, 59, 0.7);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 12px;
     }
-    .ref-en { font-size: 1rem; font-weight: 800; }
-    .ref-zh { font-size: 0.74rem; color: var(--text-sub); font-weight: 700; }
+    .ref-card-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .ref-en { font-size: 1.05rem; font-weight: 800; color: #fff; }
+    .ref-zh { font-size: 0.78rem; color: var(--text-sub); font-weight: 700; }
+    .ref-hint { color: #38bdf8; font-size: 0.74rem; }
     
     .slow-audio-btn {
-      background: rgba(56, 189, 248, 0.15);
-      border: 1px solid var(--cyan);
+      background: rgba(56, 189, 248, 0.12);
+      border: 1.5px solid var(--cyan);
       color: var(--cyan);
-      padding: 3px 8px;
-      border-radius: 8px;
-      font-size: 0.72rem;
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-size: 0.76rem;
       font-weight: 800;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 3px;
       white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .article-full-card {
-      background: linear-gradient(180deg, #1e293b, #0f172a);
-      border: 2px solid var(--border-dark);
-      border-radius: 12px;
-      padding: 8px 10px;
+      background: rgba(30, 41, 59, 0.9);
+      border: 2px solid var(--border);
+      border-radius: 18px;
+      padding: 14px 16px;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      flex-direction: column;
+      gap: 12px;
       transition: all 0.3s;
     }
     .article-full-card.listening-required {
       border-color: #f59e0b;
-      box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.25);
     }
     .article-full-card.listened-completed {
       border-color: var(--green);
-      background: linear-gradient(180deg, #14532d, #052e16);
+      background: linear-gradient(180deg, rgba(20, 83, 45, 0.8), rgba(5, 46, 22, 0.8));
     }
-    .article-tag { font-size: 0.68rem; font-weight: 800; color: var(--gold); }
-    .article-en { font-size: 0.88rem; font-weight: 800; line-height: 1.35; color: #fff; }
-    .article-zh { font-size: 0.72rem; color: var(--text-sub); font-weight: 700; }
+    .article-tag { font-size: 0.72rem; font-weight: 800; color: var(--gold); }
+    .article-en { font-size: 0.92rem; font-weight: 700; line-height: 1.5; color: #f8fafc; }
+    .article-zh { font-size: 0.78rem; color: var(--text-sub); line-height: 1.4; }
 
     .article-btn-action {
+      width: 100%;
       background: linear-gradient(180deg, var(--gold), #ca8a04);
       color: #0b1120;
       border: none;
-      padding: 7px 10px;
-      border-radius: 10px;
-      font-size: 0.74rem;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-size: 0.88rem;
       font-weight: 900;
       cursor: pointer;
-      white-space: nowrap;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      gap: 2px;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: 0 2px 0 #854d0e;
     }
     .article-btn-action.playing {
       background: #38bdf8;
+      box-shadow: 0 2px 0 #0284c7;
       animation: pulsePlay 1s infinite alternate;
     }
     .article-btn-action.done {
       background: var(--green);
       color: #fff;
+      box-shadow: 0 2px 0 #15803d;
     }
-    @keyframes pulsePlay { from { transform: scale(1); } to { transform: scale(1.05); } }
 
+    @keyframes pulsePlay {
+      from { transform: scale(1); }
+      to { transform: scale(1.02); }
+    }
+
+    /* Modal */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -371,32 +421,30 @@
       max-width: 380px;
       background: linear-gradient(180deg, #1e293b, #090e1a);
       border: 3px solid var(--gold);
-      border-radius: 22px;
-      padding: 18px 16px;
+      border-radius: 24px;
+      padding: 22px 18px;
       text-align: center;
-      box-shadow: 0 0 40px rgba(250, 204, 21, 0.4);
+      box-shadow: 0 0 50px rgba(250, 204, 21, 0.4);
     }
-
     .report-card-wrap {
       background: rgba(15, 23, 42, 0.8);
       border: 1.5px dashed var(--green);
       border-radius: 14px;
-      padding: 10px 12px;
+      padding: 12px 14px;
       text-align: left;
-      margin: 10px 0;
-      font-size: 0.78rem;
-      line-height: 1.55;
+      margin: 12px 0;
+      font-size: 0.8rem;
+      line-height: 1.6;
     }
     .report-row { display: flex; justify-content: space-between; }
     .report-badge { color: #86efac; font-weight: 800; }
-
     .close-btn {
       width: 100%;
       background: linear-gradient(180deg, var(--green), #15803d);
       border: none;
       color: #fff;
       padding: 12px;
-      border-radius: 12px;
+      border-radius: 14px;
       font-size: 1rem;
       font-weight: 900;
       cursor: pointer;
@@ -405,17 +453,16 @@
     .bag-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
+      gap: 8px;
       max-height: 48vh;
       overflow-y: auto;
-      margin: 12px 0;
-      padding: 2px;
+      margin: 14px 0;
     }
     .bag-cell {
       background: #0f172a;
-      border: 1.5px solid var(--border-dark);
-      border-radius: 10px;
-      padding: 6px 2px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 4px;
       text-align: center;
     }
     .bag-cell.unlocked { border-color: var(--gold); background: #1e293b; }
@@ -448,14 +495,16 @@
   <div class="app-viewport">
     
     <div class="control-header">
-      <div class="quest-tabs-scroll" id="quest-nav-box"></div>
-      <div style="display:flex; gap:6px;">
-        <button class="pill-btn parent-btn" id="parent-toggle-btn" onclick="toggleParentPanel()">📋 學習大綱</button>
-        <button class="pill-btn bag-btn" onclick="openBagModal()">🎒 萬物圖鑑</button>
+      <!-- 下拉選單：即便有 50 週也不會爆版 -->
+      <div class="quest-select-wrap">
+        <select class="quest-dropdown" id="quest-dropdown-select" onchange="switchQuestFromSelect(this.value)"></select>
+      </div>
+      <div class="header-actions">
+        <button class="pill-btn parent-btn" id="parent-toggle-btn" onclick="toggleParentPanel()">📋 大綱</button>
+        <button class="pill-btn bag-btn" onclick="openBagModal()">🎒 圖鑑</button>
       </div>
     </div>
 
-    <!-- 系統全自動組合的家長大綱 -->
     <div class="parent-overview-panel" id="parent-panel">
       <h4>📌 本週學習目標（系統自動生成）</h4>
       <div id="parent-overview-content"></div>
@@ -466,40 +515,40 @@
 
     <!-- 下方教材區 -->
     <div class="reference-deck">
-      <div class="section-title">🔤 核心單字慢速拆解（卡關可點此先聽嘴型）：</div>
-      <div id="ref-cards-box" style="display:flex; flex-direction:column; gap:5px;"></div>
+      <div class="section-title">🔤 核心單字拆解（卡關可聽嘴型）：</div>
+      <div class="ref-cards-container" id="ref-cards-box"></div>
 
-      <div class="section-title">📖 整篇課文朗讀：</div>
+      <div class="section-title">📖 整篇課文朗讀（必須聽完）：</div>
       <div class="article-full-card" id="article-card-box">
         <div>
-          <div class="article-tag">課文音檔</div>
+          <div class="article-tag">課文閱讀朗讀</div>
           <div class="article-en" id="article-card-en"></div>
           <div class="article-zh" id="article-card-zh"></div>
         </div>
         <button class="article-btn-action" id="article-action-btn" onclick="handleArticleAudioClick()">
           <span id="article-btn-icon">🎧</span>
-          <span id="article-btn-text">課文錄音</span>
+          <span id="article-btn-text">課文錄音 (MP3)</span>
         </button>
       </div>
     </div>
 
   </div>
 
-  <!-- 通關成果聯絡簿 Modal -->
+  <!-- 成果 Modal -->
   <div class="modal-overlay" id="loot-modal">
     <div class="modal-box">
-      <span style="display:inline-block; padding:3px 12px; border-radius:999px; font-weight:800; font-size:0.75rem; background:linear-gradient(90deg,#ec4899,#8b5cf6); color:#fff;" id="loot-rarity">神話級 MYTHIC</span>
-      <div style="font-size:3.5rem; margin:4px 0;" id="loot-icon">🐉</div>
-      <div style="font-size:1.3rem; font-weight:900;" id="loot-name">彩虹神龍</div>
-      <div style="font-size:0.9rem; color:var(--gold); font-weight:800;" id="loot-power">⚡ 戰鬥力: 999,999</div>
+      <span style="display:inline-block; padding:4px 14px; border-radius:999px; font-weight:800; font-size:0.75rem; background:linear-gradient(90deg,#ec4899,#8b5cf6); color:#fff;" id="loot-rarity">神話級 MYTHIC</span>
+      <div style="font-size:3.8rem; margin:8px 0;" id="loot-icon">🐉</div>
+      <div style="font-size:1.35rem; font-weight:900;" id="loot-name">彩虹神龍</div>
+      <div style="font-size:0.92rem; color:var(--gold); font-weight:800; margin-bottom:4px;" id="loot-power">⚡ 戰鬥力: 999,999</div>
       
       <div class="report-card-wrap">
-        <div style="font-weight:900; color:var(--gold); border-bottom:1px solid #334155; padding-bottom:3px; margin-bottom:5px;">
+        <div style="font-weight:900; color:var(--gold); border-bottom:1px solid #334155; padding-bottom:4px; margin-bottom:6px;">
           📝 本週課堂複習成效報告單
         </div>
         <div class="report-row"><span>1. 音素聽力盲測：</span><span class="report-badge">全數通過 (4/4)</span></div>
         <div class="report-row"><span>2. 整篇課文聆聽：</span><span class="report-badge" id="report-article-check">100% 完整聽畢</span></div>
-        <div style="margin-top:6px; color:#94a3b8; font-size:0.72rem; border-top:1px dashed #334155; padding-top:4px;">
+        <div style="margin-top:8px; color:#94a3b8; font-size:0.75rem; border-top:1px dashed #334155; padding-top:6px;">
           👩‍🏫 <strong>老師評語：</strong>孩子今日認真聽辨音素細節，已確實掌握核心讀音，請家長安心給予放鬆時間！
         </div>
       </div>
@@ -508,11 +557,11 @@
     </div>
   </div>
 
-  <!-- 萬物圖鑑 Modal -->
+  <!-- 圖鑑 Modal -->
   <div class="modal-overlay" id="bag-modal">
     <div class="modal-box">
-      <h3 style="font-size:1.2rem; color:var(--gold);">🎒 萬物收集圖鑑庫</h3>
-      <div style="font-size:0.78rem; color:var(--text-sub); margin-top:4px;">
+      <h3 style="font-size:1.25rem; color:var(--gold);">🎒 萬物收集圖鑑庫</h3>
+      <div style="font-size:0.8rem; color:var(--text-sub); margin-top:4px;">
         已解鎖進度：<span id="bag-progress">0</span> / 1,000 種全服圖鑑
       </div>
       <div class="bag-grid" id="bag-grid"></div>
@@ -520,107 +569,11 @@
     </div>
   </div>
 
-  <script>
-    // 通用幽靈單字庫（課文抓鬼：確保課文裡絕對沒有這些字）
-    const GHOST_WORDS_POOL = ["pizza", "monkey", "banana", "robot", "guitar", "castle", "tiger", "rocket"];
+  <!-- 引入外部題庫檔：即使累積 100 週也完全不影響主程式運作！ -->
+  <script src="quests.js"></script>
 
-    // ─── 📚 累積式關卡資料庫：包含歷史關卡與本週 Unit 35 全數 36 個單字 ───
-    const ALL_QUESTS = [
-      {
-        id: "u35_p1",
-        label: "Unit 35 (1) 聰明動物篇",
-        words: [
-          { en: "intelligent", display: "in · tel · li · gent", zh: "聰明的", audio: "", distractor: "diligent", hint: "前綴 in- 開頭；注意中間短母音 /ɛ/ 與結尾 -gent 軟音 /dʒənt/。" },
-          { en: "animal", display: "an · i · mal", zh: "動物", audio: "", distractor: "enamel", hint: "開頭 a 發蝴蝶音 /æ/；注意字尾 -mal 為弱化母音 /məl/。" },
-          { en: "ape", display: "ape", zh: "猿；人猿", audio: "", distractor: "cape", hint: "字首 a 發長母音 /e/；結尾 p 輕聲爆破釋放。" },
-          { en: "crow", display: "cr · ow", zh: "烏鴉", audio: "", distractor: "glow", hint: "雙子音群 /kr/ 不是 /gl/；ow 發雙母音 /o/。" },
-          { en: "among", display: "a · mong", zh: "在…之中", audio: "", distractor: "along", hint: "字首 a- 為弱母音 /ə/；mong 發短母音 /ʌ/ 帶鼻音 /ŋ/。" },
-          { en: "memory", display: "mem · o · ry", zh: "記憶(力)", audio: "", distractor: "melody", hint: "首音節 mem- 短母音 /ɛ/；注意中間是 /m/ 不是 /l/。" },
-          { en: "be able to", display: "be · a · ble · to", zh: "能夠", audio: "", distractor: "be table to", hint: "able 開頭發長母音 /e/；-ble 帶舌尖齒齦邊音 /bəl/。" },
-          { en: "imagine", display: "i · mag · ine", zh: "想像", audio: "", distractor: "examine", hint: "重音在第二音節 -mag- /mædʒ/；結尾 -ine 發短母音 /ɪn/。" },
-          { en: "solve", display: "solve", zh: "解決；解開", audio: "", distractor: "evolve", hint: "開頭無聲子音 /s/；母音 o 發開口短母音 /ɑ/ 帶舌邊音 /lv/。" }
-        ],
-        sentence: { 
-          en: "When we think of intelligent animals, we usually think dogs, cats, and apes. But a crow is among the most intelligent animals in the world.", 
-          zh: "當我們想到聰明的動物時，通常會想到狗、貓和猿類。但烏鴉是世界上最聰明的動物之一。",
-          audio: "audio/crow_u35.mp3" 
-        }
-      },
-      {
-        id: "u35_p2",
-        label: "Unit 35 (2) 工具與覓食篇",
-        words: [
-          { en: "problem", display: "prob · lem", zh: "問題；難題", audio: "", distractor: "program", hint: "雙子音群 pr- 開頭；第一音節 prob- 發短母音 /ɑ/。" },
-          { en: "tool", display: "tool", zh: "工具", audio: "", distractor: "pool", hint: "開頭是舌尖齒齦音 /t/ 不是雙唇爆破音 /p/；oo 發長母音 /u/。" },
-          { en: "tiny", display: "ti · ny", zh: "極小的", audio: "", distractor: "shiny", hint: "開頭是清子音 /t/ 不是摩擦音 /ʃ/；第一音節 ti- 發雙母音 /aɪ/。" },
-          { en: "stick", display: "stick", zh: "樹枝；棍子", audio: "", distractor: "stack", hint: "雙子音群 st- 開頭；母音 i 發短母音 /ɪ/，不是 /æ/。" },
-          { en: "get at", display: "get · at", zh: "構到；取得", audio: "", distractor: "get out", hint: "短母音 e 發 /ɛ/；at 結尾接短母音 /æt/，注意連音讀法。" },
-          { en: "tasty", display: "tas · ty", zh: "美味的", audio: "", distractor: "nasty", hint: "字首是清子音 /t/ 不是鼻音 /n/；a 發長母音 /e/。" },
-          { en: "insect", display: "in · sect", zh: "昆蟲", audio: "", distractor: "inject", hint: "第二音節 -sect 發清子音 /s/ 不是擦濁音 /dʒ/。" },
-          { en: "normal", display: "nor · mal", zh: "正常的", audio: "", distractor: "formal", hint: "字首是鼻音 /n/ 不是唇齒音 /f/；nor- 發 /nɔr/。" },
-          { en: "pay attention to", display: "pay · at · ten · tion · to", zh: "注意；留意", audio: "", distractor: "pay intention to", hint: "attention 重音在第二音節 -ten-；-tion 發摩擦音 /ʃən/。" }
-        ],
-        sentence: { 
-          en: "Crows have memories and they are able to imagine the future. A crow can hold a tiny stick in its mouth and use it to get at tasty insects.", 
-          zh: "烏鴉有記憶力，而且能夠想像未來。烏鴉能用嘴叼著小樹枝，並用它來取得美味的昆蟲。",
-          audio: "audio/crow_u35.mp3" 
-        }
-      },
-      {
-        id: "u35_p3",
-        label: "Unit 35 (3) 科學驗證篇",
-        words: [
-          { en: "though", display: "though", zh: "不過(句尾)", audio: "", distractor: "thought", hint: "咬舌濁音 /ð/ 開頭；結尾 gh 不發音，母音發雙母音 /o/。" },
-          { en: "remember", display: "re · mem · ber", zh: "記得", audio: "", distractor: "resemble", hint: "重音在第二音節 -mem-；字尾 -ber 發輕濁音 /bɚ/。" },
-          { en: "scientist", display: "sci · en · tist", zh: "科學家", audio: "", distractor: "dentist", hint: "sci- 發雙母音 /saɪ/；字尾 -tist 帶舌尖齒齦音群 /tɪst/。" },
-          { en: "tell", display: "tell", zh: "分辨；判斷", audio: "", distractor: "yell", hint: "字首是舌尖爆破音 /t/ 不是半母音 /j/；e 發短母音 /ɛ/。" },
-          { en: "whether", display: "wheth · er", zh: "是否", audio: "", distractor: "weather", hint: "注意中間 -th- 發咬舌濁音 /ð/；兩字發音同音字異形。" },
-          { en: "friendly", display: "friend · ly", zh: "友善的", audio: "", distractor: "freshly", hint: "雙子音群 fr- 開頭；ie 發短母音 /ɛ/，中間帶濁子音 /d/。" },
-          { en: "test", display: "test", zh: "測試；測驗", audio: "", distractor: "text", hint: "母音 e 發短母音 /ɛ/；字尾子音群是 -st 不是 -kst。" },
-          { en: "compared to", display: "com · pared · to", zh: "與…相比", audio: "", distractor: "prepared to", hint: "字首 com- 為弱母音 /kəm/；-pared 發雙母音帶捲舌 /pɛrd/。" },
-          { en: "puzzle", display: "puz · zle", zh: "謎題；拼圖", audio: "", distractor: "muzzle", hint: "雙唇爆破音 /p/ 開頭不是鼻音 /m/；u 發短母音 /ʌ/。" }
-        ],
-        sentence: { 
-          en: "Crows can remember human faces. Some scientists believe that they can even tell other crows whether a human is friendly or not.", 
-          zh: "烏鴉能記得人類的臉。有些科學家相信牠們甚至能告訴其他烏鴉某個人類是否友善。",
-          audio: "audio/crow_u35.mp3" 
-        }
-      },
-      {
-        id: "u35_p4",
-        label: "Unit 35 (4) 終極讚美篇",
-        words: [
-          { en: "just as well as", display: "just · as · well · as", zh: "和…一樣好", audio: "", distractor: "just as good as", hint: "well 為副詞修飾動詞動作；注意 as...as 兩端弱讀連音。" },
-          { en: "stage", display: "stage", zh: "階段", audio: "", distractor: "state", hint: "雙子音 st- 開頭；a 發長母音 /e/；字尾 -ge 發擦濁音 /dʒ/。" },
-          { en: "within", display: "with · in", zh: "在…之內", audio: "", distractor: "without", hint: "由 with + in 複合；中間 -th- 發咬舌濁音 /ð/。" },
-          { en: "be sure to", display: "be · sure · to", zh: "務必；一定要", audio: "", distractor: "be pure to", hint: "sure 開頭發無聲摩擦音 /ʃ/；母音發滑音 /ʊr/。" },
-          { en: "bird brain", display: "bird · brain", zh: "笨蛋", audio: "", distractor: "third brain", hint: "bird 帶捲舌母音 /ɝ/；brain 雙子音群 br- 搭配長母音 /e/。" },
-          { en: "compliment", display: "com · pli · ment", zh: "讚美(語)", audio: "", distractor: "complement", hint: "首音節 com- 發短母音 /ɑ/；-pli- 發輕母音 /lə/；結尾 -ment。" },
-          { en: "notice", display: "no · tice", zh: "注意到；察覺", audio: "", distractor: "native", hint: "第一音節 no- 發雙母音 /o/；字尾 -tice 發短母音清音 /tɪs/。" },
-          { en: "likely", display: "like · ly", zh: "很可能的", audio: "", distractor: "lively", hint: "首音節 like- 發雙母音 /aɪ/ 帶無聲爆破音 /k/；字尾加 -ly。" },
-          { en: "trick", display: "trick", zh: "欺騙；詭計", audio: "", distractor: "track", hint: "雙子音群 tr- 開頭；母音 i 發短母音 /ɪ/ 不是蝴蝶音 /æ/。" }
-        ],
-        sentence: { 
-          en: "They found that crows were able to solve a puzzle just as well as a seven-year-old human. So if anyone ever calls you 'bird brain,' be sure to thank them for the compliment.", 
-          zh: "他們發現烏鴉解謎的能力和七歲小孩一樣好。所以如果有人叫你「鳥腦袋」，一定要謝謝他的讚美！",
-          audio: "audio/crow_u35.mp3" 
-        }
-      },
-      {
-        id: "w4",
-        label: "Week 4 (複習)",
-        words: [
-          { en: "rain", display: "r · ain", zh: "下雨", audio: "", distractor: "lane", hint: "開頭是 /r/ 不是 /l/；ai 發長母音 /eɪ/！" },
-          { en: "weather", display: "wea · ther", zh: "天氣", audio: "", distractor: "feather", hint: "開頭是 /w/ 不是 /f/；結尾 -ther 有咬舌濁音！" },
-          { en: "outside", display: "out · side", zh: "外面", audio: "", distractor: "inside", hint: "前綴是 out 不是 in；結尾 side 發雙母音 /aɪ/！" }
-        ],
-        sentence: { 
-          en: "Today is a rainy day. The weather is cold outside. We stay inside and read books.", 
-          zh: "今天是個下雨天。外面天氣很冷。我們待在室內看書。",
-          audio: "audio/sentence_w4.mp3"
-        }
-      }
-    ];
+  <script>
+    const GHOST_WORDS_POOL = ["pizza", "monkey", "banana", "robot", "guitar", "castle", "tiger", "rocket"];
 
     const FULL_CATALOG = [];
     const SPECIES = ["彩虹神龍", "黃金香蕉狗", "暴風獨角獸", "駭客貓", "馬桶怪", "生吐司", "霸王暴龍", "爆破西瓜"];
@@ -647,22 +600,21 @@
     let hasCompletedArticleAudio = false;
     let articleAudioElement = null;
 
-    function initQuestNav() {
-      const box = document.getElementById("quest-nav-box");
-      box.innerHTML = "";
+    function initQuestDropdown() {
+      const select = document.getElementById("quest-dropdown-select");
+      select.innerHTML = "";
       ALL_QUESTS.forEach((q, idx) => {
-        const btn = document.createElement("button");
-        btn.className = `q-btn ${idx === currentQuestIdx ? 'active' : ''}`;
-        btn.innerText = q.label;
-        btn.onclick = () => switchQuest(idx);
-        box.appendChild(btn);
+        const opt = document.createElement("option");
+        opt.value = idx;
+        opt.innerText = q.label;
+        if (idx === currentQuestIdx) opt.selected = true;
+        select.appendChild(opt);
       });
     }
 
-    function switchQuest(idx) {
-      currentQuestIdx = idx;
-      initQuestNav();
-      startQuest(ALL_QUESTS[idx]);
+    function switchQuestFromSelect(idxStr) {
+      currentQuestIdx = parseInt(idxStr, 10);
+      startQuest(ALL_QUESTS[currentQuestIdx]);
     }
 
     function startQuest(quest) {
@@ -672,7 +624,6 @@
         articleAudioElement.pause();
         articleAudioElement = null;
       }
-      updateProgress();
       renderAllModules(quest);
       generateChallengeStage();
     }
@@ -692,9 +643,9 @@
         const card = document.createElement("div");
         card.className = "ref-card";
         card.innerHTML = `
-          <div>
+          <div class="ref-card-left">
             <div class="ref-en">${item.display}</div>
-            <div class="ref-zh">${item.zh} · <span style="color:#38bdf8;">${item.hint}</span></div>
+            <div class="ref-zh">${item.zh} · <span class="ref-hint">${item.hint}</span></div>
           </div>
           <button class="slow-audio-btn" onclick="playSmartAudio('${item.audio || ''}', '${item.en}', 0.55)">
             🐢 嘴型拆解
@@ -782,15 +733,15 @@
         if (quest.sentence.audio && quest.sentence.audio.trim() !== "" && !hasCompletedArticleAudio) {
           arena.innerHTML = `
             <div class="stage-badge" style="color:#f59e0b; border-color:#f59e0b;">⚠ 聽力已達標，但課文未聽！</div>
-            <div class="challenge-title" style="font-size:0.92rem; line-height:1.4;">請點擊下方黃色按鈕，將整篇「課文音檔」完整聽完才能開箱！</div>
-            <div style="font-size:2.8rem; margin:10px 0;">🔒</div>
+            <div class="challenge-title" style="font-size:0.95rem;">請點擊下方黃色按鈕，將整篇「課文音檔」完整聽完才能開箱！</div>
+            <div style="font-size:3rem; margin:12px 0;">🔒</div>
           `;
           return;
         }
 
         arena.innerHTML = `
           <div class="stage-badge">🎉 聽力驗收全數通關！</div>
-          <div class="challenge-title" style="color:var(--gold);">🔥 神秘寶箱能量已滿！</div>
+          <div class="challenge-title" style="color:var(--gold); font-size:1.2rem;">🔥 神秘寶箱能量已滿！</div>
           <button class="ready-gacha-btn" onclick="executeVictory()">🎁 點擊狂暴開箱抽神寵！</button>
         `;
         return;
@@ -804,12 +755,14 @@
         <div class="listen-counter-pill" id="listen-counter">🎧 聆聽解鎖進度：0 / 2 遍</div>
         <div class="audio-speaker-pulse" id="stage-speaker" onclick="handleChallengeSpeakerClick()">🔊</div>
         <div class="choices-grid ${isOddOneOut ? 'three-cols' : ''}" id="choices-container"></div>
-        <div class="progress-status-box">
-          <span>驗收進度</span>
-          <span id="progress-text">${currentStage} / 4 關</span>
-        </div>
-        <div class="progress-bar-wrap">
-          <div class="progress-bar-fill" id="progress-fill" style="width:${(currentStage/4)*100}%"></div>
+        <div class="progress-box">
+          <div class="progress-status-box">
+            <span>驗收進度</span>
+            <span id="progress-text">${currentStage} / 4 關</span>
+          </div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" id="progress-fill" style="width:${(currentStage/4)*100}%"></div>
+          </div>
         </div>
       `;
 
@@ -898,7 +851,6 @@
         btnElement.classList.add("correct");
         playCoinSound();
         currentStage++;
-        updateProgress();
         setTimeout(generateChallengeStage, 400);
       } else {
         btnElement.classList.add("wrong");
@@ -913,7 +865,6 @@
         btnElement.classList.add("correct");
         playFanfareSound();
         currentStage++;
-        updateProgress();
         setTimeout(generateChallengeStage, 400);
       } else {
         btnElement.classList.add("wrong");
@@ -921,13 +872,6 @@
         alert(`❌ 抓錯鬼了！這個字課文裡「有出現」喔！\n\n答案已重新鎖定，請再聽課文 2 次找出誰是冒牌貨！`);
         generateChallengeStage();
       }
-    }
-
-    function updateProgress() {
-      const fill = document.getElementById("progress-fill");
-      const text = document.getElementById("progress-text");
-      if (fill) fill.style.width = `${(currentStage / 4) * 100}%`;
-      if (text) text.innerText = `${currentStage} / 4 關`;
     }
 
     function executeVictory() {
@@ -965,11 +909,9 @@
       if (audioPath && audioPath.trim() !== "") {
         const audio = new Audio(audioPath);
         audio.playbackRate = rate;
-        
         audio.onended = () => {
           if (onEndedCallback) onEndedCallback();
         };
-
         audio.play().catch(err => {
           speakTTS(fallbackText, rate, onEndedCallback);
         });
@@ -1003,8 +945,8 @@
         cell.className = `bag-cell ${isUnlocked ? 'unlocked' : 'locked'}`;
         cell.innerHTML = `
           <div style="font-size:0.6rem; color:#94a3b8;">${p.num}</div>
-          <div style="font-size:1.5rem;">${isUnlocked ? p.icon : '❓'}</div>
-          <div style="font-size:0.68rem; font-weight:700;">${isUnlocked ? p.name : '未解鎖'}</div>
+          <div style="font-size:1.6rem; margin:2px 0;">${isUnlocked ? p.icon : '❓'}</div>
+          <div style="font-size:0.7rem; font-weight:700;">${isUnlocked ? p.name : '未解鎖'}</div>
         `;
         box.appendChild(cell);
       });
@@ -1118,7 +1060,7 @@
     }
 
     window.addEventListener("DOMContentLoaded", () => {
-      initQuestNav();
+      initQuestDropdown();
       startQuest(ALL_QUESTS[0]);
     });
   </script>
