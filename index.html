@@ -53,7 +53,6 @@
       position: relative;
     }
 
-    /* 學生姓名列 */
     .user-info-bar {
       display: flex;
       justify-content: space-between;
@@ -151,7 +150,6 @@
     .parent-overview-panel.show { display: block; }
     .parent-overview-panel h4 { color: #86efac; font-size: 1rem; margin-bottom: 8px; }
 
-    /* 挑戰核心舞台 */
     .challenge-arena {
       background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
       border: 2px solid var(--border);
@@ -390,7 +388,6 @@
       color: #052e16;
     }
 
-    /* ─── 全文架構 ＋ 螢光筆高亮區 ─── */
     .article-full-card {
       background: rgba(30, 41, 59, 0.9);
       border: 2px solid var(--border);
@@ -411,17 +408,16 @@
       line-height: 1.6;
     }
 
-    /* 螢光筆標記效果：當前段落亮起，其餘變半透明 */
     .paragraph-block {
       padding: 8px 10px;
       border-radius: 10px;
       transition: all 0.3s ease;
-      color: #64748b; /* 未選中時淡灰色 */
+      color: #64748b;
     }
     .paragraph-block.highlighted {
       background: rgba(250, 204, 21, 0.18);
       border-left: 4px solid var(--gold);
-      color: #f8fafc; /* 選中時全亮 */
+      color: #f8fafc;
       font-weight: 700;
     }
 
@@ -594,7 +590,7 @@
     <div class="modal-box">
       <span style="display:inline-block; padding:4px 16px; border-radius:999px; font-weight:800; font-size:0.85rem; background:linear-gradient(90deg,#ec4899,#8b5cf6); color:#fff;" id="loot-rarity">神話級 MYTHIC</span>
       <div style="font-size:4.2rem; margin:10px 0;" id="loot-icon">🐉</div>
-      <div style="font-size:1.5rem; font-weight:900;" id="loot-name">彩虹神龍</div>
+      <div style="font-size:1.4rem; font-weight:900;" id="loot-name">彩虹神龍</div>
       <div style="font-size:1rem; color:var(--gold); font-weight:800; margin-bottom:6px;" id="loot-power">⚡ 戰鬥力: 999,999</div>
       
       <div class="report-card-wrap">
@@ -615,9 +611,9 @@
 
   <div class="modal-overlay" id="bag-modal">
     <div class="modal-box">
-      <h3 style="font-size:1.35rem; color:var(--gold);">🎒 萬物收集圖鑑庫</h3>
+      <h3 style="font-size:1.35rem; color:var(--gold);">🎒 4,000 隻全服萬物圖鑑庫</h3>
       <div style="font-size:0.88rem; color:var(--text-sub); margin-top:6px;">
-        已解鎖進度：<span id="bag-progress">0</span> / 1,000 種全服圖鑑
+        已解鎖進度：<span id="bag-progress" style="color:var(--gold); font-weight:800;">0</span> / 4,000 種完全獨立神寵
       </div>
       <div class="bag-grid" id="bag-grid"></div>
       <button class="close-btn" onclick="closeBagModal()">返回訓練</button>
@@ -649,20 +645,66 @@
       }
     }
 
-    const GHOST_WORDS_POOL = ["pizza", "monkey", "banana", "robot", "guitar", "castle", "tiger", "rocket"];
+    // ─── 4,000 隻全獨立程序化神寵矩陣 (20 前綴 × 10 屬性 × 20 本體 = 4,000) ───
+    const TITLES_POOL = [
+      "永恆", "滅世", "星穹", "極光", "太古", "狂暴", "深淵", "神聖", "天啟", "蒼穹",
+      "逆命", "幻影", "絕境", "超弦", "至尊", "量子", "烈陽", "霜月", "幽冥", "森羅"
+    ]; // 20
+    const ELEMENTS_POOL = [
+      "虛空", "混沌", "烈焰", "寒冰", "雷霆", "時空", "暗黑", "黃金", "翡翠", "終焉"
+    ]; // 10
+    const BASES_POOL = [
+      { name: "彩虹神龍", icon: "🐉" },
+      { name: "香蕉靈犬", icon: "🐕" },
+      { name: "星芒獨角獸", icon: "🦄" },
+      { name: "駭客靈貓", icon: "🐱" },
+      { name: "超能馬桶怪", icon: "🚽" },
+      { name: "暴食生吐司", icon: "🍞" },
+      { name: "霸王暴龍", icon: "🦖" },
+      { name: "爆破西瓜精", icon: "🍉" },
+      { name: "機械泰坦巨猿", icon: "🦍" },
+      { name: "不死火鳥", icon: "🦅" },
+      { name: "深海巨鯊", icon: "🦈" },
+      { name: "劇毒巨蠍", icon: "🦂" },
+      { name: "外星異形蜂", icon: "🐝" },
+      { name: "裝甲犀牛", icon: "🦏" },
+      { name: "暗夜吸血蝠", icon: "🦇" },
+      { name: "遠古猛獁象", icon: "🦣" },
+      { name: "熔岩火狐", icon: "🦊" },
+      { name: "極地雪狼", icon: "🐺" },
+      { name: "星際機械人", icon: "🤖" },
+      { name: "克蘇魯巨章", icon: "🐙" }
+    ]; // 20
 
-    const FULL_CATALOG = [];
-    const SPECIES = ["彩虹神龍", "黃金香蕉狗", "暴風獨角獸", "駭客貓", "馬桶怪", "生吐司", "霸王暴龍", "爆破西瓜"];
-    for (let i = 1; i <= 60; i++) {
-      FULL_CATALOG.push({
-        id: `pet_${i}`,
-        num: `#${String(i).padStart(4, '0')}`,
-        name: SPECIES[(i - 1) % SPECIES.length],
-        rarity: i % 10 === 0 ? "神話級 MYTHIC" : i % 3 === 0 ? "傳奇級 LEGENDARY" : "稀有級 RARE",
-        icon: ["🐉","🐕","🦄","🐱","🚽","🍞","🦖","🍉"][(i - 1) % 8],
-        power: `⚡ ${(50000 + i * 2500).toLocaleString()}`
-      });
+    const TOTAL_PETS_COUNT = TITLES_POOL.length * ELEMENTS_POOL.length * BASES_POOL.length; // 4,000
+
+    // 數學映射：O(1) 根據 Index 取得第 i 隻的完整屬性（完全不佔記憶體）
+    function getPetByIndex(idx) {
+      const bIdx = idx % BASES_POOL.length;
+      const rem1 = Math.floor(idx / BASES_POOL.length);
+      const eIdx = rem1 % ELEMENTS_POOL.length;
+      const tIdx = Math.floor(rem1 / ELEMENTS_POOL.length) % TITLES_POOL.length;
+
+      const base = BASES_POOL[bIdx];
+      const elem = ELEMENTS_POOL[eIdx];
+      const title = TITLES_POOL[tIdx];
+
+      const numStr = `#${String(idx + 1).padStart(4, '0')}`;
+      const name = `${title}·${elem}·${base.name}`;
+      const rarity = (idx % 25 === 0) ? "神話級 MYTHIC" : (idx % 5 === 0) ? "傳奇級 LEGENDARY" : "稀有級 RARE";
+      const power = `⚡ ${(80000 + (idx + 1) * 350).toLocaleString()}`;
+
+      return {
+        id: `pet_${idx + 1}`,
+        num: numStr,
+        name: name,
+        icon: base.icon,
+        rarity: rarity,
+        power: power
+      };
     }
+
+    const GHOST_WORDS_POOL = ["pizza", "monkey", "banana", "robot", "guitar", "castle", "tiger", "rocket"];
 
     let currentQuestIdx = 0;
     let currentStage = 0;
@@ -733,7 +775,6 @@
 
       updateWordTrackerBadge(quest);
 
-      // ─── 螢光筆全文渲染 ───
       const paragraphsBox = document.getElementById("article-paragraphs-box");
       paragraphsBox.innerHTML = "";
 
@@ -997,7 +1038,10 @@
       launchConfetti();
 
       const quest = ALL_QUESTS[currentQuestIdx];
-      const loot = FULL_CATALOG[Math.floor(Math.random() * FULL_CATALOG.length)];
+      // 從 4,000 隻全獨立池中隨機抽中一隻
+      const randomIdx = Math.floor(Math.random() * TOTAL_PETS_COUNT);
+      const loot = getPetByIndex(randomIdx);
+
       if (!unlockedPets.includes(loot.id)) {
         unlockedPets.push(loot.id);
         localStorage.setItem("unlocked_catalog_ids", JSON.stringify(unlockedPets));
@@ -1071,21 +1115,38 @@
       }
     }
 
+    // 動態圖鑑渲染（高流暢、不卡頓）
     function openBagModal() {
       const box = document.getElementById("bag-grid");
       box.innerHTML = "";
       document.getElementById("bag-progress").innerText = unlockedPets.length;
-      FULL_CATALOG.forEach(p => {
+
+      // 提取所有已解鎖的索引，並包含前 120 隻作為基礎圖鑑瀏覽
+      const unlockedIndices = unlockedPets.map(id => parseInt(id.replace("pet_", ""), 10) - 1).filter(n => !isNaN(n));
+      const indicesToDisplay = new Set();
+
+      // 先放入前 120 隻展示格子
+      for (let i = 0; i < 120; i++) indicesToDisplay.add(i);
+      // 再放入所有學生已抽到的稀有寵物格子
+      unlockedIndices.forEach(idx => {
+        if (idx < TOTAL_PETS_COUNT) indicesToDisplay.add(idx);
+      });
+
+      const sortedIndices = Array.from(indicesToDisplay).sort((a, b) => a - b);
+
+      sortedIndices.forEach(idx => {
+        const p = getPetByIndex(idx);
         const isUnlocked = unlockedPets.includes(p.id);
         const cell = document.createElement("div");
         cell.className = `bag-cell ${isUnlocked ? 'unlocked' : 'locked'}`;
         cell.innerHTML = `
-          <div style="font-size:0.75rem; color:#94a3b8;">${p.num}</div>
-          <div style="font-size:1.8rem; margin:4px 0;">${isUnlocked ? p.icon : '❓'}</div>
-          <div style="font-size:0.82rem; font-weight:700;">${isUnlocked ? p.name : '未解鎖'}</div>
+          <div style="font-size:0.7rem; color:#94a3b8;">${p.num}</div>
+          <div style="font-size:1.8rem; margin:3px 0;">${isUnlocked ? p.icon : '❓'}</div>
+          <div style="font-size:0.75rem; font-weight:700; line-height:1.2;">${isUnlocked ? p.name : '未解鎖'}</div>
         `;
         box.appendChild(cell);
       });
+
       document.getElementById("bag-modal").style.display = "flex";
     }
 
