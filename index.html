@@ -308,6 +308,17 @@
       font-weight: 800;
       color: var(--gold);
       margin-bottom: -2px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .word-listen-tracker-badge {
+      font-size: 0.8rem;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.15);
+      padding: 2px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--cyan);
     }
 
     .ref-cards-container {
@@ -324,6 +335,11 @@
       justify-content: space-between;
       align-items: center;
       gap: 14px;
+      transition: border-color 0.2s;
+    }
+    .ref-card.listened {
+      border-color: rgba(34, 197, 94, 0.6);
+      background: rgba(20, 83, 45, 0.2);
     }
     .ref-card-left {
       display: flex;
@@ -345,6 +361,12 @@
       cursor: pointer;
       white-space: nowrap;
       flex-shrink: 0;
+      transition: all 0.2s;
+    }
+    .slow-audio-btn.checked {
+      background: var(--green);
+      border-color: #86efac;
+      color: #052e16;
     }
 
     .article-full-card {
@@ -356,14 +378,6 @@
       flex-direction: column;
       gap: 14px;
       transition: all 0.3s;
-    }
-    .article-full-card.listening-required {
-      border-color: #f59e0b;
-      box-shadow: 0 0 16px rgba(245, 158, 11, 0.25);
-    }
-    .article-full-card.listened-completed {
-      border-color: var(--green);
-      background: linear-gradient(180deg, rgba(20, 83, 45, 0.8), rgba(5, 46, 22, 0.8));
     }
     .article-tag { font-size: 0.82rem; font-weight: 800; color: var(--gold); }
     .article-en { font-size: 1.08rem; font-weight: 700; line-height: 1.6; color: #f8fafc; }
@@ -389,11 +403,6 @@
       background: #38bdf8;
       box-shadow: 0 2px 0 #0284c7;
       animation: pulsePlay 1s infinite alternate;
-    }
-    .article-btn-action.done {
-      background: var(--green);
-      color: #fff;
-      box-shadow: 0 2px 0 #15803d;
     }
 
     @keyframes pulsePlay {
@@ -509,13 +518,16 @@
     <div class="challenge-arena" id="main-challenge-arena"></div>
 
     <div class="reference-deck">
-      <div class="section-title">🔤 核心單字拆解（卡關可聽嘴型）：</div>
+      <div class="section-title">
+        <span>🔤 核心單字拆解（請全部點聽完成）：</span>
+        <span class="word-listen-tracker-badge" id="word-tracker-badge">進度 0 / 0</span>
+      </div>
       <div class="ref-cards-container" id="ref-cards-box"></div>
 
-      <div class="section-title">📖 整篇課文朗讀（必須聽完）：</div>
+      <div class="section-title">📖 整篇課文自由複習朗讀：</div>
       <div class="article-full-card" id="article-card-box">
         <div>
-          <div class="article-tag">課文閱讀朗讀</div>
+          <div class="article-tag">課文語音</div>
           <div class="article-en" id="article-card-en"></div>
           <div class="article-zh" id="article-card-zh"></div>
         </div>
@@ -540,7 +552,7 @@
           📝 本週課堂複習成效報告單
         </div>
         <div class="report-row"><span>1. 音素聽力盲測：</span><span class="report-badge">全數通過 (4/4)</span></div>
-        <div class="report-row"><span>2. 整篇課文聆聽：</span><span class="report-badge" id="report-article-check">100% 完整聽畢</span></div>
+        <div class="report-row"><span>2. 核心單字拆解：</span><span class="report-badge">100% 逐字完成</span></div>
         <div style="margin-top:10px; color:#cbd5e1; font-size:0.85rem; border-top:1px dashed #334155; padding-top:8px;">
           👩‍🏫 <strong>老師評語：</strong>孩子今日認真聽辨音素細節，已確實掌握核心讀音，請家長安心給予放鬆時間！
         </div>
@@ -561,11 +573,10 @@
     </div>
   </div>
 
-  <!-- 引入外部題庫檔 -->
+  <!-- 引入題庫檔 -->
   <script src="quests.js"></script>
 
   <script>
-    // 你的 Google Apps Script Web App 專屬回傳網址
     const GAS_SUBMIT_URL = "https://script.google.com/macros/s/AKfycbySNVF6K3fjZyUzdd5dGm5YdhSS9yUyooHTqnkmWLD-fHju55sLwXJvSnn7SXf2Ds4rnQ/exec";
 
     const GHOST_WORDS_POOL = ["pizza", "monkey", "banana", "robot", "guitar", "castle", "tiger", "rocket"];
@@ -590,10 +601,11 @@
     let unlockedPets = JSON.parse(localStorage.getItem("unlocked_catalog_ids") || '["pet_1"]');
     
     let currentListenCount = 0;
-    const REQUIRED_LISTEN_COUNT = 2;
     let isAudioPlaying = false;
-    let hasCompletedArticleAudio = false;
     let articleAudioElement = null;
+
+    // 紀錄該關卡中孩子已點聽過的單字集合
+    let listenedWordsSet = new Set();
 
     function initQuestDropdown() {
       const select = document.getElementById("quest-dropdown-select");
@@ -614,7 +626,7 @@
 
     function startQuest(quest) {
       currentStage = 0;
-      hasCompletedArticleAudio = false;
+      listenedWordsSet.clear();
       if (articleAudioElement) {
         articleAudioElement.pause();
         articleAudioElement = null;
@@ -628,47 +640,67 @@
       const autoOverview = `
         • <b>重點詞彙</b>：${wordsList}<br>
         • <b>語境實用語句</b>：${quest.sentence.en}<br>
-        • <b>驗收目標</b>：單字聽音盲測＋課文抓鬼聽辨（Odd One Out）＋課文錄音聽畢。
+        • <b>驗收目標</b>：下方核心單字全員點聽＋聽音盲測 4 關全數通過。
       `;
       document.getElementById("parent-overview-content").innerHTML = autoOverview;
 
       const box = document.getElementById("ref-cards-box");
       box.innerHTML = "";
-      quest.words.forEach(item => {
+      quest.words.forEach((item, wIdx) => {
         const card = document.createElement("div");
         card.className = "ref-card";
+        card.id = `ref-card-${wIdx}`;
         card.innerHTML = `
           <div class="ref-card-left">
             <div class="ref-en">${item.display}</div>
             <div class="ref-zh">${item.zh} · <span class="ref-hint">${item.hint}</span></div>
           </div>
-          <button class="slow-audio-btn" onclick="playSmartAudio('${item.audio || ''}', '${item.en}', 0.55)">
+          <button class="slow-audio-btn" id="word-btn-${wIdx}" onclick="handleWordItemClick('${item.audio || ''}', '${item.en}', ${wIdx})">
             🐢 嘴型拆解
           </button>
         `;
         box.appendChild(card);
       });
 
+      updateWordTrackerBadge(quest);
+
       document.getElementById("article-card-en").innerText = quest.sentence.en;
       document.getElementById("article-card-zh").innerText = quest.sentence.zh;
-      
-      const cardBox = document.getElementById("article-card-box");
-      const btn = document.getElementById("article-action-btn");
-      const icon = document.getElementById("article-btn-icon");
-      const text = document.getElementById("article-btn-text");
+    }
 
-      if (quest.sentence.audio && quest.sentence.audio.trim() !== "") {
-        cardBox.className = "article-full-card listening-required";
-        btn.className = "article-btn-action";
-        icon.innerText = "🔒";
-        text.innerText = "聽完解鎖";
-      } else {
-        cardBox.className = "article-full-card";
-        btn.className = "article-btn-action";
-        icon.innerText = "🔊";
-        text.innerText = "慢速朗讀";
-        hasCompletedArticleAudio = true;
+    function updateWordTrackerBadge(quest) {
+      const badge = document.getElementById("word-tracker-badge");
+      if (badge) {
+        badge.innerText = `單字拆解進度：${listenedWordsSet.size} / ${quest.words.length}`;
+        if (listenedWordsSet.size >= quest.words.length) {
+          badge.style.color = "#86efac";
+          badge.style.borderColor = "var(--green)";
+        } else {
+          badge.style.color = "#38bdf8";
+          badge.style.borderColor = "var(--cyan)";
+        }
       }
+    }
+
+    function handleWordItemClick(audioPath, wordEn, idx) {
+      const quest = ALL_QUESTS[currentQuestIdx];
+      const btn = document.getElementById(`word-btn-${idx}`);
+      const card = document.getElementById(`ref-card-${idx}`);
+
+      playSmartAudio(audioPath, wordEn, 0.55, () => {
+        listenedWordsSet.add(wordEn);
+        if (btn) {
+          btn.innerText = "✅ 已聽過";
+          btn.classList.add("checked");
+        }
+        if (card) {
+          card.classList.add("listened");
+        }
+        updateWordTrackerBadge(quest);
+        if (currentStage >= 4) {
+          generateChallengeStage();
+        }
+      });
     }
 
     function toggleParentPanel() {
@@ -681,19 +713,14 @@
     function handleArticleAudioClick() {
       const quest = ALL_QUESTS[currentQuestIdx];
       const audioPath = quest.sentence.audio;
-
       const btn = document.getElementById("article-action-btn");
       const icon = document.getElementById("article-btn-icon");
       const text = document.getElementById("article-btn-text");
 
       const markAsFinished = () => {
-        hasCompletedArticleAudio = true;
-        btn.className = "article-btn-action done";
-        icon.innerText = "✅";
-        text.innerText = "已完成";
-        document.getElementById("article-card-box").className = "article-full-card listened-completed";
-        playCoinSound();
-        generateChallengeStage();
+        btn.className = "article-btn-action";
+        icon.innerText = "🎧";
+        text.innerText = "再聽一次";
       };
 
       if (audioPath && audioPath.trim() !== "") {
@@ -707,7 +734,7 @@
         
         btn.className = "article-btn-action playing";
         icon.innerText = "⏳";
-        text.innerText = "正在聆聽...";
+        text.innerText = "朗讀中...";
 
         audio.play().then(() => {
           audio.onended = markAsFinished;
@@ -715,6 +742,9 @@
           speakTTS(quest.sentence.en, 0.8, markAsFinished);
         });
       } else {
+        btn.className = "article-btn-action playing";
+        icon.innerText = "⏳";
+        text.innerText = "朗讀中...";
         speakTTS(quest.sentence.en, 0.8, markAsFinished);
       }
     }
@@ -724,18 +754,24 @@
       const arena = document.getElementById("main-challenge-arena");
       currentListenCount = 0;
 
+      // 檢查是否已完成 4 關
       if (currentStage >= 4) {
-        if (quest.sentence.audio && quest.sentence.audio.trim() !== "" && !hasCompletedArticleAudio) {
+        const remainingWords = quest.words.length - listenedWordsSet.size;
+
+        if (remainingWords > 0) {
           arena.innerHTML = `
-            <div class="stage-badge" style="color:#f59e0b; border-color:#f59e0b;">⚠ 聽力已達標，但課文未聽！</div>
-            <div class="challenge-title" style="font-size:1.05rem;">請點擊下方黃色按鈕，將整篇「課文音檔」完整聽完才能開箱！</div>
-            <div style="font-size:3.2rem; margin:14px 0;">🔒</div>
+            <div class="stage-badge" style="color:#f59e0b; border-color:#f59e0b;">⚠ 聽力通關，尚有單字未聽！</div>
+            <div class="challenge-title" style="font-size:1.05rem; line-height:1.45;">
+              還差 <span style="color:var(--gold); font-size:1.3rem;">${remainingWords}</span> 個核心單字！<br>
+              請到下方將每個「🐢 嘴型拆解」點聽完即可開箱！
+            </div>
+            <div style="font-size:3.2rem; margin:10px 0;">🔒</div>
           `;
           return;
         }
 
         arena.innerHTML = `
-          <div class="stage-badge">🎉 聽力驗收全數通關！</div>
+          <div class="stage-badge">🎉 聽力驗收與單字全數達標！</div>
           <div class="challenge-title" style="color:var(--gold); font-size:1.35rem;">🔥 神秘寶箱能量已滿！</div>
           <button class="ready-gacha-btn" onclick="executeVictory()">🎁 點擊狂暴開箱抽神寵！</button>
         `;
@@ -743,12 +779,13 @@
       }
 
       const isOddOneOut = currentStage === 3;
+      const neededListenCount = isOddOneOut ? 1 : 2;
 
       arena.innerHTML = `
         <div class="stage-badge" id="stage-level-tag">${isOddOneOut ? 'FINAL STAGE · 課文聽力抓鬼' : `STAGE ${currentStage + 1} / 4 · 單字音素盲測`}</div>
         <div class="challenge-title" id="challenge-prompt">${isOddOneOut ? '點擊大喇叭聽課文！找出哪一個單字「沒出現在課文」中？' : '點擊大喇叭，聽滿 2 遍解鎖選項！'}</div>
-        <div class="listen-counter-pill" id="listen-counter">🎧 聆聽解鎖進度：0 / 2 遍</div>
-        <div class="audio-speaker-pulse" id="stage-speaker" onclick="handleChallengeSpeakerClick()">🔊</div>
+        <div class="listen-counter-pill" id="listen-counter">🎧 聆聽解鎖進度：0 / ${neededListenCount} 遍</div>
+        <div class="audio-speaker-pulse" id="stage-speaker" onclick="handleChallengeSpeakerClick(${neededListenCount})">🔊</div>
         <div class="choices-grid ${isOddOneOut ? 'three-cols' : ''}" id="choices-container"></div>
         <div class="progress-box">
           <div class="progress-status-box">
@@ -806,7 +843,7 @@
       }
     }
 
-    function handleChallengeSpeakerClick() {
+    function handleChallengeSpeakerClick(neededCount) {
       if (isAudioPlaying) return;
       isAudioPlaying = true;
 
@@ -819,9 +856,9 @@
         currentListenCount++;
 
         const counter = document.getElementById("listen-counter");
-        if (counter) counter.innerText = `🎧 聆聽解鎖進度：${currentListenCount} / ${REQUIRED_LISTEN_COUNT} 遍`;
+        if (counter) counter.innerText = `🎧 聆聽解鎖進度：${currentListenCount} / ${neededCount} 遍`;
 
-        if (currentListenCount >= REQUIRED_LISTEN_COUNT) {
+        if (currentListenCount >= neededCount) {
           document.querySelectorAll(".choice-card-btn").forEach(btn => {
             btn.classList.remove("locked");
             btn.innerText = btn.dataset.text;
@@ -864,7 +901,7 @@
       } else {
         btnElement.classList.add("wrong");
         playBuzzerSound();
-        alert(`❌ 抓錯鬼了！這個字課文裡「有出現」喔！\n\n答案已重新鎖定，請再聽課文 2 次找出誰是冒牌貨！`);
+        alert(`❌ 抓錯鬼了！這個字課文裡「有出現」喔！\n\n答案已重新鎖定，請再聽課文 1 次找出誰是冒牌貨！`);
         generateChallengeStage();
       }
     }
@@ -881,7 +918,6 @@
         localStorage.setItem("unlocked_catalog_ids", JSON.stringify(unlockedPets));
       }
 
-      // ─── 🚀 自動將通關資料非同步回傳至你的 Google 試算表 ───
       if (GAS_SUBMIT_URL && GAS_SUBMIT_URL.trim() !== "") {
         fetch(GAS_SUBMIT_URL, {
           method: "POST",
@@ -891,19 +927,17 @@
             studentName: "孩子",
             questLabel: quest.label,
             phonicsScore: "4/4 全數通過",
-            articleStatus: quest.sentence.audio ? "100% 聽畢" : "朗讀複習",
+            articleStatus: `${listenedWordsSet.size}/${quest.words.length} 單字聽畢`,
             petName: `${loot.num} ${loot.name} (${loot.rarity})`
           })
         }).catch(err => console.error("回傳試算表失敗:", err));
       }
-      // ─────────────────────────────────────────────
 
       document.getElementById("loot-rarity").innerText = `${loot.num} · ${loot.rarity}`;
       document.getElementById("loot-icon").innerText = loot.icon;
       document.getElementById("loot-name").innerText = loot.name;
       document.getElementById("loot-power").innerText = loot.power;
 
-      document.getElementById("report-article-check").innerText = quest.sentence.audio ? "100% 完整聽畢" : "已朗讀複習";
       document.getElementById("loot-modal").style.display = "flex";
     }
 
