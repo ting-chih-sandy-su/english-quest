@@ -57,7 +57,7 @@
       z-index: 10;
     }
 
-    /* 頂部控制 */
+    /* 頂部控制面板 */
     .control-header {
       display: flex;
       justify-content: space-between;
@@ -105,7 +105,7 @@
     .pill-btn.elder-btn { background: rgba(34, 197, 94, 0.15); border-color: #22c55e; color: #86efac; }
     .pill-btn.elder-btn.active { background: #22c55e; color: #052e16; }
 
-    /* 核心聽力特訓舞台 (高度鑑別度) */
+    /* 核心聽力特訓舞台 */
     .challenge-arena {
       background: linear-gradient(180deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98));
       border: 2px solid var(--border-dark);
@@ -177,25 +177,6 @@
     .choice-card-btn.correct { background: var(--green); border-color: #fff; color: #000; }
     .choice-card-btn.wrong { background: var(--red); border-color: #fff; }
 
-    /* 音節拼圖區 */
-    .syllable-slots-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    .syllable-slot {
-      min-width: 50px;
-      height: 40px;
-      border: 2px dashed var(--cyan);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.1rem;
-      font-weight: 900;
-      background: rgba(56, 189, 248, 0.05);
-    }
-
     /* 能量總進度 */
     .progress-status-box {
       width: 100%;
@@ -223,7 +204,7 @@
       transition: width 0.3s;
     }
 
-    /* 下方自主慢速聽讀學習卡 (供卡關時偷看與聆聽) */
+    /* 下方音素拆解與自主練習區 */
     .reference-deck {
       display: flex;
       flex-direction: column;
@@ -253,8 +234,23 @@
       display: flex;
       align-items: center;
       gap: 4px;
+      white-space: nowrap;
     }
     .slow-audio-btn:active { background: var(--cyan); color: #000; }
+
+    /* 整篇課文/大句子卡 */
+    .article-full-card {
+      background: linear-gradient(180deg, #1e293b, #0f172a);
+      border: 1.5px solid var(--border-dark);
+      border-radius: 12px;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .article-tag { font-size: 0.7rem; font-weight: 800; color: var(--gold); }
+    .article-en { font-size: 0.95rem; font-weight: 800; line-height: 1.35; color: #fff; }
+    .article-zh { font-size: 0.76rem; color: var(--text-sub); font-weight: 700; }
 
     /* 彈窗 */
     .modal-overlay {
@@ -336,7 +332,7 @@
 
   <div class="app-viewport">
     
-    <!-- 頂部選單 -->
+    <!-- 頂部控制欄 -->
     <div class="control-header">
       <div class="quest-tabs-scroll" id="quest-nav-box"></div>
       <div style="display:flex; gap:6px;">
@@ -348,15 +344,15 @@
     <!-- 長輩安心面板 -->
     <div class="elder-helper-banner" id="elder-guide-box" style="display:none; background:rgba(22,101,52,0.9); border:2px solid var(--green); border-radius:12px; padding:8px 12px; font-size:0.8rem; color:#d1fae5;">
       <strong>長輩請放心：</strong><br>
-      這是聽力特訓關卡！孩子必須仔細聽喇叭發音，選出正確的單字才能過關。沒聽懂是過不去的喔！
+      這是聽力特訓關卡！孩子必須仔細聽聲音，選出正確的單字才能過關。沒聽懂是過不去的喔！
     </div>
 
     <!-- 真正硬核聽力考驗舞台 -->
     <div class="challenge-arena">
-      <div class="stage-badge" id="stage-level-tag">LEVEL 1 / 3 · 音素聽力盲測</div>
+      <div class="stage-badge" id="stage-level-tag">STAGE 1 / 4 · 音素殘酷聽辨</div>
       <div class="challenge-title" id="challenge-prompt">點擊喇叭，聽出哪個是目標字！</div>
 
-      <!-- 核心大喇叭 (點擊隨機出題發音) -->
+      <!-- 核心大喇叭 (支援優先播放真人生動 MP3) -->
       <div class="audio-speaker-pulse" onclick="replayChallengeAudio()">🔊</div>
 
       <!-- 動態答案選項 (防瞎猜) -->
@@ -365,17 +361,29 @@
       <!-- 總挑戰進度條 -->
       <div class="progress-status-box">
         <span>關卡解鎖進度</span>
-        <span id="progress-text">0 / 3 關</span>
+        <span id="progress-text">0 / 4 關</span>
       </div>
       <div class="progress-bar-wrap">
         <div class="progress-bar-fill" id="progress-fill"></div>
       </div>
     </div>
 
-    <!-- 下方「慢速慢讀」自主修煉區 (卡關時孩子必須親自點來聽) -->
+    <!-- 下方「慢速拆解」與「整篇課文 MP3」區 -->
     <div class="reference-deck">
-      <div style="font-size:0.75rem; color:var(--gold); font-weight:800;">💡 卡關救星：點「慢速音素拆解」仔細聽清楚！</div>
+      <div style="font-size:0.75rem; color:var(--gold); font-weight:800;">💡 卡關救星：可點擊極慢發音仔細拆解聽清楚！</div>
       <div id="ref-cards-box" style="display:flex; flex-direction:column; gap:6px;"></div>
+      
+      <!-- 整篇課文/句子卡片 (有 MP3 優先播放) -->
+      <div class="article-full-card" id="article-card-box">
+        <div>
+          <div class="article-tag" id="article-card-tag">📜 本週重點句 / 課文</div>
+          <div class="article-en" id="article-card-en"></div>
+          <div class="article-zh" id="article-card-zh"></div>
+        </div>
+        <button class="slow-audio-btn" id="article-audio-btn" onclick="playCurrentArticleAudio()">
+          🎧 課文原音
+        </button>
+      </div>
     </div>
 
   </div>
@@ -410,28 +418,39 @@
   </div>
 
   <script>
-    // 嚴格設計的「最小音素混淆題庫」（Minimal Pairs）
-    // 真正能逼孩子聽清楚 /r/ vs /l/、長短母音差別
+    // ========================================================
+    // ⚙️ 題庫設定：支援個別設定音檔路徑 (audio: "audio/xxx.mp3")
+    // 若該週沒有音檔，audio 填 "" 即可，系統會自動無縫切換為 TTS！
+    // ========================================================
     const ALL_QUESTS = [
       {
         id: "w4",
         label: "第 4 關",
         words: [
-          { en: "rain", display: "r · ain", zh: "下雨", distractor: "lane", distractorEn: "lane", hint: "發音重點：開頭是 /r/ 不是 /l/；ai 發長母音 /eɪ/！" },
-          { en: "weather", display: "wea · ther", zh: "天氣", distractor: "feather", distractorEn: "feather", hint: "開頭是 /w/ 不是 /f/；結尾 -ther 有咬舌濁音！" },
-          { en: "outside", display: "out · side", zh: "外面", distractor: "inside", distractorEn: "inside", hint: "前綴是 out 不是 in；結尾 side 發雙母音 /aɪ/！" }
+          { en: "rain", display: "r · ain", zh: "下雨", audio: "", distractor: "lane", hint: "發音重點：開頭是 /r/ 不是 /l/；ai 發長母音 /eɪ/！" },
+          { en: "weather", display: "wea · ther", zh: "天氣", audio: "", distractor: "feather", hint: "開頭是 /w/ 不是 /f/；結尾 -ther 有咬舌濁音！" },
+          { en: "outside", display: "out · side", zh: "外面", audio: "", distractor: "inside", hint: "前綴是 out 不是 in；結尾 side 發雙母音 /aɪ/！" }
         ],
-        sentence: { en: "It is raining outside.", zh: "外面正在下雨。" }
+        sentence: { 
+          en: "It is raining outside.", 
+          zh: "外面正在下雨。",
+          // 👇 若這篇有整篇/整句的 MP3，填在這裡；若沒有填 "" 即可
+          audio: "audio/sentence_w4.mp3" 
+        }
       },
       {
         id: "w3",
         label: "第 3 關 (複習)",
         words: [
-          { en: "happy", display: "hap · py", zh: "高興的", distractor: "heavy", distractorEn: "heavy", hint: "注意雙子音 pp 是爆破音 /p/ 不是 /v/！" },
-          { en: "school", display: "school", zh: "學校", distractor: "cool", distractorEn: "cool", hint: "開頭有 /sk/ 雙子音群，不是只有 cool！" },
-          { en: "friend", display: "friend", zh: "朋友", distractor: "trend", distractorEn: "trend", hint: "開頭是 /fr/ 不是 /tr/！" }
+          { en: "happy", display: "hap · py", zh: "高興的", audio: "", distractor: "heavy", hint: "注意雙子音 pp 是爆破音 /p/ 不是 /v/！" },
+          { en: "school", display: "school", zh: "學校", audio: "", distractor: "cool", hint: "開頭有 /sk/ 雙子音群，不是只有 cool！" },
+          { en: "friend", display: "friend", zh: "朋友", audio: "", distractor: "trend", hint: "開頭是 /fr/ 不是 /tr/！" }
         ],
-        sentence: { en: "I see my friend at school.", zh: "我在學校看到我的朋友。" }
+        sentence: { 
+          en: "I see my friend at school.", 
+          zh: "我在學校看到我的朋友。",
+          audio: "" // 沒有 MP3，自動轉為合成語音
+        }
       }
     ];
 
@@ -449,9 +468,11 @@
     }
 
     let currentQuestIdx = 0;
-    let currentStage = 0; // 0: 第1單字聽辨, 1: 第2單字聽辨, 2: 第3單字聽辨, 3: 句子挖空聽辨
+    let currentStage = 0; // 0~2: 單字聽辨, 3: 課文/整句聽辨
     let currentTargetWord = "";
+    let currentTargetAudio = "";
     let unlockedPets = JSON.parse(localStorage.getItem("unlocked_catalog_ids") || '["pet_1"]');
+    let currentActiveAudioObj = null;
 
     function initQuestNav() {
       const box = document.getElementById("quest-nav-box");
@@ -478,7 +499,6 @@
       generateChallengeStage();
     }
 
-    // 渲染下方「慢速音素拆解自主救星區」
     function renderReferenceCards(quest) {
       const box = document.getElementById("ref-cards-box");
       box.innerHTML = "";
@@ -490,29 +510,47 @@
             <div class="ref-en">${item.display}</div>
             <div class="ref-zh">${item.zh} · <span style="color:#38bdf8;">${item.hint}</span></div>
           </div>
-          <button class="slow-audio-btn" onclick="speakPhonicsUltraSlow('${item.en}')">
+          <button class="slow-audio-btn" onclick="playSmartAudio('${item.audio || ''}', '${item.en}', 0.55)">
             🐢 極慢發音
           </button>
         `;
         box.appendChild(card);
       });
+
+      // 渲染課文卡片
+      document.getElementById("article-card-en").innerText = quest.sentence.en;
+      document.getElementById("article-card-zh").innerText = quest.sentence.zh;
+      const audioBtn = document.getElementById("article-audio-btn");
+      if (quest.sentence.audio) {
+        audioBtn.innerText = "🎧 課文原音 (MP3)";
+        audioBtn.style.color = "var(--gold)";
+        audioBtn.style.borderColor = "var(--gold)";
+      } else {
+        audioBtn.innerText = "🔊 慢速跟讀 (TTS)";
+        audioBtn.style.color = "var(--cyan)";
+        audioBtn.style.borderColor = "var(--cyan)";
+      }
     }
 
-    // 依當前難度生成聽力挑戰
+    function playCurrentArticleAudio() {
+      const quest = ALL_QUESTS[currentQuestIdx];
+      playSmartAudio(quest.sentence.audio || '', quest.sentence.en, 0.8);
+    }
+
+    // 生成聽力題目
     function generateChallengeStage() {
       const quest = ALL_QUESTS[currentQuestIdx];
       const choicesBox = document.getElementById("choices-container");
       choicesBox.innerHTML = "";
 
       if (currentStage < 3) {
-        // 階段 1~3：最小音素聽辨 (Target vs Distractor 干擾字)
         const wordData = quest.words[currentStage];
         currentTargetWord = wordData.en;
+        currentTargetAudio = wordData.audio || "";
         
         document.getElementById("stage-level-tag").innerText = `STAGE ${currentStage + 1} / 4 · 音素殘酷聽辨`;
         document.getElementById("challenge-prompt").innerText = `仔細聽！哪一個才是「${wordData.zh}」的正確認讀？`;
 
-        // 隨機排列正確選項與干擾選項
         const options = Math.random() > 0.5 ? 
           [ { text: wordData.en, isCorrect: true }, { text: wordData.distractor, isCorrect: false } ] :
           [ { text: wordData.distractor, isCorrect: false }, { text: wordData.en, isCorrect: true } ];
@@ -525,16 +563,14 @@
           choicesBox.appendChild(btn);
         });
 
-        // 自動播放一次發音
         replayChallengeAudio();
 
       } else if (currentStage === 3) {
-        // 階段 4：整句連音挖空聽力
         currentTargetWord = quest.sentence.en;
+        currentTargetAudio = quest.sentence.audio || "";
         document.getElementById("stage-level-tag").innerText = "FINAL STAGE · 語句連音解密";
-        document.getElementById("challenge-prompt").innerText = "聽完整句子！選出你剛才聽到的核心字！";
+        document.getElementById("challenge-prompt").innerText = "聽完整課文/句子！選出你在句子裡聽到的核心字！";
 
-        // 從 3 個單字中選出隨機選項
         quest.words.forEach(w => {
           const btn = document.createElement("button");
           btn.className = "choice-card-btn";
@@ -548,10 +584,10 @@
     }
 
     function replayChallengeAudio() {
-      speakTTS(currentTargetWord, 0.75);
+      playSmartAudio(currentTargetAudio, currentTargetWord, 0.75);
     }
 
-    // 檢查答案 (答錯直接扣血/重來，逼他真正用心聽)
+    // 檢查答案
     function checkAnswer(isCorrect, btnElement) {
       if (isCorrect) {
         btnElement.classList.add("correct");
@@ -584,7 +620,7 @@
       } else {
         btnElement.classList.add("wrong");
         playBuzzerSound();
-        alert("❌ 句子裡沒有這個聲音！請再聽一次整句連音！");
+        alert("❌ 句子裡沒有這個聲音！請再聽一次整篇課文！");
         btnElement.classList.remove("wrong");
         replayChallengeAudio();
       }
@@ -622,7 +658,36 @@
       generateChallengeStage();
     }
 
-    // 發音引擎 (支援 0.5 倍超慢速音素拆解)
+    // ========================================================
+    // 🔊 智慧音訊引擎：有 MP3 播 MP3，無音檔或載入失敗自動切換 TTS
+    // ========================================================
+    function playSmartAudio(audioPath, fallbackText, rate = 0.8) {
+      // 停止先前正在播放的任何音訊
+      if (currentActiveAudioObj) {
+        currentActiveAudioObj.pause();
+        currentActiveAudioObj.currentTime = 0;
+      }
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+
+      // 如果有給音檔路徑，嘗試播放音檔
+      if (audioPath && audioPath.trim() !== "") {
+        const audio = new Audio(audioPath);
+        currentActiveAudioObj = audio;
+        audio.playbackRate = rate;
+        
+        audio.play().catch(err => {
+          // 若檔案不存在或載入失敗，自動無縫回退至 TTS
+          console.warn("音檔播放失敗，自動轉為合成語音：", err);
+          speakTTS(fallbackText, rate);
+        });
+      } else {
+        // 沒有給音檔路徑，直接使用 TTS 朗讀
+        speakTTS(fallbackText, rate);
+      }
+    }
+
     function speakTTS(text, rate = 0.8) {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
@@ -631,10 +696,6 @@
         utter.rate = rate;
         window.speechSynthesis.speak(utter);
       }
-    }
-
-    function speakPhonicsUltraSlow(text) {
-      speakTTS(text, 0.55); // 超慢速，讓孩子聽清每個子音與母音的嘴型位置
     }
 
     // 圖鑑與長輩指南
