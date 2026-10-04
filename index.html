@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ROBLOX: PET RESCUE 99</title>
+  <title>ROBLOX ARCADE: 4-IN-1 GAME HUB</title>
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="apple-touch-icon" href="favicon.png">
 
-  <!-- 引入 Phaser 3 遊戲引擎 CDN -->
+  <!-- Phaser 3 引擎 CDN -->
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 
   <style>
@@ -24,21 +24,56 @@
       width: 100vw;
       height: 100vh;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
-    /* 修正容器比例：保持 400:720 的完美手遊比例，不會被上下拉伸變形 */
+    /* 頂部遊戲模式選擇列 */
+    .mode-selector-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+      z-index: 20;
+      max-width: 420px;
+      width: 95%;
+      overflow-x: auto;
+      padding: 4px;
+      scrollbar-width: none;
+    }
+    .mode-selector-bar::-webkit-scrollbar { display: none; }
+
+    .mode-btn {
+      background: #1e293b;
+      border: 2px solid #334155;
+      color: #94a3b8;
+      padding: 6px 12px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .mode-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      border-color: #38bdf8;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+    }
+
+    /* 遊戲容器維持完美手遊比例 */
     #game-canvas-container {
       width: 100%;
       height: 100%;
       max-width: 420px;
-      max-height: 756px;
+      max-height: 720px;
       display: flex;
       justify-content: center;
       align-items: center;
-      box-shadow: 0 0 50px rgba(0, 0, 0, 0.9);
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
       aspect-ratio: 400 / 720;
     }
 
@@ -50,12 +85,17 @@
 </head>
 <body>
 
+  <!-- 模式切換按鈕 -->
+  <div class="mode-selector-bar">
+    <button class="mode-btn active" onclick="switchGameMode('EGG')">🥚 幸運開蛋</button>
+    <button class="mode-btn" onclick="switchGameMode('DOORS')">🚪 密室破門</button>
+    <button class="mode-btn" onclick="switchGameMode('SLAP')">🥊 揍飛怪獸</button>
+    <button class="mode-btn" onclick="switchGameMode('SLOT')">🎰 幸運拉霸</button>
+  </div>
+
   <div id="game-canvas-container"></div>
 
   <script>
-    // ========================================================
-    // ⚙️ 每週更新專區 (下課 30 秒更換 3 個字 + 1 句話)
-    // ========================================================
     const WEEK_DATA = {
       levelLabel: "WORLD 4: RAINY FOREST",
       words: [
@@ -69,7 +109,6 @@
       }
     };
 
-    // 抽卡掉落池 (Roblox 寵物數值與調色盤)
     const PET_ROSTER = [
       { name: "TITANIC RAINBOW DRAGON", rarity: "MYTHIC", color: 0xec4899, power: "999,999", quote: "傳奇彩虹神龍！全服只有 0.1% 掉落率" },
       { name: "GOLDEN BANANA DOG", rarity: "LEGENDARY", color: 0xf59e0b, power: "88,000", quote: "黃金香蕉狗！走路自帶滑倒音效" },
@@ -77,9 +116,9 @@
       { name: "MOLDY TOAST", rarity: "COMMON", color: 0x94a3b8, power: "25", quote: "雖然戰鬥力很低，但烤過挺好吃的" }
     ];
 
-    // ========================================================
-    // 🎮 PHASER 3 手遊核心場景
-    // ========================================================
+    let currentMode = 'EGG'; // 預設模式
+    let phaserGame = null;
+
     class GameScene extends Phaser.Scene {
       constructor() {
         super({ key: 'GameScene' });
@@ -97,20 +136,20 @@
         const W = 400;
         const H = 720;
 
-        // 1. 動態太空網格背景
+        // 背景
         this.add.rectangle(W / 2, H / 2, W, H, 0x0a0f1d);
-        this.createGridBackground(W, H);
+        this.grid = this.add.grid(W / 2, H / 2, W, H, 32, 32, 0x000000, 0, 0x1e293b, 0.25);
 
-        // 2. 頂部手遊 HUD
+        // 頂部 HUD
         this.createHUD(W);
 
-        // 3. 中央巨型開箱神蛋 (嚴格居中 W / 2)
-        this.createChestPedestal(W / 2, H * 0.35);
+        // 依據選擇的模式渲染中央舞台
+        this.buildStageByMode(W / 2, H * 0.35);
 
-        // 4. 下方符文任務石板 (嚴格居中 W / 2)
+        // 下方符文任務石板 (共用)
         this.createRuneDeck(W / 2, H * 0.61);
 
-        // 5. 粒子發射器初始化
+        // 粒子發射器
         this.particleEmitter = this.add.particles(0, 0, 'glowParticle', {
           speed: { min: 80, max: 200 },
           scale: { start: 0.8, end: 0 },
@@ -121,13 +160,11 @@
       }
 
       createVectorAssets() {
-        // 粒子
         const pGfx = this.make.graphics({ x: 0, y: 0, add: false });
         pGfx.fillStyle(0x00f0ff, 1);
         pGfx.fillCircle(8, 8, 8);
         pGfx.generateTexture('glowParticle', 16, 16);
 
-        // 符文底板
         const rGfx = this.make.graphics({ x: 0, y: 0, add: false });
         rGfx.fillStyle(0x162032, 1);
         rGfx.fillRoundedRect(0, 0, 360, 52, 14);
@@ -135,7 +172,6 @@
         rGfx.strokeRoundedRect(0, 0, 360, 52, 14);
         rGfx.generateTexture('runeBase', 360, 52);
 
-        // 激活底板
         const aGfx = this.make.graphics({ x: 0, y: 0, add: false });
         aGfx.fillStyle(0x064e3b, 1);
         aGfx.fillRoundedRect(0, 0, 360, 52, 14);
@@ -144,92 +180,110 @@
         aGfx.generateTexture('runeCharged', 360, 52);
       }
 
-      createGridBackground(w, h) {
-        const grid = this.add.grid(w / 2, h / 2, w, h, 32, 32, 0x000000, 0, 0x1e293b, 0.25);
-        this.tweens.add({
-          targets: grid,
-          alpha: 0.5,
-          duration: 2000,
-          yoyo: true,
-          repeat: -1
-        });
-      }
-
       createHUD(w) {
-        this.add.text(w / 2, 32, WEEK_DATA.levelLabel, {
-          fontFamily: 'Fredoka, sans-serif',
-          fontSize: '14px',
+        this.add.text(w / 2, 28, WEEK_DATA.levelLabel, {
+          fontFamily: 'sans-serif',
+          fontSize: '13px',
           fontStyle: 'bold',
           color: '#38bdf8'
         }).setOrigin(0.5);
 
-        this.add.rectangle(w / 2, 60, 220, 24, 0x0f172a).setStrokeStyle(2, 0x334155);
-        this.energyFill = this.add.rectangle(w / 2 - 108, 60, 0, 20, 0x00f0ff).setOrigin(0, 0.5);
-        this.energyText = this.add.text(w / 2, 60, 'ENERGY 0 / 4', {
-          fontFamily: 'Fredoka',
-          fontSize: '12px',
+        this.add.rectangle(w / 2, 54, 220, 22, 0x0f172a).setStrokeStyle(2, 0x334155);
+        this.energyFill = this.add.rectangle(w / 2 - 108, 54, 0, 18, 0x00f0ff).setOrigin(0, 0.5);
+        this.energyText = this.add.text(w / 2, 54, 'PROGRESS 0 / 4', {
+          fontFamily: 'sans-serif',
+          fontSize: '11px',
           fontStyle: 'bold',
           color: '#ffffff'
         }).setOrigin(0.5);
       }
 
-      createChestPedestal(x, y) {
-        // 底座光圈居中
-        this.pedestal = this.add.ellipse(x, y + 80, 160, 40, 0x38bdf8, 0.2);
-        this.tweens.add({
-          targets: this.pedestal,
-          scaleX: 1.15,
-          alpha: 0.4,
-          duration: 1200,
-          yoyo: true,
-          repeat: -1
-        });
+      // ==========================================
+      // 4 種核心舞台分流建置
+      // ==========================================
+      buildStageByMode(cx, cy) {
+        this.stageContainer = this.add.container(cx, cy);
 
-        // 將蛋封裝進 Container，確保旋轉原點在幾何正中心 (0, 0)
-        this.eggContainer = this.add.container(x, y);
-        this.egg = this.add.graphics();
-        this.drawEgg(0x38bdf8, 0x1d4ed8);
-        this.eggContainer.add(this.egg);
+        if (currentMode === 'EGG') {
+          // 模式 1：開蛋
+          this.pedestal = this.add.ellipse(0, 75, 150, 36, 0x38bdf8, 0.2);
+          this.eggGfx = this.add.graphics();
+          this.drawEgg(0x38bdf8, 0x1d4ed8);
+          this.stageContainer.add([this.pedestal, this.eggGfx]);
 
-        // 浮空補間
-        this.eggTween = this.tweens.add({
-          targets: this.eggContainer,
-          y: y - 14,
-          duration: 1500,
-          yoyo: true,
-          repeat: -1,
-          ease: 'Sine.easeInOut'
-        });
+          this.idleTween = this.tweens.add({
+            targets: this.stageContainer,
+            y: cy - 12,
+            duration: 1400,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+          });
 
-        // 點擊判定區
-        this.eggContainer.setSize(120, 140);
-        this.eggContainer.setInteractive(new Phaser.Geom.Circle(0, 0, 60), Phaser.Geom.Circle.Contains);
-        this.eggContainer.on('pointerdown', () => this.handleEggTap());
+          this.stageContainer.setSize(120, 140);
+          this.stageContainer.setInteractive(new Phaser.Geom.Circle(0, 0, 60), Phaser.Geom.Circle.Contains);
+          this.stageContainer.on('pointerdown', () => this.handleActionTrigger());
+          this.stageLabel = this.add.text(cx, cy + 110, '⚡ 點擊下方單字注入能量開蛋', { fontFamily: 'sans-serif', fontSize: '13px', color: '#94a3b8', fontStyle: 'bold' }).setOrigin(0.5);
 
-        this.stageLabel = this.add.text(x, y + 115, '⚡ 點擊下方符文注入能量', {
-          fontFamily: 'Noto Sans TC, sans-serif',
-          fontSize: '14px',
-          fontWeight: 'bold',
-          color: '#94a3b8'
-        }).setOrigin(0.5);
+        } else if (currentMode === 'DOORS') {
+          // 模式 2：密室破門 (Doors 風)
+          this.doorBox = this.add.rectangle(0, 0, 110, 150, 0x334155).setStrokeStyle(4, 0x64748b);
+          this.doorText = this.add.text(0, -20, 'DOOR 01', { fontFamily: 'sans-serif', fontSize: '18px', fontStyle: 'bold', color: '#facc15' }).setOrigin(0.5);
+          this.doorLock = this.add.text(0, 30, '🔒 LOCKED', { fontFamily: 'sans-serif', fontSize: '13px', color: '#ef4444', fontStyle: 'bold' }).setOrigin(0.5);
+          this.stageContainer.add([this.doorBox, this.doorText, this.doorLock]);
+
+          this.stageContainer.setSize(110, 150);
+          this.stageContainer.setInteractive();
+          this.stageContainer.on('pointerdown', () => this.handleActionTrigger());
+          this.stageLabel = this.add.text(cx, cy + 110, '🏃 解開 4 道密碼破門逃脫！', { fontFamily: 'sans-serif', fontSize: '13px', color: '#94a3b8', fontStyle: 'bold' }).setOrigin(0.5);
+
+        } else if (currentMode === 'SLAP') {
+          // 模式 3：巴掌亂鬥 (Slap Battles 風)
+          this.monster = this.add.circle(0, 0, 55, 0xec4899).setStrokeStyle(4, 0xffffff);
+          this.monsterFace = this.add.text(0, -5, '🤪', { fontSize: '46px' }).setOrigin(0.5);
+          this.stageContainer.add([this.monster, this.monsterFace]);
+
+          this.idleTween = this.tweens.add({
+            targets: this.stageContainer,
+            scaleX: 1.06,
+            duration: 600,
+            yoyo: true,
+            repeat: -1
+          });
+
+          this.stageContainer.setSize(110, 110);
+          this.stageContainer.setInteractive();
+          this.stageContainer.on('pointerdown', () => this.handleActionTrigger());
+          this.stageLabel = this.add.text(cx, cy + 110, '🥊 聽讀蓄力，把怪獸打飛到太空！', { fontFamily: 'sans-serif', fontSize: '13px', color: '#94a3b8', fontStyle: 'bold' }).setOrigin(0.5);
+
+        } else if (currentMode === 'SLOT') {
+          // 模式 4：拉霸機 (RNG Slot 風)
+          this.slotFrame = this.add.rectangle(0, 0, 180, 110, 0x1e293b).setStrokeStyle(4, 0xfacc15);
+          this.slotReel = this.add.text(0, 0, '💎 | 💎 | 💎', { fontFamily: 'sans-serif', fontSize: '20px', fontStyle: 'bold', color: '#ffffff' }).setOrigin(0.5);
+          this.stageContainer.add([this.slotFrame, this.slotReel]);
+
+          this.stageContainer.setSize(180, 110);
+          this.stageContainer.setInteractive();
+          this.stageContainer.on('pointerdown', () => this.handleActionTrigger());
+          this.stageLabel = this.add.text(cx, cy + 110, '🎰 湊滿 4 顆幸運代幣啟動拉霸！', { fontFamily: 'sans-serif', fontSize: '13px', color: '#94a3b8', fontStyle: 'bold' }).setOrigin(0.5);
+        }
       }
 
-      // 蛋的幾何中心修正為嚴格對齊 (0, 0)
       drawEgg(topColor, bottomColor) {
-        this.egg.clear();
-        this.egg.fillStyle(bottomColor, 1);
-        this.egg.fillCircle(0, 10, 52);
-        this.egg.fillStyle(topColor, 1);
-        this.egg.fillCircle(0, -10, 44);
-        this.egg.lineStyle(4, 0xffffff, 0.85);
-        this.egg.strokeCircle(0, 0, 54);
+        this.eggGfx.clear();
+        this.eggGfx.fillStyle(bottomColor, 1);
+        this.eggGfx.fillCircle(0, 10, 50);
+        this.eggGfx.fillStyle(topColor, 1);
+        this.eggGfx.fillCircle(0, -10, 42);
+        this.eggGfx.lineStyle(4, 0xffffff, 0.85);
+        this.eggGfx.strokeCircle(0, 0, 52);
       }
 
+      // 下方 3 單字 + 1 句共用石板
       createRuneDeck(centerX, startY) {
         WEEK_DATA.words.forEach((item, idx) => {
           this.createRuneButton(centerX, startY + idx * 62, item, `word_${idx}`);
         });
-
         const sentenceY = startY + 3 * 62 + 8;
         this.createSentenceRune(centerX, sentenceY);
       }
@@ -237,71 +291,38 @@
       createRuneButton(x, y, item, key) {
         const container = this.add.container(x, y);
         const bg = this.add.image(0, 0, 'runeBase').setInteractive({ useHandCursor: true });
-        
-        const textEn = this.add.text(-150, -4, item.display, {
-          fontFamily: 'Fredoka, sans-serif',
-          fontSize: '20px',
-          fontStyle: 'bold',
-          color: '#ffffff'
-        }).setOrigin(0, 0.5);
-
-        const textZh = this.add.text(50, -4, item.zh, {
-          fontFamily: 'Noto Sans TC',
-          fontSize: '14px',
-          color: '#94a3b8'
-        }).setOrigin(0, 0.5);
-
+        const textEn = this.add.text(-150, -4, item.display, { fontFamily: 'sans-serif', fontSize: '19px', fontStyle: 'bold', color: '#ffffff' }).setOrigin(0, 0.5);
+        const textZh = this.add.text(50, -4, item.zh, { fontFamily: 'sans-serif', fontSize: '14px', color: '#94a3b8' }).setOrigin(0, 0.5);
         const icon = this.add.text(145, -4, '🔊', { fontSize: '18px' }).setOrigin(0.5);
 
         container.add([bg, textEn, textZh, icon]);
-
         bg.on('pointerdown', () => {
           this.triggerJuicyPress(container);
           this.speak(item.en);
-          this.awardEnergy(key, bg, container.x, container.y);
+          this.awardProgress(key, bg, container.x, container.y);
         });
       }
 
       createSentenceRune(x, y) {
         const container = this.add.container(x, y);
         const bg = this.add.image(0, 0, 'runeBase').setInteractive({ useHandCursor: true });
-        
-        const label = this.add.text(-150, -14, '📜 通關密碼句：', {
-          fontFamily: 'Noto Sans TC',
-          fontSize: '11px',
-          color: '#38bdf8'
-        });
-
-        const sentenceText = this.add.text(-150, 6, WEEK_DATA.sentence.en, {
-          fontFamily: 'Fredoka',
-          fontSize: '15px',
-          fontStyle: 'bold',
-          color: '#ffffff'
-        });
-
+        const label = this.add.text(-150, -14, '📜 通關密碼句：', { fontFamily: 'sans-serif', fontSize: '11px', color: '#38bdf8' });
+        const sentenceText = this.add.text(-150, 6, WEEK_DATA.sentence.en, { fontFamily: 'sans-serif', fontSize: '15px', fontStyle: 'bold', color: '#ffffff' });
         const icon = this.add.text(145, 0, '⚡', { fontSize: '18px' }).setOrigin(0.5);
 
         container.add([bg, label, sentenceText, icon]);
-
         bg.on('pointerdown', () => {
           this.triggerJuicyPress(container);
           this.speak(WEEK_DATA.sentence.en);
-          this.awardEnergy('sentence', bg, container.x, container.y);
+          this.awardProgress('sentence', bg, container.x, container.y);
         });
       }
 
       triggerJuicyPress(target) {
-        this.tweens.add({
-          targets: target,
-          scaleX: 0.94,
-          scaleY: 0.94,
-          duration: 80,
-          yoyo: true,
-          ease: 'Quad.easeInOut'
-        });
+        this.tweens.add({ targets: target, scaleX: 0.94, scaleY: 0.94, duration: 80, yoyo: true });
       }
 
-      awardEnergy(key, bgImage, originX, originY) {
+      awardProgress(key, bgImage, originX, originY) {
         this.playAudioSynth(880, 'sine', 0.15);
 
         if (!this.completedItems.has(key)) {
@@ -316,55 +337,66 @@
             duration: 300,
             ease: 'Cubic.easeOut'
           });
-          this.energyText.setText(`ENERGY ${this.chargedCount} / ${this.maxCharges}`);
+          this.energyText.setText(`PROGRESS ${this.chargedCount} / ${this.maxCharges}`);
 
-          // 粒子流精準射向蛋中心 (eggContainer.x, eggContainer.y)
+          // 粒子流飛向舞台
           this.particleEmitter.explode(16, originX, originY);
           this.tweens.add({
             targets: { x: originX, y: originY },
-            x: this.eggContainer.x,
-            y: this.eggContainer.y,
-            duration: 400,
+            x: this.stageContainer.x,
+            y: this.stageContainer.y,
+            duration: 380,
             onUpdate: (tween) => {
               const val = tween.getValue();
               this.particleEmitter.emitParticleAt(val.x, val.y);
             }
           });
 
+          // 各模式即時互動回饋
+          if (currentMode === 'DOORS') {
+            this.doorText.setText(`DOOR 0${this.chargedCount}`);
+          }
+
           if (this.chargedCount === this.maxCharges) {
-            this.setEggUltraReady();
+            this.setStageReady();
           }
         }
       }
 
-      setEggUltraReady() {
-        this.drawEgg(0xfde047, 0xea580c);
-        this.eggTween.stop();
-
-        this.tweens.add({
-          targets: this.eggContainer,
-          scaleX: 1.15,
-          scaleY: 0.9,
-          angle: 12,
-          duration: 90,
-          yoyo: true,
-          repeat: -1,
-          ease: 'Sine.easeInOut'
-        });
-
-        this.stageLabel.setText('🔥 能量已滿！點擊狂暴開蛋！').setColor('#facc15');
+      setStageReady() {
         this.playAudioSynth(587.33, 'triangle', 0.4);
+
+        if (currentMode === 'EGG') {
+          this.drawEgg(0xfde047, 0xea580c);
+          if (this.idleTween) this.idleTween.stop();
+          this.tweens.add({ targets: this.stageContainer, scaleX: 1.15, scaleY: 0.9, angle: 10, duration: 90, yoyo: true, repeat: -1 });
+          this.stageLabel.setText('🔥 能量充飽！點擊狂暴開蛋！').setColor('#facc15');
+
+        } else if (currentMode === 'DOORS') {
+          this.doorBox.setStrokeStyle(4, 0x22c55e);
+          this.doorLock.setText('🔓 UNLOCKED!').setColor('#22c55e');
+          this.stageLabel.setText('🚪 鎖已全開！點擊大門逃出！').setColor('#22c55e');
+
+        } else if (currentMode === 'SLAP') {
+          this.monsterFace.setText('😱');
+          this.tweens.add({ targets: this.stageContainer, scaleX: 1.25, scaleY: 1.25, angle: 15, duration: 80, yoyo: true, repeat: -1 });
+          this.stageLabel.setText('💥 大招蓄滿！點擊一拳揍飛！').setColor('#facc15');
+
+        } else if (currentMode === 'SLOT') {
+          this.stageLabel.setText('🎰 金幣到位！點擊拉桿開獎！').setColor('#facc15');
+        }
       }
 
-      handleEggTap() {
+      handleActionTrigger() {
         if (this.chargedCount < this.maxCharges) {
           this.cameras.main.shake(120, 0.01);
           this.playAudioSynth(220, 'square', 0.15);
           return;
         }
 
+        // 通關衝擊與音效
         this.cameras.main.shake(400, 0.035);
-        this.cameras.main.flash(450, 255, 255, 255);
+        this.cameras.main.flash(400, 255, 255, 255);
         this.playVictoryFanfare();
 
         const loot = PET_ROSTER[Math.floor(Math.random() * PET_ROSTER.length)];
@@ -374,73 +406,25 @@
       showGachaCardModal(loot) {
         const W = 400;
         const H = 720;
-
         const overlay = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0.88).setInteractive();
         const cardBox = this.add.container(W / 2, H / 2);
 
         const cardBg = this.add.rectangle(0, 0, 310, 420, 0x111827).setStrokeStyle(4, loot.color);
-        const rarityBadge = this.add.text(0, -170, `★ ${loot.rarity} ★`, {
-          fontFamily: 'Fredoka',
-          fontSize: '14px',
-          fontStyle: 'bold',
-          color: '#ffffff'
-        }).setOrigin(0.5);
+        const badge = this.add.text(0, -170, `★ ${loot.rarity} ★`, { fontFamily: 'sans-serif', fontSize: '14px', fontStyle: 'bold', color: '#ffffff' }).setOrigin(0.5);
+        const orb = this.add.circle(0, -70, 54, loot.color, 0.85);
 
-        const orb = this.add.circle(0, -70, 56, loot.color, 0.85);
-        this.tweens.add({
-          targets: orb,
-          scale: 1.12,
-          duration: 800,
-          yoyo: true,
-          repeat: -1
-        });
-
-        const nameLabel = this.add.text(0, 15, loot.name, {
-          fontFamily: 'Fredoka',
-          fontSize: '18px',
-          fontStyle: 'bold',
-          color: '#ffffff',
-          align: 'center'
-        }).setOrigin(0.5);
-
-        const powerLabel = this.add.text(0, 45, `⚡ POWER: ${loot.power}`, {
-          fontFamily: 'Fredoka',
-          fontSize: '15px',
-          color: '#facc15'
-        }).setOrigin(0.5);
-
-        const quoteLabel = this.add.text(0, 95, loot.quote, {
-          fontFamily: 'Noto Sans TC',
-          fontSize: '12px',
-          color: '#cbd5e1',
-          wordWrap: { width: 260 },
-          align: 'center'
-        }).setOrigin(0.5);
-
-        const passText = this.add.text(0, 145, '✓ 今日跟讀通關！拿給阿嬤看換遊戲時間', {
-          fontFamily: 'Noto Sans TC',
-          fontSize: '11px',
-          fontWeight: 'bold',
-          color: '#86efac'
-        }).setOrigin(0.5);
+        const nameLabel = this.add.text(0, 15, loot.name, { fontFamily: 'sans-serif', fontSize: '17px', fontStyle: 'bold', color: '#ffffff', align: 'center' }).setOrigin(0.5);
+        const powerLabel = this.add.text(0, 45, `⚡ POWER: ${loot.power}`, { fontFamily: 'sans-serif', fontSize: '15px', color: '#facc15', fontStyle: 'bold' }).setOrigin(0.5);
+        const quoteLabel = this.add.text(0, 95, loot.quote, { fontFamily: 'sans-serif', fontSize: '12px', color: '#cbd5e1', wordWrap: { width: 260 }, align: 'center' }).setOrigin(0.5);
+        const passText = this.add.text(0, 145, '✓ 今日跟讀通關！拿給阿嬤看換遊戲時間', { fontFamily: 'sans-serif', fontSize: '11px', fontWeight: 'bold', color: '#86efac' }).setOrigin(0.5);
 
         const closeBtn = this.add.rectangle(0, 185, 200, 38, 0x22c55e).setInteractive({ useHandCursor: true });
-        const closeTxt = this.add.text(0, 185, '收進圖鑑背包', {
-          fontFamily: 'Noto Sans TC',
-          fontSize: '14px',
-          fontWeight: 'bold',
-          color: '#052e16'
-        }).setOrigin(0.5);
+        const closeTxt = this.add.text(0, 185, '收進背包', { fontFamily: 'sans-serif', fontSize: '14px', fontWeight: 'bold', color: '#052e16' }).setOrigin(0.5);
 
-        cardBox.add([cardBg, rarityBadge, orb, nameLabel, powerLabel, quoteLabel, passText, closeBtn, closeTxt]);
+        cardBox.add([cardBg, badge, orb, nameLabel, powerLabel, quoteLabel, passText, closeBtn, closeTxt]);
 
         cardBox.setScale(0);
-        this.tweens.add({
-          targets: cardBox,
-          scale: 1,
-          duration: 350,
-          ease: 'Back.easeOut'
-        });
+        this.tweens.add({ targets: cardBox, scale: 1, duration: 350, ease: 'Back.easeOut' });
 
         closeBtn.on('pointerdown', () => {
           overlay.destroy();
@@ -482,21 +466,38 @@
       }
     }
 
-    // 啟動 Phaser 3 配置
-    const config = {
-      type: Phaser.AUTO,
-      parent: 'game-canvas-container',
-      width: 400,
-      height: 720,
-      scale: {
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH
-      },
-      scene: GameScene
-    };
+    // 啟動與切換模式
+    function initGame() {
+      const config = {
+        type: Phaser.AUTO,
+        parent: 'game-canvas-container',
+        width: 400,
+        height: 720,
+        scale: {
+          mode: Phaser.Scale.FIT,
+          autoCenter: Phaser.Scale.CENTER_BOTH
+        },
+        scene: GameScene
+      };
+      phaserGame = new Phaser.Game(config);
+    }
+
+    function switchGameMode(modeKey) {
+      if (currentMode === modeKey) return;
+      currentMode = modeKey;
+
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('onclick').includes(modeKey));
+      });
+
+      // 重新重啟當前場景
+      if (phaserGame && phaserGame.scene) {
+        phaserGame.scene.scenes[0].scene.restart();
+      }
+    }
 
     window.addEventListener('load', () => {
-      new Phaser.Game(config);
+      initGame();
     });
   </script>
 </body>
