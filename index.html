@@ -573,7 +573,7 @@
     </div>
   </div>
 
-  <!-- 引入題庫檔 -->
+  <!-- 引入外部題庫檔 -->
   <script src="quests.js"></script>
 
   <script>
@@ -604,7 +604,6 @@
     let isAudioPlaying = false;
     let articleAudioElement = null;
 
-    // 紀錄該關卡中孩子已點聽過的單字集合
     let listenedWordsSet = new Set();
 
     function initQuestDropdown() {
@@ -754,7 +753,6 @@
       const arena = document.getElementById("main-challenge-arena");
       currentListenCount = 0;
 
-      // 檢查是否已完成 4 關
       if (currentStage >= 4) {
         const remainingWords = quest.words.length - listenedWordsSet.size;
 
@@ -918,18 +916,23 @@
         localStorage.setItem("unlocked_catalog_ids", JSON.stringify(unlockedPets));
       }
 
+      // ─── 以 text/plain 送出 JSON，規避 Google Apps Script CORS 阻擋 ───
       if (GAS_SUBMIT_URL && GAS_SUBMIT_URL.trim() !== "") {
+        const payload = JSON.stringify({
+          studentName: "孩子",
+          questLabel: quest.label,
+          phonicsScore: "4/4 全數通過",
+          articleStatus: `${listenedWordsSet.size}/${quest.words.length} 單字聽畢`,
+          petName: `${loot.num} ${loot.name} (${loot.rarity})`
+        });
+
         fetch(GAS_SUBMIT_URL, {
           method: "POST",
           mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            studentName: "孩子",
-            questLabel: quest.label,
-            phonicsScore: "4/4 全數通過",
-            articleStatus: `${listenedWordsSet.size}/${quest.words.length} 單字聽畢`,
-            petName: `${loot.num} ${loot.name} (${loot.rarity})`
-          })
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: payload
+        }).then(() => {
+          console.log("紀錄已送出至 Google 試算表");
         }).catch(err => console.error("回傳試算表失敗:", err));
       }
 
