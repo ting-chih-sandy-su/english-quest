@@ -19,6 +19,7 @@
       --cyan: #38bdf8;
       --green: #22c55e;
       --red: #ef4444;
+      --purple: #a855f7;
       --border: #334155;
       --text-main: #f8fafc;
       --text-sub: #cbd5e1;
@@ -74,13 +75,12 @@
 
     .control-header {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
+      flex-direction: column;
+      gap: 8px;
     }
 
     .quest-select-wrap {
-      flex: 1;
+      width: 100%;
       position: relative;
     }
 
@@ -105,35 +105,42 @@
     }
 
     .header-actions {
-      display: flex;
-      gap: 8px;
-      flex-shrink: 0;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      width: 100%;
     }
 
     .pill-btn {
       background: #1e293b;
       border: 1.5px solid var(--border);
       color: #fff;
-      padding: 10px 14px;
-      border-radius: 14px;
-      font-size: 0.88rem;
+      padding: 8px 6px;
+      border-radius: 12px;
+      font-size: 0.82rem;
       font-weight: 800;
       cursor: pointer;
+      text-align: center;
       white-space: nowrap;
     }
     .pill-btn.bag-btn { 
       background: linear-gradient(135deg, #ec4899, #be185d); 
       border-color: #f472b6;
-      box-shadow: 0 2px 8px rgba(236, 72, 153, 0.3);
     }
     .pill-btn.parent-btn { 
       background: rgba(34, 197, 94, 0.15); 
       border-color: #22c55e; 
       color: #86efac; 
     }
-    .pill-btn.parent-btn.active { 
-      background: #22c55e; 
-      color: #052e16; 
+    .pill-btn.quiz-btn {
+      background: rgba(168, 85, 247, 0.15);
+      border-color: #a855f7;
+      color: #d8b4fe;
+    }
+    .pill-btn.diary-btn {
+      background: rgba(250, 204, 21, 0.15);
+      border-color: var(--gold);
+      color: #fef08a;
     }
 
     .parent-overview-panel {
@@ -448,6 +455,7 @@
       to { transform: scale(1.02); }
     }
 
+    /* Modal 系列 */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -462,13 +470,15 @@
     }
     .modal-box {
       width: 100%;
-      max-width: 400px;
+      max-width: 420px;
       background: linear-gradient(180deg, #1e293b, #090e1a);
       border: 3px solid var(--gold);
       border-radius: 24px;
       padding: 24px 20px;
       text-align: center;
       box-shadow: 0 0 50px rgba(250, 204, 21, 0.4);
+      max-height: 90vh;
+      overflow-y: auto;
     }
     .report-card-wrap {
       background: rgba(15, 23, 42, 0.8);
@@ -482,6 +492,7 @@
     }
     .report-row { display: flex; justify-content: space-between; }
     .report-badge { color: #86efac; font-weight: 800; }
+
     .close-btn {
       width: 100%;
       background: linear-gradient(180deg, var(--green), #15803d);
@@ -491,6 +502,62 @@
       border-radius: 16px;
       font-size: 1.1rem;
       font-weight: 900;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    /* 隨堂考樣式 */
+    .quiz-question-card {
+      background: #0f172a;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 12px;
+      text-align: left;
+    }
+    .quiz-prompt { font-weight: 800; color: #fff; font-size: 1.05rem; margin-bottom: 8px; }
+    .quiz-opt-btn {
+      display: block;
+      width: 100%;
+      background: #1e293b;
+      border: 1px solid var(--border);
+      color: #cbd5e1;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.92rem;
+      margin-bottom: 6px;
+      text-align: left;
+      cursor: pointer;
+    }
+    .quiz-opt-btn.correct { background: var(--green); color: #052e16; border-color: #86efac; }
+    .quiz-opt-btn.wrong { background: var(--red); color: #fff; }
+
+    /* 聯絡簿樣式 */
+    .diary-textarea {
+      width: 100%;
+      height: 190px;
+      background: #090e1a;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      color: #f8fafc;
+      padding: 12px;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      resize: none;
+      outline: none;
+      margin: 12px 0;
+      user-select: text;
+    }
+    .copy-btn {
+      width: 100%;
+      background: linear-gradient(180deg, var(--gold), #d97706);
+      color: #000;
+      border: none;
+      padding: 12px;
+      border-radius: 14px;
+      font-weight: 900;
+      font-size: 1rem;
       cursor: pointer;
     }
 
@@ -541,7 +608,7 @@
     <div class="user-info-bar">
       <span>🎯 語音冒險任務</span>
       <span class="user-tag" onclick="changeStudentName()">
-        🧑‍🎓 特訓員：<span id="current-user-display" style="text-decoration: underline;">載入中...</span> ✏️
+        🧑‍🎓 特訓員：<span id="current-user-display" style="text-decoration: underline;">載入中...</span> ✏️️
       </span>
     </div>
 
@@ -551,6 +618,8 @@
       </div>
       <div class="header-actions">
         <button class="pill-btn parent-btn" id="parent-toggle-btn" onclick="toggleParentPanel()">📋 大綱</button>
+        <button class="pill-btn quiz-btn" onclick="openQuizModal()">📝 隨堂考</button>
+        <button class="pill-btn diary-btn" onclick="openDiaryModal()">📖 聯絡簿</button>
         <button class="pill-btn bag-btn" onclick="openBagModal()">🎒 圖鑑</button>
       </div>
     </div>
@@ -586,6 +655,7 @@
 
   </div>
 
+  <!-- 成果 Modal -->
   <div class="modal-overlay" id="loot-modal">
     <div class="modal-box">
       <span style="display:inline-block; padding:4px 16px; border-radius:999px; font-weight:800; font-size:0.85rem; background:linear-gradient(90deg,#ec4899,#8b5cf6); color:#fff;" id="loot-rarity">神話級 MYTHIC</span>
@@ -609,6 +679,28 @@
     </div>
   </div>
 
+  <!-- 隨堂考準備 Modal -->
+  <div class="modal-overlay" id="quiz-modal">
+    <div class="modal-box">
+      <h3 style="font-size:1.35rem; color:var(--purple); margin-bottom:4px;">📝 隨堂考衝刺模擬 (5 題)</h3>
+      <div style="font-size:0.88rem; color:var(--text-sub); margin-bottom:14px;">快速自我檢測，回補習班考試拿 100 分！</div>
+      <div id="quiz-content-box"></div>
+      <button class="close-btn" style="background:#475569;" onclick="closeQuizModal()">關閉模擬考</button>
+    </div>
+  </div>
+
+  <!-- 聯絡簿 Modal -->
+  <div class="modal-overlay" id="diary-modal">
+    <div class="modal-box">
+      <h3 style="font-size:1.35rem; color:var(--gold); margin-bottom:4px;">📖 課後學習聯絡簿</h3>
+      <div style="font-size:0.88rem; color:var(--text-sub);">系統已為您自動彙整今日學習摘要：</div>
+      <textarea class="diary-textarea" id="diary-text-content" readonly></textarea>
+      <button class="copy-btn" onclick="copyDiaryContent()">📋 一鍵複製給家長 (LINE / 聯絡簿)</button>
+      <button class="close-btn" style="background:#475569; margin-top:8px;" onclick="closeDiaryModal()">返回</button>
+    </div>
+  </div>
+
+  <!-- 圖鑑 Modal -->
   <div class="modal-overlay" id="bag-modal">
     <div class="modal-box">
       <h3 style="font-size:1.35rem; color:var(--gold);">🎒 4,000 隻全服萬物圖鑑庫</h3>
@@ -645,40 +737,18 @@
       }
     }
 
-    // ─── 4,000 隻全獨立程序化神寵矩陣 (20 前綴 × 10 屬性 × 20 本體 = 4,000) ───
-    const TITLES_POOL = [
-      "永恆", "滅世", "星穹", "極光", "太古", "狂暴", "深淵", "神聖", "天啟", "蒼穹",
-      "逆命", "幻影", "絕境", "超弦", "至尊", "量子", "烈陽", "霜月", "幽冥", "森羅"
-    ]; // 20
-    const ELEMENTS_POOL = [
-      "虛空", "混沌", "烈焰", "寒冰", "雷霆", "時空", "暗黑", "黃金", "翡翠", "終焉"
-    ]; // 10
+    const TITLES_POOL = ["永恆", "滅世", "星穹", "極光", "太古", "狂暴", "深淵", "神聖", "天啟", "蒼穹", "逆命", "幻影", "絕境", "超弦", "至尊", "量子", "烈陽", "霜月", "幽冥", "森羅"];
+    const ELEMENTS_POOL = ["虛空", "混沌", "烈焰", "寒冰", "雷霆", "時空", "暗黑", "黃金", "翡翠", "終焉"];
     const BASES_POOL = [
-      { name: "彩虹神龍", icon: "🐉" },
-      { name: "香蕉靈犬", icon: "🐕" },
-      { name: "星芒獨角獸", icon: "🦄" },
-      { name: "駭客靈貓", icon: "🐱" },
-      { name: "超能馬桶怪", icon: "🚽" },
-      { name: "暴食生吐司", icon: "🍞" },
-      { name: "霸王暴龍", icon: "🦖" },
-      { name: "爆破西瓜精", icon: "🍉" },
-      { name: "機械泰坦巨猿", icon: "🦍" },
-      { name: "不死火鳥", icon: "🦅" },
-      { name: "深海巨鯊", icon: "🦈" },
-      { name: "劇毒巨蠍", icon: "🦂" },
-      { name: "外星異形蜂", icon: "🐝" },
-      { name: "裝甲犀牛", icon: "🦏" },
-      { name: "暗夜吸血蝠", icon: "🦇" },
-      { name: "遠古猛獁象", icon: "🦣" },
-      { name: "熔岩火狐", icon: "🦊" },
-      { name: "極地雪狼", icon: "🐺" },
-      { name: "星際機械人", icon: "🤖" },
-      { name: "克蘇魯巨章", icon: "🐙" }
-    ]; // 20
+      { name: "彩虹神龍", icon: "🐉" }, { name: "香蕉靈犬", icon: "🐕" }, { name: "星芒獨角獸", icon: "🦄" }, { name: "駭客靈貓", icon: "🐱" },
+      { name: "超能馬桶怪", icon: "🚽" }, { name: "暴食生吐司", icon: "🍞" }, { name: "霸王暴龍", icon: "🦖" }, { name: "爆破西瓜精", icon: "🍉" },
+      { name: "機械泰坦巨猿", icon: "🦍" }, { name: "不死火鳥", icon: "🦅" }, { name: "深海巨鯊", icon: "🦈" }, { name: "劇毒巨蠍", icon: "🦂" },
+      { name: "外星異形蜂", icon: "🐝" }, { name: "裝甲犀牛", icon: "🦏" }, { name: "暗夜吸血蝠", icon: "🦇" }, { name: "遠古猛獁象", icon: "🦣" },
+      { name: "熔岩火狐", icon: "🦊" }, { name: "極地雪狼", icon: "🐺" }, { name: "星際機械人", icon: "🤖" }, { name: "克蘇魯巨章", icon: "🐙" }
+    ];
 
-    const TOTAL_PETS_COUNT = TITLES_POOL.length * ELEMENTS_POOL.length * BASES_POOL.length; // 4,000
+    const TOTAL_PETS_COUNT = TITLES_POOL.length * ELEMENTS_POOL.length * BASES_POOL.length;
 
-    // 數學映射：O(1) 根據 Index 取得第 i 隻的完整屬性（完全不佔記憶體）
     function getPetByIndex(idx) {
       const bIdx = idx % BASES_POOL.length;
       const rem1 = Math.floor(idx / BASES_POOL.length);
@@ -689,18 +759,13 @@
       const elem = ELEMENTS_POOL[eIdx];
       const title = TITLES_POOL[tIdx];
 
-      const numStr = `#${String(idx + 1).padStart(4, '0')}`;
-      const name = `${title}·${elem}·${base.name}`;
-      const rarity = (idx % 25 === 0) ? "神話級 MYTHIC" : (idx % 5 === 0) ? "傳奇級 LEGENDARY" : "稀有級 RARE";
-      const power = `⚡ ${(80000 + (idx + 1) * 350).toLocaleString()}`;
-
       return {
         id: `pet_${idx + 1}`,
-        num: numStr,
-        name: name,
+        num: `#${String(idx + 1).padStart(4, '0')}`,
+        name: `${title}·${elem}·${base.name}`,
         icon: base.icon,
-        rarity: rarity,
-        power: power
+        rarity: (idx % 25 === 0) ? "神話級 MYTHIC" : (idx % 5 === 0) ? "傳奇級 LEGENDARY" : "稀有級 RARE",
+        power: `⚡ ${(80000 + (idx + 1) * 350).toLocaleString()}`
       };
     }
 
@@ -711,6 +776,7 @@
     let currentTargetWord = "";
     let currentTargetAudio = "";
     let unlockedPets = JSON.parse(localStorage.getItem("unlocked_catalog_ids") || '["pet_1"]');
+    let lastWonPet = null;
     
     let currentListenCount = 0;
     let isAudioPlaying = false;
@@ -1038,9 +1104,9 @@
       launchConfetti();
 
       const quest = ALL_QUESTS[currentQuestIdx];
-      // 從 4,000 隻全獨立池中隨機抽中一隻
       const randomIdx = Math.floor(Math.random() * TOTAL_PETS_COUNT);
       const loot = getPetByIndex(randomIdx);
+      lastWonPet = loot;
 
       if (!unlockedPets.includes(loot.id)) {
         unlockedPets.push(loot.id);
@@ -1081,6 +1147,96 @@
       generateChallengeStage();
     }
 
+    /* ─── 隨堂考準備模組 (5 題模擬測驗) ─── */
+    function openQuizModal() {
+      const quest = ALL_QUESTS[currentQuestIdx];
+      const box = document.getElementById("quiz-content-box");
+      box.innerHTML = "";
+
+      const wordsPool = [...quest.words].sort(() => Math.random() - 0.5);
+      const quizQuestions = wordsPool.slice(0, 5);
+
+      quizQuestions.forEach((qItem, qIdx) => {
+        const otherWords = quest.words.filter(w => w.en !== qItem.en);
+        const distractors = otherWords.sort(() => Math.random() - 0.5).slice(0, 2);
+        const options = [
+          { text: qItem.zh, isCorrect: true },
+          { text: distractors[0] ? distractors[0].zh : "其他選項", isCorrect: false },
+          { text: distractors[1] ? distractors[1].zh : "無關干擾", isCorrect: false }
+        ].sort(() => Math.random() - 0.5);
+
+        const card = document.createElement("div");
+        card.className = "quiz-question-card";
+        card.innerHTML = `<div class="quiz-prompt">Q${qIdx + 1}. 【${qItem.en}】的意思是？</div>`;
+
+        options.forEach(opt => {
+          const btn = document.createElement("button");
+          btn.className = "quiz-opt-btn";
+          btn.innerText = opt.text;
+          btn.onclick = () => {
+            if (opt.isCorrect) {
+              btn.classList.add("correct");
+              btn.innerText = `⭕ 正確！ ${opt.text}`;
+              playCoinSound();
+            } else {
+              btn.classList.add("wrong");
+              btn.innerText = `❌ 不對喔！正解是：${qItem.zh}`;
+              playBuzzerSound();
+            }
+          };
+          card.appendChild(btn);
+        });
+
+        box.appendChild(card);
+      });
+
+      document.getElementById("quiz-modal").style.display = "flex";
+    }
+
+    function closeQuizModal() {
+      document.getElementById("quiz-modal").style.display = "none";
+    }
+
+    /* ─── 聯絡簿模組 (自動產生 ＋ 一鍵複製) ─── */
+    function openDiaryModal() {
+      const quest = ALL_QUESTS[currentQuestIdx];
+      const today = new Date().toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' });
+      const petInfo = lastWonPet ? `${lastWonPet.num} ${lastWonPet.name} (${lastWonPet.rarity})` : "尚未開箱或保留前次神寵";
+
+      const diaryText = 
+`【📚 英語課堂課後學習聯絡簿】
+📅 日期：${today}
+🧑‍🎓 學員：${currentStudentName}
+🎯 本週進度：${quest.label}
+----------------------------------------
+✅ 學習任務成效：
+1. 核心單字嘴型拆解：已完整聽辨 (${listenedWordsSet.size}/${quest.words.length})
+2. 單字音素盲測關卡：4/4 全數過關
+3. 課文語意段落聆聽：已完成朗讀對照
+🎁 今日解鎖戰力神寵：${petInfo}
+----------------------------------------
+👩‍🏫 老師叮嚀：
+今日在音素聽辨與段落理解表現優異！回家請保持語感，下週課堂隨堂考請加油！💪`;
+
+      document.getElementById("diary-text-content").value = diaryText;
+      document.getElementById("diary-modal").style.display = "flex";
+    }
+
+    function closeDiaryModal() {
+      document.getElementById("diary-modal").style.display = "none";
+    }
+
+    function copyDiaryContent() {
+      const textarea = document.getElementById("diary-text-content");
+      textarea.select();
+      navigator.clipboard.writeText(textarea.value).then(() => {
+        alert("✅ 聯絡簿內容已成功複製！可以直接貼到 LINE 或家長聯絡簿囉！");
+      }).catch(() => {
+        document.execCommand('copy');
+        alert("✅ 聯絡簿內容已複製！");
+      });
+    }
+
     function playSmartAudio(audioPath, fallbackText, rate = 0.8, onEndedCallback = null) {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
@@ -1115,19 +1271,15 @@
       }
     }
 
-    // 動態圖鑑渲染（高流暢、不卡頓）
     function openBagModal() {
       const box = document.getElementById("bag-grid");
       box.innerHTML = "";
       document.getElementById("bag-progress").innerText = unlockedPets.length;
 
-      // 提取所有已解鎖的索引，並包含前 120 隻作為基礎圖鑑瀏覽
       const unlockedIndices = unlockedPets.map(id => parseInt(id.replace("pet_", ""), 10) - 1).filter(n => !isNaN(n));
       const indicesToDisplay = new Set();
 
-      // 先放入前 120 隻展示格子
       for (let i = 0; i < 120; i++) indicesToDisplay.add(i);
-      // 再放入所有學生已抽到的稀有寵物格子
       unlockedIndices.forEach(idx => {
         if (idx < TOTAL_PETS_COUNT) indicesToDisplay.add(idx);
       });
