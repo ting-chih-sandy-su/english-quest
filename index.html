@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>PHONICS CHALLENGE: 聽力解碼特訓</title>
+  <title>兒童菁英－每週英聽任務</title>
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="apple-touch-icon" href="favicon.png">
 
@@ -618,7 +618,7 @@
   <div class="app-viewport">
     
     <div class="user-info-bar">
-      <span>🎯 語音冒險任務</span>
+      <span>ISA ENGLISH CENTER</span>
       <span class="user-tag" onclick="changeStudentName()">
         🧑‍🎓 特訓員：<span id="current-user-display" style="text-decoration: underline;">載入中...</span> ✏️
       </span>
@@ -630,7 +630,7 @@
       </div>
       <div class="header-actions">
         <button class="pill-btn parent-btn" id="parent-toggle-btn" onclick="toggleParentPanel()">📋 大綱</button>
-        <button class="pill-btn quiz-btn" onclick="openQuizModal()">📝 隨堂考 (10題)</button>
+        <button class="pill-btn quiz-btn" onclick="openQuizModal()">📝 隨堂演練 (10題)</button>
         <button class="pill-btn bag-btn" onclick="openBagModal()">🎒 圖鑑</button>
       </div>
     </div>
@@ -644,13 +644,13 @@
 
     <div class="reference-deck">
       <div class="section-title">
-        <span>🔤 本段核心單字拆解（請全部點聽完成）：</span>
+        <span>🔤 本段核心單字拆解（必須聽完）：</span>
         <span class="word-listen-tracker-badge" id="word-tracker-badge">進度 0 / 0</span>
       </div>
       <div class="ref-cards-container" id="ref-cards-box"></div>
 
       <div class="section-title">
-        <span>📖 整篇完整課文（螢光筆標記當前段落）：</span>
+        <span>📖 課文佳句（螢光筆標記當前段落）：</span>
       </div>
       <div class="article-full-card" id="article-card-box">
         <div>
@@ -659,7 +659,7 @@
         </div>
         <button class="article-btn-action" id="article-action-btn" onclick="handleArticleAudioClick()">
           <span id="article-btn-icon">🎧</span>
-          <span id="article-btn-text">朗讀本段錄音 (MP3)</span>
+          <span id="article-btn-text">朗讀全文錄音 (MP3)</span>
         </button>
       </div>
     </div>
@@ -681,7 +681,7 @@
         <div class="report-row"><span>1. 音素聽力盲測：</span><span class="report-badge">全數通過 (4/4)</span></div>
         <div class="report-row"><span>2. 核心單字拆解：</span><span class="report-badge">100% 逐字完成</span></div>
         <div style="margin-top:10px; color:#cbd5e1; font-size:0.85rem; border-top:1px dashed #334155; padding-top:8px;">
-          👩‍🏫 <strong>老師評語：</strong>孩子今日認真聽辨音素細節，已確實掌握核心讀音，請家長安心給予放鬆時間！
+          👩‍🏫 <strong>評語：</strong>孩子今日認真聽辨音素細節，已確實掌握核心讀音！
         </div>
       </div>
 
@@ -693,7 +693,7 @@
   <div class="modal-overlay" id="quiz-modal">
     <div class="modal-box">
       <h3 style="font-size:1.35rem; color:var(--purple); margin-bottom:4px;">📝 隨堂考衝刺模擬 (10 題)</h3>
-      <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px;">涵蓋拼字形近字魔王題、克漏字與精準發音陷阱！</div>
+      <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px;">涵蓋拼字形近字題、克漏字與發音陷阱！</div>
       
       <div class="quiz-score-header">
         <span id="quiz-progress-indicator">測驗進度：0 / 10 題</span>
@@ -715,7 +715,7 @@
     <div class="modal-box">
       <h3 style="font-size:1.35rem; color:var(--gold);">🎒 4,000 隻全服萬物圖鑑庫</h3>
       <div style="font-size:0.88rem; color:var(--text-sub); margin-top:6px;">
-        已解鎖進度：<span id="bag-progress" style="color:var(--gold); font-weight:800;">0</span> / 4,000 種完全獨立神寵
+        已解鎖進度：<span id="bag-progress" style="color:var(--gold); font-weight:800;">0</span> / 4,000 種神寵
       </div>
       <div class="bag-grid" id="bag-grid"></div>
       <button class="close-btn" onclick="closeBagModal()">返回訓練</button>
@@ -729,7 +729,7 @@
 
     let currentStudentName = localStorage.getItem("phonics_student_name");
     if (!currentStudentName || currentStudentName.trim() === "" || currentStudentName === "孩子" || currentStudentName === "學生") {
-      currentStudentName = prompt("🎮 歡迎來到英語特訓！請輸入你的名字：", "特訓員") || "特訓員";
+      currentStudentName = prompt("🎮 歡迎光臨！請輸入你的名字：", "特訓員") || "特訓員";
       localStorage.setItem("phonics_student_name", currentStudentName.trim());
     }
 
@@ -739,7 +739,7 @@
     }
 
     function changeStudentName() {
-      const newName = prompt("請輸入新的特訓員姓名：", currentStudentName);
+      const newName = prompt("請輸入新的姓名：", currentStudentName);
       if (newName && newName.trim() !== "") {
         currentStudentName = newName.trim();
         localStorage.setItem("phonics_student_name", currentStudentName);
@@ -842,7 +842,7 @@
             <div class="ref-zh">${item.zh} · <span class="ref-hint">${item.hint}</span></div>
           </div>
           <button class="slow-audio-btn" id="word-btn-${wIdx}" onclick="handleWordItemClick('${item.audio || ''}', '${item.en}', ${wIdx})">
-            🐢 嘴型拆解
+            🐢 拆解
           </button>
         `;
         box.appendChild(card);
@@ -964,7 +964,7 @@
             <div class="stage-badge" style="color:#f59e0b; border-color:#f59e0b;">⚠ 聽力通關，尚有單字未聽！</div>
             <div class="challenge-title" style="font-size:1.05rem; line-height:1.45;">
               還差 <span style="color:var(--gold); font-size:1.3rem;">${remainingWords}</span> 個核心單字！<br>
-              請到下方將每個「🐢 嘴型拆解」點聽完即可開箱！
+              請到下方將每個「🐢 拆解」點聽完即可開箱！
             </div>
             <div style="font-size:3.2rem; margin:10px 0;">🔒</div>
           `;
@@ -1380,10 +1380,10 @@
       scoreText.innerText = `🎉 測驗完成！最終得分：${finalScore} 分`;
 
       if (finalScore === 100) {
-        feedbackText.innerText = "太神啦！10 題全數答對！隨堂考直接穩拿滿分！💯";
+        feedbackText.innerText = "太神啦！10 題全數答對！💯";
         playFanfareSound();
       } else if (finalScore >= 80) {
-        feedbackText.innerText = "表現非常亮眼！錯的題目稍微看一下解析，隨堂考沒問題！✨";
+        feedbackText.innerText = "表現非常亮眼！錯的題目稍微看一下解析喔！✨";
         playCoinSound();
       } else {
         feedbackText.innerText = "完成 10 題特訓！把解析看過一次，建議回頭多聽 2 遍單字拆解喔！💪";
