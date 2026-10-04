@@ -3,27 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>QuestPhonics 語音鷹架任務</title>
+  <title>PET QUEST 99 - 寵物開蛋大冒險</title>
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="apple-touch-icon" href="favicon.png">
-
-  <!-- 引入現代字體與 Three.js 3D 引擎 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;800&family=Noto+Sans+TC:wght@700;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #090d16;
-      --surface: rgba(22, 30, 49, 0.85);
-      --surface-border: rgba(255, 255, 255, 0.08);
-      --accent-cyan: #00f0ff;
-      --accent-gold: #ffb800;
-      --accent-green: #00e676;
-      --accent-rose: #ff2d55;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
+      --gold: #facc15;
+      --gold-dark: #ca8a04;
+      --cyan: #38bdf8;
+      --cyan-dark: #0284c7;
+      --green: #22c55e;
+      --green-dark: #15803d;
+      --purple: #c084fc;
+      --bg: #090e1a;
+      --card-bg: #1e293b;
     }
 
     * {
@@ -31,418 +27,535 @@
       margin: 0;
       padding: 0;
       -webkit-tap-highlight-color: transparent;
-      font-family: 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif;
+      user-select: none;
+      font-family: 'Fredoka', 'Noto Sans TC', sans-serif;
     }
 
     body {
-      background-color: var(--bg);
-      color: var(--text-main);
+      background: radial-gradient(circle at 50% 20%, #1e293b 0%, #090e1a 100%);
+      color: #fff;
       min-height: 100vh;
-      overflow-x: hidden;
       display: flex;
       justify-content: center;
+      padding: 12px;
+      overflow-x: hidden;
+      position: relative;
     }
 
-    /* 3D WebGL 背景畫布 */
-    #webgl-bg {
+    .sunburst-bg {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 250vw;
+      height: 250vw;
+      transform: translate(-50%, -50%);
+      background: repeating-conic-gradient(
+        from 0deg,
+        rgba(56, 189, 248, 0.04) 0deg 15deg,
+        transparent 15deg 30deg
+      );
+      animation: rotateSunburst 40s linear infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+    @keyframes rotateSunburst {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    .app-screen {
+      width: 100%;
+      max-width: 430px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+      z-index: 10;
+      padding-bottom: 24px;
+    }
+
+    /* 頂部手遊 HUD 狀態列 */
+    .hud-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hud-pill {
+      background: #1e293b;
+      border: 3px solid #334155;
+      box-shadow: 0 4px 0 #0f172a, inset 0 2px 0 rgba(255,255,255,0.2);
+      border-radius: 999px;
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.88rem;
+      font-weight: 800;
+    }
+    .hud-pill.coins { color: var(--gold); border-color: var(--gold-dark); }
+    .hud-pill.gems { color: var(--cyan); border-color: var(--cyan-dark); }
+
+    .bag-btn {
+      background: linear-gradient(180deg, #ec4899, #be185d);
+      border: 3px solid #831843;
+      box-shadow: 0 4px 0 #500724;
+      color: white;
+      border-radius: 16px;
+      padding: 6px 12px;
+      font-weight: 800;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: transform 0.1s;
+    }
+    .bag-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #500724; }
+
+    /* 歷史關卡切換選單 */
+    .quest-scroller {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    .quest-scroller::-webkit-scrollbar { display: none; }
+
+    .quest-tab {
+      background: #1e293b;
+      border: 2px solid #334155;
+      box-shadow: 0 3px 0 #0f172a;
+      color: #94a3b8;
+      padding: 6px 14px;
+      border-radius: 12px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .quest-tab.active {
+      background: var(--cyan);
+      color: #0b1120;
+      border-color: var(--cyan-dark);
+      box-shadow: 0 3px 0 #0369a1;
+    }
+
+    /* 開箱專用主舞台 */
+    .stage-card {
+      background: linear-gradient(180deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
+      border: 3px solid #334155;
+      box-shadow: 0 8px 0 #0f172a, 0 16px 30px rgba(0,0,0,0.5);
+      border-radius: 28px;
+      padding: 22px 16px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .egg-pedestal {
+      width: 140px;
+      height: 32px;
+      background: radial-gradient(ellipse at center, rgba(56, 189, 248, 0.5) 0%, transparent 70%);
+      border-radius: 50%;
+      margin-top: -12px;
+      margin-bottom: 10px;
+    }
+
+    /* 3D 浮空巨大蛋 */
+    .egg-wrapper {
+      position: relative;
+      cursor: pointer;
+      animation: float 2.4s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .game-egg {
+      width: 115px;
+      height: 150px;
+      background: radial-gradient(circle at 35% 30%, #93c5fd, #1d4ed8 70%);
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      border: 5px solid #ffffff;
+      box-shadow: 0 12px 30px rgba(29, 78, 216, 0.6), inset -8px -8px 0 rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.6rem;
+      position: relative;
+      transition: all 0.3s;
+    }
+
+    .egg-wrapper.ready {
+      animation: shakeReady 0.4s infinite alternate;
+    }
+    .egg-wrapper.ready .game-egg {
+      background: radial-gradient(circle at 35% 30%, #fef08a, #ea580c 75%);
+      box-shadow: 0 0 50px rgba(245, 158, 11, 0.9), inset -8px -8px 0 rgba(0,0,0,0.2);
+    }
+    @keyframes shakeReady {
+      0% { transform: rotate(-8deg) scale(1.08); }
+      100% { transform: rotate(8deg) scale(1.08); }
+    }
+
+    .stage-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+    }
+    .stage-subtitle {
+      font-size: 0.85rem;
+      color: var(--cyan);
+      margin-top: 4px;
+      font-weight: 700;
+    }
+
+    /* 任務區塊 */
+    .tasks-deck {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .task-card {
+      background: linear-gradient(180deg, #1e293b, #0f172a);
+      border: 3px solid #334155;
+      box-shadow: 0 5px 0 #0f172a;
+      border-radius: 18px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .task-card:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 #0f172a;
+    }
+    .task-card.charged {
+      border-color: var(--green);
+      background: linear-gradient(180deg, #14532d, #052e16);
+      box-shadow: 0 5px 0 #022c22;
+    }
+
+    .task-info .en-word {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: 0.5px;
+    }
+    .task-info .zh-word {
+      font-size: 0.88rem;
+      color: #94a3b8;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+    .task-card.charged .zh-word { color: #86efac; }
+
+    .action-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #0284c7, #0369a1);
+      border: 2px solid #38bdf8;
+      box-shadow: 0 3px 0 #075985;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .task-card.charged .action-badge {
+      background: linear-gradient(180deg, var(--green), var(--green-dark));
+      border-color: #86efac;
+      box-shadow: 0 3px 0 #14532d;
+    }
+
+    /* 重點句子卡片 */
+    .sentence-card {
+      background: linear-gradient(180deg, #1e293b, #0f172a);
+      border: 3px solid #334155;
+      box-shadow: 0 5px 0 #0f172a;
+      border-radius: 18px;
+      padding: 14px 16px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .sentence-card.charged {
+      border-color: var(--gold);
+      background: linear-gradient(180deg, #713f12, #451a03);
+      box-shadow: 0 5px 0 #271001;
+    }
+    .sentence-tag {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .sentence-en {
+      font-size: 1.1rem;
+      font-weight: 800;
+      line-height: 1.35;
+      color: #ffffff;
+    }
+    .sentence-zh {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      font-weight: 700;
+    }
+
+    /* 彈窗結構 */
+    .full-modal {
+      display: none;
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      z-index: 0;
-      pointer-events: none;
-    }
-
-    .app-viewport {
-      width: 100%;
-      max-width: 440px;
-      min-height: 100vh;
-      padding: 18px 16px 40px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      position: relative;
-      z-index: 10;
-    }
-
-    /* 頂部導航與模式切換 */
-    .header-nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 4px 2px;
-    }
-
-    .project-badge {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .brand-logo {
-      font-size: 1.15rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      background: linear-gradient(135deg, #ffffff 40%, var(--accent-cyan));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .gov-tag {
-      font-size: 0.65rem;
-      background: rgba(0, 240, 255, 0.12);
-      border: 1px solid rgba(0, 240, 255, 0.3);
-      color: var(--accent-cyan);
-      padding: 2px 7px;
-      border-radius: 6px;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-    }
-
-    .mode-switch-btn {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--surface-border);
-      color: var(--text-muted);
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      cursor: pointer;
+      background: rgba(0, 0, 0, 0.88);
       backdrop-filter: blur(10px);
-      transition: all 0.2s;
-    }
-    .mode-switch-btn.active {
-      background: var(--accent-green);
-      color: #052e16;
-      border-color: var(--accent-green);
-    }
-
-    /* 關卡水平捲動選單 */
-    .quest-scroller {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding: 4px 0 6px;
-      scrollbar-width: none;
-    }
-    .quest-scroller::-webkit-scrollbar { display: none; }
-
-    .quest-pill {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--surface-border);
-      color: var(--text-muted);
-      padding: 6px 14px;
-      border-radius: 12px;
-      font-size: 0.82rem;
-      font-weight: 700;
-      white-space: nowrap;
-      cursor: pointer;
-      backdrop-filter: blur(8px);
-      transition: all 0.15s;
-    }
-    .quest-pill.active {
-      background: var(--accent-cyan);
-      color: #0b1120;
-      border-color: var(--accent-cyan);
-      box-shadow: 0 0 16px rgba(0, 240, 255, 0.35);
-    }
-
-    /* 核心卡片容器 (玻璃擬態 Glassmorphism) */
-    .glass-card {
-      background: var(--surface);
-      border: 1px solid var(--surface-border);
-      border-radius: 20px;
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
       padding: 16px;
-      backdrop-filter: blur(16px);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
 
-    .card-caption {
-      font-size: 0.75rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--accent-cyan);
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    /* 音素拆解積木條 */
-    .word-block {
-      background: rgba(11, 17, 32, 0.7);
-      border: 1px solid var(--surface-border);
-      border-radius: 14px;
-      padding: 12px 14px;
-      margin-bottom: 10px;
-      transition: all 0.2s;
-    }
-    .word-block:last-child { margin-bottom: 0; }
-    .word-block.passed {
-      border-color: rgba(0, 230, 118, 0.4);
-      background: rgba(0, 230, 118, 0.05);
-    }
-
-    .word-top-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .word-spelling {
-      font-size: 1.25rem;
-      font-weight: 800;
-      letter-spacing: 0.02em;
-    }
-    .word-spelling span.syllable {
-      color: var(--accent-gold);
-    }
-    .word-meaning {
-      font-size: 0.88rem;
-      color: var(--text-muted);
-      margin-top: 2px;
-    }
-
-    .action-group {
-      display: flex;
-      gap: 8px;
-    }
-
-    .circle-icon-btn {
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
-      border: 1px solid var(--surface-border);
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .circle-icon-btn:active { transform: scale(0.92); }
-    .circle-icon-btn.recording {
-      background: var(--accent-rose);
-      color: white;
-      animation: pulse 1s infinite alternate;
-    }
-    @keyframes pulse { from { opacity: 0.7; } to { opacity: 1; } }
-
-    /* 音素鷹架展開區 */
-    .scaffold-toggle {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      margin-top: 8px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--accent-cyan);
-      cursor: pointer;
-      background: rgba(0, 240, 255, 0.08);
-      padding: 3px 8px;
-      border-radius: 6px;
-    }
-
-    .scaffold-drawer {
-      display: none;
-      margin-top: 8px;
-      padding-top: 8px;
-      border-top: 1px dashed var(--surface-border);
-      font-size: 0.84rem;
-      color: #cbd5e1;
-      line-height: 1.5;
-    }
-    .scaffold-drawer.open { display: block; }
-
-    /* 核心語句卡 */
-    .sentence-container {
-      background: rgba(11, 17, 32, 0.7);
-      border-radius: 14px;
-      padding: 14px;
-      border-left: 4px solid var(--accent-cyan);
-      margin-bottom: 12px;
-    }
-    .sentence-en {
-      font-size: 1.05rem;
-      font-weight: 700;
-      line-height: 1.45;
-      margin-bottom: 4px;
-    }
-    .sentence-zh { font-size: 0.85rem; color: var(--text-muted); }
-
-    .wide-audio-btn {
+    .gacha-card {
       width: 100%;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--surface-border);
-      color: var(--text-main);
-      padding: 12px;
-      border-radius: 12px;
-      font-size: 0.92rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: background 0.15s;
+      max-width: 360px;
+      background: linear-gradient(180deg, #1e293b, #090e1a);
+      border: 4px solid var(--gold);
+      box-shadow: 0 0 40px rgba(250, 204, 21, 0.4), 0 10px 0 #000;
+      border-radius: 28px;
+      padding: 24px 20px;
+      text-align: center;
+      position: relative;
+      animation: cardPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-    .wide-audio-btn:active { background: rgba(255, 255, 255, 0.1); }
+    @keyframes cardPop {
+      0% { transform: scale(0.6) rotate(-10deg); opacity: 0; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
 
-    /* 長輩模式面板（切換時顯示） */
-    .grandparent-panel {
-      display: none;
-      background: linear-gradient(135deg, rgba(5, 46, 22, 0.95), rgba(15, 23, 42, 0.95));
-      border: 2px solid var(--accent-green);
-      border-radius: 20px;
-      padding: 18px;
-      color: #d1fae5;
+    .rarity-pill {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 0.8rem;
+      margin-bottom: 12px;
+      text-transform: uppercase;
     }
-    .grandparent-panel.visible { display: block; }
-    .grandparent-headline {
+    .r-mythic { background: linear-gradient(90deg, #ec4899, #8b5cf6); color: #fff; }
+    .r-legendary { background: linear-gradient(90deg, #f59e0b, #ef4444); color: #fff; }
+    .r-rare { background: linear-gradient(90deg, #06b6d4, #3b82f6); color: #fff; }
+    .r-common { background: #64748b; color: #fff; }
+
+    .pet-avatar {
+      font-size: 4.8rem;
+      margin: 8px 0;
+      filter: drop-shadow(0 8px 16px rgba(0,0,0,0.5));
+      animation: petBounce 1.4s ease-in-out infinite;
+    }
+    @keyframes petBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .pet-name-label { font-size: 1.6rem; font-weight: 900; color: #fff; }
+    .pet-power-tag { font-size: 1.05rem; color: var(--gold); font-weight: 800; margin: 4px 0 10px; }
+    .pet-story {
+      background: rgba(0,0,0,0.35);
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      line-height: 1.45;
+      margin-bottom: 14px;
+    }
+
+    .grandparent-check {
+      background: rgba(34, 197, 94, 0.2);
+      border: 2px dashed var(--green);
+      border-radius: 14px;
+      padding: 10px 12px;
+      color: #86efac;
+      font-size: 0.9rem;
+      font-weight: 700;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .modal-close-btn {
+      width: 100%;
+      background: linear-gradient(180deg, var(--green), var(--green-dark));
+      border: 3px solid #14532d;
+      box-shadow: 0 5px 0 #052e16;
+      color: #fff;
+      padding: 14px;
+      border-radius: 16px;
       font-size: 1.1rem;
       font-weight: 900;
-      color: #86efac;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .grandparent-body {
-      font-size: 0.96rem;
-      line-height: 1.65;
-    }
-
-    /* 語音辨識反饋浮動條 */
-    .speech-feedback {
-      background: rgba(0, 0, 0, 0.8);
-      border: 1px solid var(--accent-gold);
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-size: 0.85rem;
-      color: var(--accent-gold);
-      text-align: center;
-      display: none;
-    }
-
-    /* 通關按鈕與結算 */
-    .complete-action-btn {
-      width: 100%;
-      background: linear-gradient(135deg, #00f0ff, #0070f3);
-      color: #0b1120;
-      border: none;
-      border-radius: 16px;
-      padding: 16px;
-      font-size: 1.05rem;
-      font-weight: 800;
       cursor: pointer;
-      box-shadow: 0 4px 20px rgba(0, 240, 255, 0.35);
-      transition: transform 0.15s, box-shadow 0.15s;
     }
-    .complete-action-btn:active { transform: translateY(2px); }
+    .modal-close-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #052e16; }
 
-    .finish-screen {
-      display: none;
-      text-align: center;
-      padding: 24px 18px;
-      background: var(--surface);
-      border: 1px solid var(--accent-green);
-      border-radius: 20px;
-      animation: pop 0.3s ease;
+    /* 背包網格 */
+    .bag-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      max-height: 48vh;
+      overflow-y: auto;
+      margin: 16px 0;
+      padding: 4px;
     }
-    @keyframes pop { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .bag-item {
+      background: #0f172a;
+      border: 2px solid #334155;
+      border-radius: 14px;
+      padding: 10px 4px;
+      text-align: center;
+    }
+    .bag-item.unlocked { border-color: var(--gold); background: #1e293b; }
+    .bag-item.locked { opacity: 0.35; filter: grayscale(1); }
+    .bag-icon { font-size: 2rem; margin-bottom: 4px; }
+    .bag-name { font-size: 0.75rem; font-weight: 700; }
+
+    #flash-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: #fff;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 999;
+      transition: opacity 0.15s ease-out;
+    }
+
+    #confetti-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      pointer-events: none;
+      z-index: 101;
+    }
   </style>
 </head>
 <body>
 
-  <!-- WebGL Three.js 3D 背景 -->
-  <canvas id="webgl-bg"></canvas>
+  <div class="sunburst-bg"></div>
+  <div id="flash-overlay"></div>
+  <canvas id="confetti-canvas"></canvas>
 
-  <div class="app-viewport">
+  <div class="app-screen">
     
-    <!-- 頂部資訊與切換鈕 -->
-    <div class="header-nav">
-      <div class="project-badge">
-        <div class="brand-logo">QuestPhonics</div>
-        <span class="gov-tag">EdTech 2.0</span>
+    <!-- 頂部 HUD -->
+    <div class="hud-header">
+      <div class="hud-pill coins">
+        <span>🪙 金幣:</span>
+        <span id="coin-counter">100</span>
       </div>
-      <button class="mode-switch-btn" id="mode-toggle-btn" onclick="toggleParentMode()">
-        長輩守護模式
+      <div class="hud-pill gems">
+        <span>⚡ 能量:</span>
+        <span id="hud-energy">0 / 4</span>
+      </div>
+      <button class="bag-btn" onclick="openBagModal()">
+        🎒 寵物圖鑑
       </button>
     </div>
 
-    <!-- 關卡分週選單 -->
+    <!-- 歷史週次分頁 -->
     <div class="quest-scroller" id="quest-nav"></div>
 
-    <!-- 即時麥克風辨識提示條 -->
-    <div class="speech-feedback" id="speech-box">語音聆聽中...請大聲唸出單字！</div>
-
-    <!-- 長輩安心護航介面 (可切換) -->
-    <div class="grandparent-panel" id="grandparent-view">
-      <div class="grandparent-headline">阿公阿嬤安心專區（免懂英文）：</div>
-      <div class="grandparent-body">
-        阿公阿嬤辛苦了！您不用管英文考卷。請看孫子按<strong>「右邊麥克風」</strong>開口唸出聲音，只要他願意開口唸完 3 遍，就點最下方按鈕送出。今天他的學習就全數達標！✨
+    <!-- 開箱主舞台 -->
+    <div class="stage-card">
+      <div class="egg-wrapper" id="egg-actor" onclick="clickEgg()">
+        <div class="game-egg" id="egg-mesh">
+          <span id="egg-status-icon">🔒</span>
+        </div>
       </div>
+      <div class="egg-pedestal"></div>
+      <div class="stage-title" id="stage-main-text">幸運開蛋任務</div>
+      <div class="stage-subtitle" id="stage-sub-text">點擊下方 3 個單字＋1 個句子注滿能量！</div>
     </div>
 
-    <!-- 核心單字區 -->
-    <div class="glass-card" id="student-words-card">
-      <div class="card-caption">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-        音素微鷹架模組 (可按發音 / 麥克風評測)
-      </div>
-      <div id="words-list"></div>
-    </div>
-
-    <!-- 核心句型區 -->
-    <div class="glass-card" id="student-sentence-card">
-      <div class="card-caption">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="9"></line><line x1="9" y1="13" x2="15" y2="13"></line><line x1="9" y1="17" x2="11" y2="17"></line></svg>
-        真實語境沉浸句
-      </div>
-      <div class="sentence-container">
+    <!-- 任務卡牌池 (3 字 + 1 句) -->
+    <div class="tasks-deck">
+      <div id="words-deck" style="display: flex; flex-direction: column; gap: 10px;"></div>
+      
+      <!-- 句子卡 -->
+      <div class="sentence-card" id="sentence-card" onclick="handleSentenceCharge()">
+        <div class="sentence-tag">📜 本週通關密碼句 (點擊聽讀)</div>
         <div class="sentence-en" id="target-sentence-en"></div>
         <div class="sentence-zh" id="target-sentence-zh"></div>
       </div>
-      <button class="wide-audio-btn" id="play-sentence-btn">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
-        聆聽全句慢速示範
-      </button>
-    </div>
-
-    <!-- 通關打卡觸發器 -->
-    <button class="complete-action-btn" id="finish-action-btn" onclick="executeQuestPass()">
-      完成今日跟讀任務
-    </button>
-
-    <!-- 結算畫面 -->
-    <div class="finish-screen" id="pass-modal">
-      <div style="font-size: 2.2rem; margin-bottom: 6px;">🎉</div>
-      <h3 style="font-size: 1.2rem; color: var(--accent-green); margin-bottom: 4px;">今日學習歷程已同步</h3>
-      <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5;">雲端存檔已完成，可出示給阿公阿嬤確認。</p>
     </div>
 
   </div>
 
+  <!-- 抽卡彈窗 -->
+  <div class="full-modal" id="loot-modal">
+    <div class="gacha-card">
+      <span class="rarity-pill" id="card-rarity">神話級 MYTHIC</span>
+      <div class="pet-avatar" id="card-avatar">🐉</div>
+      <div class="pet-name-label" id="card-name">彩虹機械龍</div>
+      <div class="pet-power-tag" id="card-power">⚡ 戰鬥力: 999,999</div>
+      <div class="pet-story" id="card-desc">全服爆率只有 1% 的極品幻獸！</div>
+      
+      <div class="grandparent-check">
+        ✨ <strong>今日任務已通關！</strong><br>
+        把這個金色神寵給阿公阿嬤看，去玩你的 Roblox 吧！
+      </div>
+
+      <button class="modal-close-btn" onclick="closeLootModal()">收進背包 🎮</button>
+    </div>
+  </div>
+
+  <!-- 圖鑑彈窗 -->
+  <div class="full-modal" id="bag-modal">
+    <div class="gacha-card" style="max-width: 380px;">
+      <div class="pet-name-label" style="font-size: 1.3rem;">🎒 寵物收藏圖鑑</div>
+      <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 4px;">已解鎖進度：<span id="bag-progress">0 / 6</span></div>
+      
+      <div class="bag-grid" id="bag-items-box"></div>
+
+      <button class="modal-close-btn" onclick="closeBagModal()">返回任務</button>
+    </div>
+  </div>
+
   <script>
     // ========================================================
-    // ⚙️ 教師雲端後台設定 (如需跨裝置儲存，請填入 Google Apps Script 網址)
+    // ⚙️ 1. 教師雲端後台設定 (若尚未設定 Google Apps Script 可先留空)
     // ========================================================
-    const CLOUD_API_ENDPOINT = ""; // 填入你的 Google Apps Script 部署網址 (留空則自動啟用本地快取)
+    const GOOGLE_SCRIPT_API = ""; 
     const urlParams = new URLSearchParams(window.location.search);
     const STUDENT_ID = urlParams.get('user') || "hero_student";
 
-    // 關卡資料庫 (每週課後在最上面新增一週即可)
-    const questRegistry = [
+    // ========================================================
+    // ⚙️ 2. 每週更新專區：每週直接在陣列最前面新增一筆即可！
+    // ========================================================
+    const ALL_QUESTS = [
       {
-        questId: "week-4",
+        id: "w4",
         label: "第 4 關",
         words: [
-          { en: "rain", display: "r · ain", zh: "下雨", scaffold: "母音群 ai 發長母音 /eɪ/，只要記住字母 r 與 ain 即可拼讀。" },
-          { en: "weather", display: "wea · ther", zh: "天氣", scaffold: "切分為兩音節：wea-（發短母音 /ɛ/）＋ -ther（發咬舌濁音 /ðər/）。" },
-          { en: "outside", display: "out · side", zh: "外面", scaffold: "複合詞架構：out（向外）＋ side（方位），直觀組合成「外面」。" }
+          { en: "rain", display: "r · ain", zh: "下雨" },
+          { en: "weather", display: "wea · ther", zh: "天氣" },
+          { en: "outside", display: "out · side", zh: "外面" }
         ],
         sentence: {
           en: "It is raining outside.",
@@ -450,242 +563,323 @@
         }
       },
       {
-        questId: "week-3",
-        label: "第 3 關",
+        id: "w3",
+        label: "第 3 關 (複習)",
         words: [
-          { en: "school", display: "school", zh: "學校", scaffold: "特殊子音群：字母 ch 在此發硬音 /k/。" },
-          { en: "friend", display: "friend", zh: "朋友", scaffold: "母音組合 ie 發短母音 /ɛ/。" }
+          { en: "happy", display: "hap · py", zh: "高興的" },
+          { en: "school", display: "school", zh: "學校" },
+          { en: "friend", display: "friend", zh: "朋友" }
         ],
         sentence: {
-          en: "I meet my friend at school.",
-          zh: "我在學校遇見我的朋友。"
+          en: "I see my friend at school.",
+          zh: "我在學校看到我的朋友。"
         }
       }
     ];
+
     // ========================================================
+    // 🐾 3. 寵物與迷因總圖鑑庫 (含稀有度、數值、搞笑說明)
+    // ========================================================
+    const PET_CATALOG = [
+      { id: "p1", name: "彩虹霸王龍", rarity: "神話級 MYTHIC", rClass: "r-mythic", icon: "🦖", power: "⚡ 888,888", desc: "自帶彩虹軌跡的終極神龍，走到哪亮到哪。" },
+      { id: "p2", name: "黃金香蕉狗", rarity: "傳奇級 LEGENDARY", rClass: "r-legendary", icon: "🐕", power: "⚡ 65,000", desc: "香蕉皮做的小狗，跑得飛快但容易打滑。" },
+      { id: "p3", name: "暴風雪獨角獸", rarity: "傳奇級 LEGENDARY", rClass: "r-legendary", icon: "🦄", power: "⚡ 52,000", desc: "能發射冰錐光束，把無聊的考卷全部凍結！" },
+      { id: "p4", name: "發光的馬桶怪", rarity: "稀有級 RARE", rClass: "r-rare", icon: "🚽", power: "⚡ 4,800", desc: "按下沖水鍵會發射超強音波攻擊！" },
+      { id: "p5", name: "爆炸西瓜怪", rarity: "稀有級 RARE", rClass: "r-rare", icon: "🍉", power: "⚡ 2,300", desc: "受到驚嚇會吐出大量西瓜籽機關槍。" },
+      { id: "p6", name: "發霉的生吐司", rarity: "普通級 COMMON", rClass: "r-common", icon: "🍞", power: "⚡ 15", desc: "雖然戰鬥力極低，但看起來挺好吃的。" }
+    ];
 
-    let activeQuestIndex = 0;
-    let recognitionInstance = null;
+    let currentQuestIdx = 0;
+    let chargedSet = new Set();
+    let unlockedPets = JSON.parse(localStorage.getItem("unlocked_pet_ids") || "[]");
 
-    // ----------------------------------------------------
-    // 1. Three.js 3D 體素沉浸式背景渲染 (Voxel Aesthetic)
-    // ----------------------------------------------------
-    let scene, camera, renderer, crystalMesh;
-    function initThreeEngine() {
-      const canvas = document.getElementById("webgl-bg");
-      scene = new THREE.Scene();
-      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.set(0, 2, 8);
-
-      renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-      // 體素水晶主體 (XP Crystal)
-      const geo = new THREE.OctahedronGeometry(1.6, 0);
-      const mat = new THREE.MeshStandardMaterial({
-        color: 0x00f0ff,
-        roughness: 0.2,
-        metalness: 0.8,
-        wireframe: false
-      });
-      crystalMesh = new THREE.Mesh(geo, mat);
-      crystalMesh.position.set(0, 0.5, 0);
-      scene.add(crystalMesh);
-
-      // 環繞環境光與點光源
-      const ambLight = new THREE.AmbientLight(0xffffff, 0.6);
-      scene.add(ambLight);
-      const pointLight = new THREE.PointLight(0xffb800, 2, 20);
-      pointLight.position.set(5, 5, 5);
-      scene.add(pointLight);
-
-      window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
+    // 初始化關卡導覽
+    function initNav() {
+      const nav = document.getElementById("quest-nav");
+      nav.innerHTML = "";
+      ALL_QUESTS.forEach((q, idx) => {
+        const btn = document.createElement("button");
+        btn.className = `quest-tab ${idx === 0 ? 'active' : ''}`;
+        btn.innerText = q.label;
+        btn.onclick = () => switchQuest(idx);
+        nav.appendChild(btn);
       });
     }
 
-    function renderLoop() {
-      requestAnimationFrame(renderLoop);
-      if (crystalMesh) {
-        crystalMesh.rotation.y += 0.008;
-        crystalMesh.rotation.x += 0.004;
-      }
-      renderer.render(scene, camera);
-    }
-
-    // ----------------------------------------------------
-    // 2. 介面渲染與關卡導航
-    // ----------------------------------------------------
-    function setupQuestNavigation() {
-      const container = document.getElementById("quest-nav");
-      container.innerHTML = "";
-      questRegistry.forEach((quest, idx) => {
-        const pill = document.createElement("button");
-        pill.className = `quest-pill ${idx === 0 ? 'active' : ''}`;
-        pill.innerText = quest.label;
-        pill.onclick = () => switchActiveQuest(idx);
-        container.appendChild(pill);
+    function switchQuest(idx) {
+      currentQuestIdx = idx;
+      document.querySelectorAll(".quest-tab").forEach((b, i) => {
+        b.classList.toggle("active", i === idx);
       });
+      loadQuest(ALL_QUESTS[idx]);
     }
 
-    function switchActiveQuest(index) {
-      activeQuestIndex = index;
-      document.querySelectorAll(".quest-pill").forEach((p, i) => {
-        p.classList.toggle("active", i === index);
-      });
-      renderQuestView(questRegistry[index]);
-    }
+    function loadQuest(quest) {
+      chargedSet.clear();
+      updateEnergyHUD();
 
-    function renderQuestView(quest) {
+      // 重置蛋狀態
+      const actor = document.getElementById("egg-actor");
+      actor.classList.remove("ready");
+      document.getElementById("egg-status-icon").innerText = "🔒";
+      document.getElementById("stage-main-text").innerText = "幸運開蛋任務";
+      document.getElementById("stage-sub-text").innerText = "點擊下方 3 個單字＋1 個句子注滿能量！";
+
+      // 句子更新
       document.getElementById("target-sentence-en").innerText = quest.sentence.en;
       document.getElementById("target-sentence-zh").innerText = quest.sentence.zh;
-      document.getElementById("play-sentence-btn").onclick = () => speakTTS(quest.sentence.en);
+      document.getElementById("sentence-card").classList.remove("charged");
 
-      document.getElementById("finish-action-btn").style.display = "block";
-      document.getElementById("pass-modal").style.display = "none";
+      // 單字渲染
+      const wordsBox = document.getElementById("words-deck");
+      wordsBox.innerHTML = "";
+      quest.words.forEach((item, idx) => {
+        const card = document.createElement("div");
+        card.className = "task-card";
+        card.id = `task-${idx}`;
+        card.onclick = () => handleWordCharge(idx, item.en);
 
-      const list = document.getElementById("words-list");
-      list.innerHTML = "";
-      quest.words.forEach(item => {
-        const itemEl = document.createElement("div");
-        itemEl.className = "word-block";
-        itemEl.id = `block-${item.en}`;
-        itemEl.innerHTML = `
-          <div class="word-top-row">
-            <div>
-              <div class="word-spelling">${item.display}</div>
-              <div class="word-meaning">${item.zh}</div>
-            </div>
-            <div class="action-group">
-              <button class="circle-icon-btn" onclick="speakTTS('${item.en}')" title="聆聽發音">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
-              </button>
-              <button class="circle-icon-btn mic-btn" onclick="startMicRecognition('${item.en}', this)" title="麥克風評測">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-              </button>
-            </div>
+        card.innerHTML = `
+          <div class="task-info">
+            <div class="en-word">${item.display}</div>
+            <div class="zh-word">${item.zh}</div>
           </div>
-          <div class="scaffold-toggle" onclick="toggleScaffold(this)">
-            💡 音素提示與拆解
-          </div>
-          <div class="scaffold-drawer">${item.scaffold}</div>
+          <div class="action-badge" id="badge-${idx}">🔊</div>
         `;
-        list.appendChild(itemEl);
+        wordsBox.appendChild(card);
       });
     }
 
-    function toggleScaffold(btn) {
-      const drawer = btn.nextElementSibling;
-      drawer.classList.toggle("open");
-      btn.innerText = drawer.classList.contains("open") ? "收合拆解" : "💡 音素提示與拆解";
+    function handleWordCharge(idx, word) {
+      playArcadeCoinSound();
+      speakTTS(word);
+
+      const key = `w-${idx}`;
+      if (!chargedSet.has(key)) {
+        chargedSet.add(key);
+        document.getElementById(`task-${idx}`).classList.add("charged");
+        document.getElementById(`badge-${idx}`).innerText = "⚡";
+        updateEnergyHUD();
+      }
     }
 
-    // ----------------------------------------------------
-    // 3. 語音辨識與發音引擎 (Speech & Web Audio)
-    // ----------------------------------------------------
+    function handleSentenceCharge() {
+      const sentence = ALL_QUESTS[currentQuestIdx].sentence.en;
+      playArcadeCoinSound();
+      speakTTS(sentence);
+
+      const key = 'sentence';
+      if (!chargedSet.has(key)) {
+        chargedSet.add(key);
+        document.getElementById("sentence-card").classList.add("charged");
+        updateEnergyHUD();
+      }
+    }
+
+    function updateEnergyHUD() {
+      const total = chargedSet.size;
+      document.getElementById("hud-energy").innerText = `${total} / 4`;
+
+      if (total === 4) {
+        triggerEggUnlock();
+      }
+    }
+
+    function triggerEggUnlock() {
+      const actor = document.getElementById("egg-actor");
+      actor.classList.add("ready");
+      document.getElementById("egg-status-icon").innerText = "✨";
+      document.getElementById("stage-main-text").innerText = "🔥 能量充飽！快點擊開蛋！";
+      document.getElementById("stage-sub-text").innerText = "神秘寵物即將孵化！";
+      playFanfareSound();
+    }
+
+    // 抽卡開箱（含防臉黑保底機制）
+    function clickEgg() {
+      if (chargedSet.size < 4) {
+        alert("請先將 3 個單字和 1 個句子點擊聽完，湊滿 4 顆能量！");
+        return;
+      }
+
+      triggerWhiteFlash();
+      playChestOpenSound();
+      startConfetti();
+
+      // 防連續抽到同一隻的機制
+      let candidatePool = PET_CATALOG;
+      if (unlockedPets.length < PET_CATALOG.length) {
+        const unowned = PET_CATALOG.filter(p => !unlockedPets.includes(p.id));
+        if (Math.random() < 0.65 && unowned.length > 0) {
+          candidatePool = unowned; // 65% 機率優先掉落未擁有的新寵物！
+        }
+      }
+
+      const pet = candidatePool[Math.floor(Math.random() * candidatePool.length)];
+
+      if (!unlockedPets.includes(pet.id)) {
+        unlockedPets.push(pet.id);
+        localStorage.setItem("unlocked_pet_ids", JSON.stringify(unlockedPets));
+      }
+
+      // 如果有設定後端，同步雲端紀錄
+      if (GOOGLE_SCRIPT_API) {
+        fetch(`${GOOGLE_SCRIPT_API}?action=save&user=${encodeURIComponent(STUDENT_ID)}&quest=${encodeURIComponent(ALL_QUESTS[currentQuestIdx].label)}&pet=${encodeURIComponent(pet.name)}`, {
+          mode: 'no-cors'
+        });
+      }
+
+      // 渲染彈窗
+      const badge = document.getElementById("card-rarity");
+      badge.innerText = pet.rarity;
+      badge.className = `rarity-pill ${pet.rClass}`;
+      document.getElementById("card-avatar").innerText = pet.icon;
+      document.getElementById("card-name").innerText = pet.name;
+      document.getElementById("card-power").innerText = pet.power;
+      document.getElementById("card-desc").innerText = pet.desc;
+
+      document.getElementById("loot-modal").style.display = "flex";
+    }
+
+    function closeLootModal() {
+      document.getElementById("loot-modal").style.display = "none";
+    }
+
+    function openBagModal() {
+      const box = document.getElementById("bag-items-box");
+      box.innerHTML = "";
+      document.getElementById("bag-progress").innerText = `${unlockedPets.length} / ${PET_CATALOG.length}`;
+
+      PET_CATALOG.forEach(p => {
+        const isUnlocked = unlockedPets.includes(p.id);
+        const item = document.createElement("div");
+        item.className = `bag-item ${isUnlocked ? 'unlocked' : 'locked'}`;
+        item.innerHTML = `
+          <div class="bag-icon">${isUnlocked ? p.icon : '❓'}</div>
+          <div class="bag-name">${isUnlocked ? p.name : '未解鎖'}</div>
+        `;
+        box.appendChild(item);
+      });
+
+      document.getElementById("bag-modal").style.display = "flex";
+    }
+
+    function closeBagModal() {
+      document.getElementById("bag-modal").style.display = "none";
+    }
+
+    // 發音引擎 (0.8 倍慢速清晰發音)
     function speakTTS(text) {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
         const utter = new SpeechSynthesisUtterance(text);
         utter.lang = 'en-US';
-        utter.rate = 0.8; // 刻意調慢，便於感知
+        utter.rate = 0.8;
         window.speechSynthesis.speak(utter);
       }
     }
 
-    function startMicRecognition(expectedWord, btnElement) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) {
-        alert("目前瀏覽器不支援麥克風語音辨識，建議直接點擊喇叭跟讀！");
-        return;
-      }
-
-      if (recognitionInstance) recognitionInstance.abort();
-
-      recognitionInstance = new SpeechRecognition();
-      recognitionInstance.lang = 'en-US';
-      recognitionInstance.interimResults = false;
-
-      const feedbackBox = document.getElementById("speech-box");
-      feedbackBox.style.display = "block";
-      feedbackBox.innerText = `🎙️ 聆聽中...請朗讀「${expectedWord}」`;
-      btnElement.classList.add("recording");
-
-      recognitionInstance.onresult = (event) => {
-        const spoken = event.results[0][0].transcript.trim().toLowerCase();
-        btnElement.classList.remove("recording");
-        if (spoken.includes(expectedWord.toLowerCase())) {
-          feedbackBox.innerText = `✨ 辨識成功！讀音極佳：${spoken}`;
-          document.getElementById(`block-${expectedWord}`).classList.add("passed");
-          trigger3DExplosion();
-        } else {
-          feedbackBox.innerText = `聽到的發音是：「${spoken}」，再試一次！`;
-        }
-        setTimeout(() => { feedbackBox.style.display = "none"; }, 2500);
-      };
-
-      recognitionInstance.onerror = () => {
-        btnElement.classList.remove("recording");
-        feedbackBox.style.display = "none";
-      };
-
-      recognitionInstance.start();
+    function triggerWhiteFlash() {
+      const flash = document.getElementById("flash-overlay");
+      flash.style.opacity = "0.9";
+      setTimeout(() => { flash.style.opacity = "0"; }, 250);
     }
 
-    // 3D 體素顏色反饋
-    function trigger3DExplosion() {
-      if (!crystalMesh) return;
-      crystalMesh.material.color.setHex(0x00e676);
-      setTimeout(() => {
-        crystalMesh.material.color.setHex(0x00f0ff);
-      }, 1000);
+    // 音效合成引擎 (Web Audio API)
+    function playArcadeCoinSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(987.77, ctx.currentTime);
+        osc.frequency.setValueAtTime(1318.51, ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.25, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.35);
+      } catch (e) {}
     }
 
-    // ----------------------------------------------------
-    // 4. 長輩守護視角切換
-    // ----------------------------------------------------
-    function toggleParentMode() {
-      const panel = document.getElementById("grandparent-view");
-      const btn = document.getElementById("mode-toggle-btn");
-      const isVisible = panel.classList.toggle("visible");
-      btn.classList.toggle("active", isVisible);
-      btn.innerText = isVisible ? "返回學生模式" : "長輩守護模式";
+    function playFanfareSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        [523.25, 659.25, 783.99].forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.1);
+          gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.1 + 0.3);
+          osc.start(ctx.currentTime + i * 0.1);
+          osc.stop(ctx.currentTime + i * 0.1 + 0.3);
+        });
+      } catch (e) {}
     }
 
-    // ----------------------------------------------------
-    // 5. 跨裝置雲端資料同步 (Headless Cloud Sync)
-    // ----------------------------------------------------
-    function executeQuestPass() {
-      const current = questRegistry[activeQuestIndex];
-      document.getElementById("finish-action-btn").style.display = "none";
-      document.getElementById("pass-modal").style.display = "block";
+    function playChestOpenSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const notes = [440, 554.37, 659.25, 880, 1108.73];
+        notes.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.07);
+          gain.gain.setValueAtTime(0.3, ctx.currentTime + idx * 0.07);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.07 + 0.3);
+          osc.start(ctx.currentTime + idx * 0.07);
+          osc.stop(ctx.currentTime + idx * 0.07 + 0.3);
+        });
+      } catch (e) {}
+    }
 
-      trigger3DExplosion();
+    function startConfetti() {
+      const canvas = document.getElementById("confetti-canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
 
-      // 本地存檔
-      const completed = JSON.parse(localStorage.getItem("quest_completed_store") || "[]");
-      if (!completed.includes(current.questId)) {
-        completed.push(current.questId);
-        localStorage.setItem("quest_completed_store", JSON.stringify(completed));
-      }
-
-      // 如果有設定 Google Apps Script 後端，悄悄送出
-      if (CLOUD_API_ENDPOINT) {
-        fetch(`${CLOUD_API_ENDPOINT}?action=save&user=${encodeURIComponent(STUDENT_ID)}&quest=${encodeURIComponent(current.label)}`, {
-          mode: 'no-cors'
+      const pieces = [];
+      const colors = ["#facc15", "#38bdf8", "#22c55e", "#ec4899", "#a855f7"];
+      for (let i = 0; i < 90; i++) {
+        pieces.push({
+          x: canvas.width / 2,
+          y: canvas.height / 2,
+          r: Math.random() * 6 + 4,
+          dx: (Math.random() - 0.5) * 14,
+          dy: (Math.random() - 0.8) * 16,
+          color: colors[Math.floor(Math.random() * colors.length)]
         });
       }
+
+      let frame = 0;
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(p => {
+          p.x += p.dx;
+          p.y += p.dy;
+          p.dy += 0.35;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = p.color;
+          ctx.fill();
+        });
+        frame++;
+        if (frame < 110) requestAnimationFrame(animate);
+        else ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      animate();
     }
 
     // 啟動主程序
     window.addEventListener("DOMContentLoaded", () => {
-      initThreeEngine();
-      renderLoop();
-      setupQuestNavigation();
-      renderQuestView(questRegistry[0]);
+      initNav();
+      loadQuest(ALL_QUESTS[0]);
     });
   </script>
 </body>
