@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>ROBLOX ARCADE: 任務大冒險</title>
+  <title>PHONICS DECODER: 語音硬核解密</title>
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="apple-touch-icon" href="favicon.png">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;800&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
@@ -51,12 +52,12 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 8px 12px;
+      padding: 10px 12px;
       position: relative;
       z-index: 10;
     }
 
-    /* 頂部導航 */
+    /* 頂部控制 */
     .control-header {
       display: flex;
       justify-content: space-between;
@@ -89,8 +90,6 @@
       border-color: #0284c7;
     }
 
-    .action-icons-group { display: flex; gap: 6px; }
-
     .pill-btn {
       background: #1e293b;
       border: 2px solid var(--border-dark);
@@ -106,281 +105,164 @@
     .pill-btn.elder-btn { background: rgba(34, 197, 94, 0.15); border-color: #22c55e; color: #86efac; }
     .pill-btn.elder-btn.active { background: #22c55e; color: #052e16; }
 
-    /* 模式選單 */
-    .game-modes-deck {
-      display: flex;
-      gap: 4px;
-      background: rgba(15, 23, 42, 0.6);
-      padding: 3px;
-      border-radius: 12px;
-      border: 1px solid var(--border-dark);
-    }
-    .g-mode-btn {
-      flex: 1;
-      background: transparent;
-      border: none;
-      color: var(--text-sub);
-      padding: 5px 6px;
-      border-radius: 8px;
-      font-size: 0.75rem;
-      font-weight: 800;
-      cursor: pointer;
-      text-align: center;
-      white-space: nowrap;
-    }
-    .g-mode-btn.active { background: var(--gold); color: #0b1120; }
-
-    .elder-helper-banner {
-      display: none;
-      background: linear-gradient(135deg, rgba(22, 101, 52, 0.95), rgba(15, 23, 42, 0.95));
-      border: 2px solid var(--green);
-      border-radius: 14px;
-      padding: 8px 12px;
-      color: #d1fae5;
-      font-size: 0.82rem;
-      line-height: 1.4;
-    }
-    .elder-helper-banner.show { display: block; }
-    .elder-helper-banner strong { color: #86efac; }
-
-    /* 真正的遊戲舞台區域 */
-    .stage-arena {
+    /* 核心聽力特訓舞台 (高度鑑別度) */
+    .challenge-arena {
       background: linear-gradient(180deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98));
       border: 2px solid var(--border-dark);
       box-shadow: 0 4px 0 #000;
       border-radius: 20px;
-      padding: 12px 14px;
+      padding: 14px 16px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 200px;
+      min-height: 220px;
       position: relative;
     }
 
-    .stage-instruction-box {
-      font-size: 0.85rem;
+    .stage-badge {
+      font-size: 0.75rem;
       font-weight: 800;
       color: var(--gold);
-      margin-bottom: 8px;
-      text-align: center;
+      background: rgba(250, 204, 21, 0.15);
+      padding: 3px 10px;
+      border-radius: 999px;
+      margin-bottom: 6px;
     }
 
-    /* ── 模式 1：節奏縮圈開蛋 ── */
-    .rhythm-arena {
-      position: relative;
-      width: 120px;
-      height: 120px;
+    .challenge-title {
+      font-size: 1.15rem;
+      font-weight: 900;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .audio-speaker-pulse {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, var(--cyan), #0284c7);
+      border: 3px solid #fff;
       display: flex;
       align-items: center;
       justify-content: center;
+      font-size: 1.8rem;
       cursor: pointer;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+      margin-bottom: 14px;
+      transition: transform 0.1s;
     }
-    .rhythm-target-ring {
-      position: absolute;
-      width: 90px;
-      height: 90px;
-      border: 4px dashed var(--gold);
-      border-radius: 50%;
-    }
-    .rhythm-shrink-ring {
-      position: absolute;
-      width: 140px;
-      height: 140px;
-      border: 3px solid var(--cyan);
-      border-radius: 50%;
-      pointer-events: none;
-    }
-    .rhythm-shrink-ring.animating {
-      animation: shrinkCircle 1.2s infinite linear;
-    }
-    @keyframes shrinkCircle {
-      0% { width: 140px; height: 140px; opacity: 1; }
-      70% { width: 90px; height: 90px; border-color: var(--gold); }
-      100% { width: 40px; height: 40px; opacity: 0; }
-    }
-    .rhythm-egg { font-size: 3rem; }
+    .audio-speaker-pulse:active { transform: scale(0.9); }
 
-    /* ── 模式 2：聽音解鎖密碼門 ── */
-    .doors-arena {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-    }
-    .door-display-header {
-      font-size: 1.1rem;
-      font-weight: 900;
-      color: var(--cyan);
-    }
-    .door-options-grid {
+    /* 選擇按鈕組 */
+    .choices-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 6px;
+      gap: 10px;
       width: 100%;
     }
-    .door-choice-btn {
+    .choice-card-btn {
       background: #0f172a;
       border: 2px solid var(--border-dark);
       color: #fff;
-      padding: 8px;
-      border-radius: 10px;
+      padding: 12px 8px;
+      border-radius: 12px;
+      font-size: 1.05rem;
       font-weight: 800;
-      font-size: 0.85rem;
       cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
     }
-    .door-choice-btn:active { background: #334155; }
+    .choice-card-btn:active { transform: scale(0.95); background: #1e293b; }
+    .choice-card-btn.correct { background: var(--green); border-color: #fff; color: #000; }
+    .choice-card-btn.wrong { background: var(--red); border-color: #fff; }
 
-    /* ── 模式 3：指針力量條格鬥 ── */
-    .slap-arena {
-      width: 100%;
+    /* 音節拼圖區 */
+    .syllable-slots-row {
       display: flex;
-      flex-direction: column;
-      align-items: center;
       gap: 8px;
+      margin-bottom: 12px;
     }
-    .gauge-track {
-      width: 100%;
-      height: 24px;
-      background: linear-gradient(90deg, #ef4444 0%, #facc15 60%, #22c55e 80%, #ef4444 100%);
-      border-radius: 999px;
-      position: relative;
-      border: 2px solid #000;
-      overflow: hidden;
-    }
-    .gauge-needle {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 6px;
-      height: 100%;
-      background: #ffffff;
-      box-shadow: 0 0 8px #fff;
-      transition: left 0.05s linear;
-    }
-    .punch-btn {
-      background: linear-gradient(180deg, #ef4444, #991b1b);
-      border: none;
-      color: #fff;
-      padding: 8px 24px;
-      border-radius: 12px;
-      font-size: 1rem;
-      font-weight: 900;
-      cursor: pointer;
-    }
-    .punch-btn:active { transform: scale(0.95); }
-
-    /* ── 模式 4：手動煞車拉霸 ── */
-    .slot-arena {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-    }
-    .slot-reels-row {
-      display: flex;
-      gap: 10px;
-    }
-    .reel-box {
-      width: 60px;
-      height: 70px;
-      background: #0f172a;
-      border: 3px solid var(--gold);
-      border-radius: 12px;
+    .syllable-slot {
+      min-width: 50px;
+      height: 40px;
+      border: 2px dashed var(--cyan);
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2rem;
-    }
-    .reel-box.spin { animation: spinBlur 0.08s infinite; }
-    @keyframes spinBlur { 0% { transform: translateY(-3px); } 100% { transform: translateY(3px); } }
-    .stop-reel-btn {
-      background: var(--gold);
-      color: #000;
-      border: none;
-      padding: 6px 16px;
-      border-radius: 10px;
+      font-size: 1.1rem;
       font-weight: 900;
-      cursor: pointer;
+      background: rgba(56, 189, 248, 0.05);
     }
 
-    /* 任務牌組 */
-    .tasks-deck {
+    /* 能量總進度 */
+    .progress-status-box {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--text-sub);
+      margin-top: 10px;
+    }
+    .progress-bar-wrap {
+      width: 100%;
+      height: 8px;
+      background: #0f172a;
+      border-radius: 999px;
+      margin-top: 4px;
+      overflow: hidden;
+      border: 1px solid var(--border-dark);
+    }
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--cyan), var(--gold));
+      transition: width 0.3s;
+    }
+
+    /* 下方自主慢速聽讀學習卡 (供卡關時偷看與聆聽) */
+    .reference-deck {
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
-    .task-card {
+    .ref-card {
       background: linear-gradient(180deg, #1e293b, #0f172a);
-      border: 2px solid var(--border-dark);
+      border: 1.5px solid var(--border-dark);
       border-radius: 12px;
       padding: 8px 12px;
-    }
-    .task-card.charged { border-color: var(--green); background: linear-gradient(180deg, #14532d, #052e16); }
-
-    .task-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .word-en { font-size: 1.15rem; font-weight: 800; }
-    .word-zh { font-size: 0.8rem; color: var(--text-sub); }
-
-    .play-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      background: linear-gradient(180deg, #0284c7, #0369a1);
-      border: 1.5px solid var(--cyan);
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 1.1rem;
-    }
-
-    .hint-trigger {
-      display: inline-flex;
-      margin-top: 3px;
-      font-size: 0.72rem;
-      font-weight: 800;
+    .ref-en { font-size: 1.05rem; font-weight: 800; }
+    .ref-zh { font-size: 0.78rem; color: var(--text-sub); font-weight: 700; }
+    
+    .slow-audio-btn {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid var(--cyan);
       color: var(--cyan);
-      background: rgba(56, 189, 248, 0.1);
-      padding: 2px 6px;
-      border-radius: 5px;
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 800;
       cursor: pointer;
-    }
-    .hint-drawer {
-      display: none;
-      margin-top: 4px;
-      padding-top: 4px;
-      border-top: 1px dashed var(--border-dark);
-      font-size: 0.78rem;
-      color: #e2e8f0;
-      line-height: 1.35;
-    }
-    .hint-drawer.open { display: block; }
-
-    .sentence-card {
-      background: linear-gradient(180deg, #1e293b, #0f172a);
-      border: 2px solid var(--border-dark);
-      border-radius: 12px;
-      padding: 8px 12px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      gap: 4px;
     }
-    .sentence-card.charged { border-color: var(--gold); background: linear-gradient(180deg, #713f12, #451a03); }
+    .slow-audio-btn:active { background: var(--cyan); color: #000; }
 
-    /* 彈窗 Modal */
+    /* 彈窗 */
     .modal-overlay {
       display: none;
       position: fixed;
       top: 0; left: 0;
       width: 100vw; height: 100vh;
-      background: rgba(0, 0, 0, 0.88);
+      background: rgba(0, 0, 0, 0.9);
       backdrop-filter: blur(8px);
       z-index: 100;
       align-items: center;
@@ -393,36 +275,20 @@
       background: linear-gradient(180deg, #1e293b, #090e1a);
       border: 3px solid var(--gold);
       border-radius: 22px;
-      padding: 18px 16px;
+      padding: 20px 16px;
       text-align: center;
     }
-    .rarity-pill {
-      display: inline-block;
-      padding: 3px 12px;
-      border-radius: 999px;
-      font-weight: 800;
-      font-size: 0.75rem;
-      margin-bottom: 6px;
-    }
-    .r-mythic { background: linear-gradient(90deg, #ec4899, #8b5cf6); color: #fff; }
-    .r-legendary { background: linear-gradient(90deg, #f59e0b, #ef4444); color: #fff; }
-    .r-rare { background: linear-gradient(90deg, #06b6d4, #3b82f6); color: #fff; }
-    .r-common { background: #64748b; color: #fff; }
-
-    .loot-icon { font-size: 3.8rem; margin: 4px 0; }
-    .loot-name { font-size: 1.35rem; font-weight: 900; }
-    .loot-power { font-size: 0.95rem; color: var(--gold); font-weight: 800; margin: 2px 0 6px; }
-
     .close-btn {
       width: 100%;
       background: linear-gradient(180deg, var(--green), #15803d);
       border: none;
       color: #fff;
-      padding: 10px;
+      padding: 12px;
       border-radius: 12px;
-      font-size: 0.95rem;
+      font-size: 1rem;
       font-weight: 900;
       cursor: pointer;
+      margin-top: 10px;
     }
 
     .bag-grid {
@@ -452,7 +318,7 @@
       opacity: 0;
       pointer-events: none;
       z-index: 999;
-      transition: opacity 0.15s ease-out;
+      transition: opacity 0.15s;
     }
     #confetti-canvas {
       position: fixed;
@@ -470,43 +336,46 @@
 
   <div class="app-viewport">
     
-    <!-- 頂部導航 -->
+    <!-- 頂部選單 -->
     <div class="control-header">
       <div class="quest-tabs-scroll" id="quest-nav-box"></div>
-      <div class="action-icons-group">
+      <div style="display:flex; gap:6px;">
         <button class="pill-btn elder-btn" id="elder-btn" onclick="toggleElderGuide()">👵 長輩指南</button>
         <button class="pill-btn bag-btn" onclick="openBagModal()">🎒 萬物圖鑑</button>
       </div>
     </div>
 
-    <!-- 4 大模式選單 -->
-    <div class="game-modes-deck">
-      <button class="g-mode-btn active" onclick="setMode('EGG', this)">🥚 節奏縮圈開蛋</button>
-      <button class="g-mode-btn" onclick="setMode('DOORS', this)">🚪 聽音解鎖破門</button>
-      <button class="g-mode-btn" onclick="setMode('SLAP', this)">🥊 極限力量格鬥</button>
-      <button class="g-mode-btn" onclick="setMode('SLOT', this)">🎰 手動煞車拉霸</button>
-    </div>
-
-    <div class="elder-helper-banner" id="elder-guide-box">
+    <!-- 長輩安心面板 -->
+    <div class="elder-helper-banner" id="elder-guide-box" style="display:none; background:rgba(22,101,52,0.9); border:2px solid var(--green); border-radius:12px; padding:8px 12px; font-size:0.8rem; color:#d1fae5;">
       <strong>長輩請放心：</strong><br>
-      請看孩子點擊下方單字聽發音練習。累積足夠能量後，挑戰上方小遊戲過關才能抽卡！
+      這是聽力特訓關卡！孩子必須仔細聽喇叭發音，選出正確的單字才能過關。沒聽懂是過不去的喔！
     </div>
 
-    <!-- 真正的動態小遊戲舞台 -->
-    <div class="stage-arena" id="game-stage-arena"></div>
+    <!-- 真正硬核聽力考驗舞台 -->
+    <div class="challenge-arena">
+      <div class="stage-badge" id="stage-level-tag">LEVEL 1 / 3 · 音素聽力盲測</div>
+      <div class="challenge-title" id="challenge-prompt">點擊喇叭，聽出哪個是目標字！</div>
 
-    <!-- 下方題庫 -->
-    <div class="tasks-deck">
-      <div id="words-deck" style="display: flex; flex-direction: column; gap: 6px;"></div>
-      
-      <div class="sentence-card" id="sentence-card">
-        <div>
-          <div style="font-size:0.7rem; color:var(--gold); font-weight:800;">📜 本週密碼句</div>
-          <div style="font-size:0.95rem; font-weight:800;" id="target-sentence-en"></div>
-          <div style="font-size:0.78rem; color:var(--text-sub);" id="target-sentence-zh"></div>
-        </div>
-        <div class="play-btn" onclick="handleSentenceClick()">🔊</div>
+      <!-- 核心大喇叭 (點擊隨機出題發音) -->
+      <div class="audio-speaker-pulse" onclick="replayChallengeAudio()">🔊</div>
+
+      <!-- 動態答案選項 (防瞎猜) -->
+      <div class="choices-grid" id="choices-container"></div>
+
+      <!-- 總挑戰進度條 -->
+      <div class="progress-status-box">
+        <span>關卡解鎖進度</span>
+        <span id="progress-text">0 / 3 關</span>
       </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+    </div>
+
+    <!-- 下方「慢速慢讀」自主修煉區 (卡關時孩子必須親自點來聽) -->
+    <div class="reference-deck">
+      <div style="font-size:0.75rem; color:var(--gold); font-weight:800;">💡 卡關救星：點「慢速音素拆解」仔細聽清楚！</div>
+      <div id="ref-cards-box" style="display:flex; flex-direction:column; gap:6px;"></div>
     </div>
 
   </div>
@@ -514,35 +383,43 @@
   <!-- 抽卡 Modal -->
   <div class="modal-overlay" id="loot-modal">
     <div class="modal-box">
-      <span class="rarity-pill" id="loot-rarity">神話級 MYTHIC</span>
-      <div class="loot-icon" id="loot-icon">🐉</div>
-      <div class="loot-name" id="loot-name">彩虹神龍</div>
-      <div class="loot-power" id="loot-power">⚡ 戰鬥力: 999,999</div>
-      <div class="close-btn" style="margin-top:12px;" onclick="closeLootModal()">收進萬物圖鑑 🎮</div>
+      <span style="display:inline-block; padding:3px 12px; border-radius:999px; font-weight:800; font-size:0.75rem; background:linear-gradient(90deg,#ec4899,#8b5cf6); color:#fff;" id="loot-rarity">神話級 MYTHIC</span>
+      <div style="font-size:3.8rem; margin:6px 0;" id="loot-icon">🐉</div>
+      <div style="font-size:1.4rem; font-weight:900;" id="loot-name">彩虹神龍</div>
+      <div style="font-size:0.95rem; color:var(--gold); font-weight:800; margin:4px 0;" id="loot-power">⚡ 戰鬥力: 999,999</div>
+      
+      <div style="background:rgba(34,197,94,0.18); border:2px dashed var(--green); border-radius:12px; padding:8px 10px; color:#86efac; font-size:0.85rem; font-weight:700; margin:12px 0;">
+        ✨ <strong>硬核聽力全數通關！</strong><br>
+        孩子的耳朵真的聽懂了！拿這張神寵給阿嬤看換放鬆時間！
+      </div>
+
+      <button class="close-btn" onclick="closeLootModal()">收進萬物圖鑑 🎮</button>
     </div>
   </div>
 
-  <!-- 萬物圖鑑 Modal -->
+  <!-- 圖鑑 Modal -->
   <div class="modal-overlay" id="bag-modal">
     <div class="modal-box">
-      <h3 style="font-size: 1.2rem; color: var(--gold);">🎒 萬物收集圖鑑庫</h3>
-      <div style="font-size: 0.78rem; color: var(--text-sub); margin-top: 4px;">
+      <h3 style="font-size:1.2rem; color:var(--gold);">🎒 萬物收集圖鑑庫</h3>
+      <div style="font-size:0.78rem; color:var(--text-sub); margin-top:4px;">
         已解鎖進度：<span id="bag-progress">0</span> / 1,000 種全服圖鑑
       </div>
       <div class="bag-grid" id="bag-grid"></div>
-      <button class="close-btn" onclick="closeBagModal()">返回任務</button>
+      <button class="close-btn" onclick="closeBagModal()">返回訓練</button>
     </div>
   </div>
 
   <script>
+    // 嚴格設計的「最小音素混淆題庫」（Minimal Pairs）
+    // 真正能逼孩子聽清楚 /r/ vs /l/、長短母音差別
     const ALL_QUESTS = [
       {
         id: "w4",
         label: "第 4 關",
         words: [
-          { en: "rain", display: "r · ain", zh: "下雨", hint: "發音重點：ai 發長母音 /eɪ/，拼寫拆為 r + ain。" },
-          { en: "weather", display: "wea · ther", zh: "天氣", hint: "音節拆解：wea-（短母音 /ɛ/）+ -ther（咬舌濁音 /ðər/）。" },
-          { en: "outside", display: "out · side", zh: "外面", hint: "複合字：out（出去）+ side（邊/面）＝ 外面。" }
+          { en: "rain", display: "r · ain", zh: "下雨", distractor: "lane", distractorEn: "lane", hint: "發音重點：開頭是 /r/ 不是 /l/；ai 發長母音 /eɪ/！" },
+          { en: "weather", display: "wea · ther", zh: "天氣", distractor: "feather", distractorEn: "feather", hint: "開頭是 /w/ 不是 /f/；結尾 -ther 有咬舌濁音！" },
+          { en: "outside", display: "out · side", zh: "外面", distractor: "inside", distractorEn: "inside", hint: "前綴是 out 不是 in；結尾 side 發雙母音 /aɪ/！" }
         ],
         sentence: { en: "It is raining outside.", zh: "外面正在下雨。" }
       },
@@ -550,9 +427,9 @@
         id: "w3",
         label: "第 3 關 (複習)",
         words: [
-          { en: "happy", display: "hap · py", zh: "高興的", hint: "雙子音 pp，前母音 a 發蝴蝶音 /æ/。" },
-          { en: "school", display: "school", zh: "學校", hint: "ch 在這裡發硬音 /k/，oo 發長母音 /u/。" },
-          { en: "friend", display: "friend", zh: "朋友", hint: "ie 在此發短母音 /ɛ/，結尾 d 輕聲釋放。" }
+          { en: "happy", display: "hap · py", zh: "高興的", distractor: "heavy", distractorEn: "heavy", hint: "注意雙子音 pp 是爆破音 /p/ 不是 /v/！" },
+          { en: "school", display: "school", zh: "學校", distractor: "cool", distractorEn: "cool", hint: "開頭有 /sk/ 雙子音群，不是只有 cool！" },
+          { en: "friend", display: "friend", zh: "朋友", distractor: "trend", distractorEn: "trend", hint: "開頭是 /fr/ 不是 /tr/！" }
         ],
         sentence: { en: "I see my friend at school.", zh: "我在學校看到我的朋友。" }
       }
@@ -566,23 +443,15 @@
         num: `#${String(i).padStart(4, '0')}`,
         name: SPECIES[(i - 1) % SPECIES.length],
         rarity: i % 10 === 0 ? "神話級 MYTHIC" : i % 3 === 0 ? "傳奇級 LEGENDARY" : "稀有級 RARE",
-        rClass: i % 10 === 0 ? "r-mythic" : i % 3 === 0 ? "r-legendary" : "r-rare",
         icon: ["🐉","🐕","🦄","🐱","🚽","🍞","🦖","🍉"][(i - 1) % 8],
         power: `⚡ ${(50000 + i * 2500).toLocaleString()}`
       });
     }
 
     let currentQuestIdx = 0;
-    let currentMode = 'EGG';
-    let energyCount = 0;
+    let currentStage = 0; // 0: 第1單字聽辨, 1: 第2單字聽辨, 2: 第3單字聽辨, 3: 句子挖空聽辨
+    let currentTargetWord = "";
     let unlockedPets = JSON.parse(localStorage.getItem("unlocked_catalog_ids") || '["pet_1"]');
-
-    // 迷你遊戲內部狀態
-    let rhythmCombo = 0;
-    let gaugeInterval = null;
-    let gaugePos = 0;
-    let gaugeDir = 1;
-    let slotSpinning = false;
 
     function initQuestNav() {
       const box = document.getElementById("quest-nav-box");
@@ -599,198 +468,137 @@
     function switchQuest(idx) {
       currentQuestIdx = idx;
       initQuestNav();
-      loadQuest(ALL_QUESTS[idx]);
+      startQuest(ALL_QUESTS[idx]);
     }
 
-    function loadQuest(quest) {
-      energyCount = 0;
-      document.querySelectorAll(".task-card, .sentence-card").forEach(el => el.classList.remove("charged"));
-      document.getElementById("target-sentence-en").innerText = quest.sentence.en;
-      document.getElementById("target-sentence-zh").innerText = quest.sentence.zh;
+    function startQuest(quest) {
+      currentStage = 0;
+      updateProgress();
+      renderReferenceCards(quest);
+      generateChallengeStage();
+    }
 
-      const wordsBox = document.getElementById("words-deck");
-      wordsBox.innerHTML = "";
-      quest.words.forEach((item, idx) => {
+    // 渲染下方「慢速音素拆解自主救星區」
+    function renderReferenceCards(quest) {
+      const box = document.getElementById("ref-cards-box");
+      box.innerHTML = "";
+      quest.words.forEach(item => {
         const card = document.createElement("div");
-        card.className = "task-card";
-        card.id = `card-word-${idx}`;
+        card.className = "ref-card";
         card.innerHTML = `
-          <div class="task-row">
-            <div>
-              <div class="word-en">${item.display}</div>
-              <div class="word-zh">${item.zh}</div>
-            </div>
-            <div class="play-btn" onclick="handleWordClick(${idx}, '${item.en}')">🔊</div>
+          <div>
+            <div class="ref-en">${item.display}</div>
+            <div class="ref-zh">${item.zh} · <span style="color:#38bdf8;">${item.hint}</span></div>
           </div>
-          <div class="hint-trigger" onclick="toggleHint(this)">💡 音素提示</div>
-          <div class="hint-drawer">${item.hint}</div>
+          <button class="slow-audio-btn" onclick="speakPhonicsUltraSlow('${item.en}')">
+            🐢 極慢發音
+          </button>
         `;
-        wordsBox.appendChild(card);
+        box.appendChild(card);
       });
-
-      renderMiniGame();
     }
 
-    function toggleHint(btn) {
-      const drawer = btn.nextElementSibling;
-      const isOpen = drawer.classList.toggle("open");
-      btn.innerText = isOpen ? "收合提示" : "💡 音素提示";
-    }
+    // 依當前難度生成聽力挑戰
+    function generateChallengeStage() {
+      const quest = ALL_QUESTS[currentQuestIdx];
+      const choicesBox = document.getElementById("choices-container");
+      choicesBox.innerHTML = "";
 
-    function setMode(modeKey, btn) {
-      currentMode = modeKey;
-      document.querySelectorAll(".g-mode-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      clearInterval(gaugeInterval);
-      renderMiniGame();
-    }
+      if (currentStage < 3) {
+        // 階段 1~3：最小音素聽辨 (Target vs Distractor 干擾字)
+        const wordData = quest.words[currentStage];
+        currentTargetWord = wordData.en;
+        
+        document.getElementById("stage-level-tag").innerText = `STAGE ${currentStage + 1} / 4 · 音素殘酷聽辨`;
+        document.getElementById("challenge-prompt").innerText = `仔細聽！哪一個才是「${wordData.zh}」的正確認讀？`;
 
-    // ========================================================
-    // 渲染四大真正不同的小遊戲
-    // ========================================================
-    function renderMiniGame() {
-      const arena = document.getElementById("game-stage-arena");
-      clearInterval(gaugeInterval);
+        // 隨機排列正確選項與干擾選項
+        const options = Math.random() > 0.5 ? 
+          [ { text: wordData.en, isCorrect: true }, { text: wordData.distractor, isCorrect: false } ] :
+          [ { text: wordData.distractor, isCorrect: false }, { text: wordData.en, isCorrect: true } ];
 
-      if (currentMode === 'EGG') {
-        // 模式 1：節奏縮圈打擊
-        arena.innerHTML = `
-          <div class="stage-instruction-box">🎯 縮圈對準金框瞬間點擊！連擊 3 次破蛋！</div>
-          <div class="rhythm-arena" onclick="handleRhythmTap()">
-            <div class="rhythm-target-ring"></div>
-            <div class="rhythm-shrink-ring animating" id="shrink-ring"></div>
-            <div class="rhythm-egg">🥚</div>
-          </div>
-          <div style="font-size:0.8rem; margin-top:8px; color:var(--cyan);">連擊 Combo: <span id="rhythm-combo">0</span> / 3</div>
-        `;
-      } else if (currentMode === 'DOORS') {
-        // 模式 2：聽音密碼門
-        const currentQuest = ALL_QUESTS[currentQuestIdx];
-        const randomTarget = currentQuest.words[Math.floor(Math.random() * currentQuest.words.length)];
-        arena.innerHTML = `
-          <div class="doors-arena">
-            <div class="door-display-header">🚪 密室安全門 01</div>
-            <div style="font-size:0.8rem; color:var(--gold);">🔊 點擊按鈕聽音，選出正確單字破鎖！</div>
-            <button class="pill-btn" style="margin:4px 0;" onclick="speakTTS('${randomTarget.en}')">▶️ 播放破門密碼音</button>
-            <div class="door-options-grid">
-              ${currentQuest.words.map(w => `
-                <button class="door-choice-btn" onclick="checkDoorPass('${w.en}', '${randomTarget.en}')">${w.en}</button>
-              `).join('')}
-            </div>
-          </div>
-        `;
-      } else if (currentMode === 'SLAP') {
-        // 模式 3：指針力量條格鬥
-        arena.innerHTML = `
-          <div class="slap-arena">
-            <div style="font-size:2.8rem;" id="monster-icon">👾</div>
-            <div class="gauge-track">
-              <div class="gauge-needle" id="gauge-needle"></div>
-            </div>
-            <button class="punch-btn" onclick="handlePunch()">💥 出拳！停在綠色 99%</button>
-            <div style="font-size:0.75rem; color:var(--text-sub);">必須命中綠色區域才能造成傷害！</div>
-          </div>
-        `;
-        startGaugeAnim();
-      } else if (currentMode === 'SLOT') {
-        // 模式 4：手動煞車拉霸
-        arena.innerHTML = `
-          <div class="slot-arena">
-            <div class="slot-reels-row">
-              <div class="reel-box spin" id="r1">💎</div>
-              <div class="reel-box spin" id="r2">7️⃣</div>
-              <div class="reel-box spin" id="r3">👑</div>
-            </div>
-            <button class="stop-reel-btn" onclick="handleSlotStop()">🛑 手動緊急煞車！</button>
-            <div style="font-size:0.75rem; color:var(--text-sub);">眼明手快煞車，拼出連線大獎！</div>
-          </div>
-        `;
-        slotSpinning = true;
+        options.forEach(opt => {
+          const btn = document.createElement("button");
+          btn.className = "choice-card-btn";
+          btn.innerText = opt.text;
+          btn.onclick = () => checkAnswer(opt.isCorrect, btn);
+          choicesBox.appendChild(btn);
+        });
+
+        // 自動播放一次發音
+        replayChallengeAudio();
+
+      } else if (currentStage === 3) {
+        // 階段 4：整句連音挖空聽力
+        currentTargetWord = quest.sentence.en;
+        document.getElementById("stage-level-tag").innerText = "FINAL STAGE · 語句連音解密";
+        document.getElementById("challenge-prompt").innerText = "聽完整句子！選出你剛才聽到的核心字！";
+
+        // 從 3 個單字中選出隨機選項
+        quest.words.forEach(w => {
+          const btn = document.createElement("button");
+          btn.className = "choice-card-btn";
+          btn.innerText = w.en;
+          btn.onclick = () => checkSentenceAnswer(w.en, btn);
+          choicesBox.appendChild(btn);
+        });
+
+        replayChallengeAudio();
       }
     }
 
-    // ── 模式 1 邏輯：節奏判定 ──
-    function handleRhythmTap() {
-      // 依據動畫週期進行時間判定 (約在 70% 附近為 Perfect)
-      playCoinSound();
-      rhythmCombo++;
-      document.getElementById("rhythm-combo").innerText = rhythmCombo;
-      if (rhythmCombo >= 3) {
-        rhythmCombo = 0;
-        executeLootDrop();
+    function replayChallengeAudio() {
+      speakTTS(currentTargetWord, 0.75);
+    }
+
+    // 檢查答案 (答錯直接扣血/重來，逼他真正用心聽)
+    function checkAnswer(isCorrect, btnElement) {
+      if (isCorrect) {
+        btnElement.classList.add("correct");
+        playCoinSound();
+        currentStage++;
+        updateProgress();
+
+        if (currentStage === 4) {
+          setTimeout(executeVictory, 500);
+        } else {
+          setTimeout(generateChallengeStage, 600);
+        }
+      } else {
+        btnElement.classList.add("wrong");
+        playBuzzerSound();
+        alert("❌ 聽錯了！發音完全不同！請看下方「極慢發音」拆解，重新聽一遍！");
+        btnElement.classList.remove("wrong");
+        replayChallengeAudio();
       }
     }
 
-    // ── 模式 2 邏輯：聽音破門 ──
-    function checkDoorPass(selected, correct) {
-      if (selected === correct) {
+    function checkSentenceAnswer(selectedWord, btnElement) {
+      const sentence = ALL_QUESTS[currentQuestIdx].sentence.en.toLowerCase();
+      if (sentence.includes(selectedWord.toLowerCase())) {
+        btnElement.classList.add("correct");
         playFanfareSound();
-        alert("🎉 密碼破解成功！大門開啟！");
-        executeLootDrop();
+        currentStage++;
+        updateProgress();
+        setTimeout(executeVictory, 500);
       } else {
+        btnElement.classList.add("wrong");
         playBuzzerSound();
-        alert("❌ 聽錯了！警報響起，請再聽一次！");
+        alert("❌ 句子裡沒有這個聲音！請再聽一次整句連音！");
+        btnElement.classList.remove("wrong");
+        replayChallengeAudio();
       }
     }
 
-    // ── 模式 3 邏輯：力量指針 ──
-    function startGaugeAnim() {
-      gaugePos = 0;
-      gaugeDir = 4;
-      gaugeInterval = setInterval(() => {
-        gaugePos += gaugeDir;
-        if (gaugePos >= 95 || gaugePos <= 0) gaugeDir = -gaugeDir;
-        const needle = document.getElementById("gauge-needle");
-        if (needle) needle.style.left = `${gaugePos}%`;
-      }, 30);
+    function updateProgress() {
+      const percent = (currentStage / 4) * 100;
+      document.getElementById("progress-fill").style.width = `${percent}%`;
+      document.getElementById("progress-text").innerText = `${currentStage} / 4 關`;
     }
 
-    function handlePunch() {
-      clearInterval(gaugeInterval);
-      if (gaugePos >= 65 && gaugePos <= 85) {
-        // 命中綠色區域
-        playChestSound();
-        document.getElementById("monster-icon").innerText = "💥";
-        setTimeout(executeLootDrop, 400);
-      } else {
-        playBuzzerSound();
-        alert("力量太弱或揮空了！重來！");
-        startGaugeAnim();
-      }
-    }
-
-    // ── 模式 4 邏輯：拉霸手動煞車 ──
-    function handleSlotStop() {
-      if (!slotSpinning) return;
-      slotSpinning = false;
-      playChestSound();
-      document.getElementById("r1").classList.remove("spin");
-      document.getElementById("r2").classList.remove("spin");
-      document.getElementById("r3").classList.remove("spin");
-      document.getElementById("r1").innerText = "7️⃣";
-      document.getElementById("r2").innerText = "7️⃣";
-      document.getElementById("r3").innerText = "7️⃣";
-      setTimeout(executeLootDrop, 500);
-    }
-
-    // 題庫點擊發音
-    function handleWordClick(idx, word) {
-      playCoinSound();
-      speakTTS(word);
-      document.getElementById(`card-word-${idx}`).classList.add("charged");
-    }
-
-    function handleSentenceClick() {
-      const sentence = ALL_QUESTS[currentQuestIdx].sentence.en;
-      playCoinSound();
-      speakTTS(sentence);
-      document.getElementById("sentence-card").classList.add("charged");
-    }
-
-    // 掉落與開獎
-    function executeLootDrop() {
+    function executeVictory() {
       triggerWhiteFlash();
-      playFanfareSound();
+      playChestSound();
       launchConfetti();
 
       const loot = FULL_CATALOG[Math.floor(Math.random() * FULL_CATALOG.length)];
@@ -800,7 +608,6 @@
       }
 
       document.getElementById("loot-rarity").innerText = `${loot.num} · ${loot.rarity}`;
-      document.getElementById("loot-rarity").className = `rarity-pill ${loot.rClass}`;
       document.getElementById("loot-icon").innerText = loot.icon;
       document.getElementById("loot-name").innerText = loot.name;
       document.getElementById("loot-power").innerText = loot.power;
@@ -810,9 +617,27 @@
 
     function closeLootModal() {
       document.getElementById("loot-modal").style.display = "none";
-      renderMiniGame();
+      currentStage = 0;
+      updateProgress();
+      generateChallengeStage();
     }
 
+    // 發音引擎 (支援 0.5 倍超慢速音素拆解)
+    function speakTTS(text, rate = 0.8) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'en-US';
+        utter.rate = rate;
+        window.speechSynthesis.speak(utter);
+      }
+    }
+
+    function speakPhonicsUltraSlow(text) {
+      speakTTS(text, 0.55); // 超慢速，讓孩子聽清每個子音與母音的嘴型位置
+    }
+
+    // 圖鑑與長輩指南
     function openBagModal() {
       const box = document.getElementById("bag-grid");
       box.innerHTML = "";
@@ -838,18 +663,9 @@
     function toggleElderGuide() {
       const banner = document.getElementById("elder-guide-box");
       const btn = document.getElementById("elder-btn");
-      const isShow = banner.classList.toggle("show");
+      const isShow = banner.style.display === "none";
+      banner.style.display = isShow ? "block" : "none";
       btn.classList.toggle("active", isShow);
-    }
-
-    function speakTTS(text) {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = 'en-US';
-        utter.rate = 0.8;
-        window.speechSynthesis.speak(utter);
-      }
     }
 
     function triggerWhiteFlash() {
@@ -881,8 +697,8 @@
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.type = "sawtooth";
-        osc.frequency.setValueAtTime(150, ctx.currentTime);
-        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        osc.frequency.setValueAtTime(140, ctx.currentTime);
+        gain.gain.setValueAtTime(0.25, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
         osc.start();
         osc.stop(ctx.currentTime + 0.3);
@@ -956,7 +772,7 @@
 
     window.addEventListener("DOMContentLoaded", () => {
       initQuestNav();
-      loadQuest(ALL_QUESTS[0]);
+      startQuest(ALL_QUESTS[0]);
     });
   </script>
 </body>
