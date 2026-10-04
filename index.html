@@ -186,6 +186,10 @@
       gap: 10px;
       width: 100%;
     }
+    .choices-grid.three-cols {
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+    }
 
     .choice-card-btn {
       background: #0f172a;
@@ -451,7 +455,6 @@
       </div>
     </div>
 
-    <!-- 自動組裝大綱 -->
     <div class="parent-overview-panel" id="parent-panel">
       <h4>📌 本週學習目標（系統自動生成）</h4>
       <div id="parent-overview-content"></div>
@@ -517,6 +520,9 @@
   </div>
 
   <script>
+    // 通用幽靈單字庫（用於方案 B 課文抓鬼：確保課文裡絕對沒有這些字）
+    const GHOST_WORDS_POOL = ["pizza", "monkey", "banana", "robot", "guitar", "castle", "tiger", "rocket"];
+
     const ALL_QUESTS = [
       {
         id: "w4",
@@ -608,7 +614,7 @@
       const autoOverview = `
         • <b>重點詞彙</b>：${wordsList}<br>
         • <b>語境實用語句</b>：${quest.sentence.en}<br>
-        • <b>驗收目標</b>：每題強制聽讀滿 2 次解鎖，杜絕瞎猜；課文錄音完整聽畢。
+        • <b>驗收目標</b>：單字聽音盲測＋課文抓鬼聽辨（Odd One Out）＋課文錄音聽畢。
       `;
       document.getElementById("parent-overview-content").innerHTML = autoOverview;
 
@@ -666,7 +672,6 @@
       const icon = document.getElementById("article-btn-icon");
       const text = document.getElementById("article-btn-text");
 
-      // 完成回呼函式：同步更新中央舞台
       const markAsFinished = () => {
         hasCompletedArticleAudio = true;
         btn.className = "article-btn-action done";
@@ -674,7 +679,6 @@
         text.innerText = "已完成";
         document.getElementById("article-card-box").className = "article-full-card listened-completed";
         playCoinSound();
-        // 核心修復：立即重新評估上方舞台，解除金色鎖頭！
         generateChallengeStage();
       };
 
@@ -708,7 +712,6 @@
 
       // 檢查是否已完成 4 關
       if (currentStage >= 4) {
-        // 如果課文還沒聽完，顯示鎖定提示
         if (quest.sentence.audio && quest.sentence.audio.trim() !== "" && !hasCompletedArticleAudio) {
           arena.innerHTML = `
             <div class="stage-badge" style="color:#f59e0b; border-color:#f59e0b;">⚠ 聽力已達標，但課文未聽！</div>
@@ -718,7 +721,6 @@
           return;
         }
 
-        // 聽力 4 關＋課文皆完成，呈現開箱大按鈕！
         arena.innerHTML = `
           <div class="stage-badge">🎉 聽力驗收全數通關！</div>
           <div class="challenge-title" style="color:var(--gold);">🔥 神秘寶箱能量已滿！</div>
@@ -727,12 +729,14 @@
         return;
       }
 
+      const isOddOneOut = currentStage === 3;
+
       arena.innerHTML = `
-        <div class="stage-badge" id="stage-level-tag">STAGE ${currentStage + 1} / 4 · 音素殘酷聽辨</div>
-        <div class="challenge-title" id="challenge-prompt">點擊大喇叭，聽滿 2 遍解鎖選項！</div>
+        <div class="stage-badge" id="stage-level-tag">${isOddOneOut ? 'FINAL STAGE · 課文聽力抓鬼' : `STAGE ${currentStage + 1} / 4 · 單字音素盲測`}</div>
+        <div class="challenge-title" id="challenge-prompt">${isOddOneOut ? '點擊大喇叭聽課文！找出哪一個單字「沒出現在課文」中？' : '點擊大喇叭，聽滿 2 遍解鎖選項！'}</div>
         <div class="listen-counter-pill" id="listen-counter">🎧 聆聽解鎖進度：0 / 2 遍</div>
         <div class="audio-speaker-pulse" id="stage-speaker" onclick="handleChallengeSpeakerClick()">🔊</div>
-        <div class="choices-grid" id="choices-container"></div>
+        <div class="choices-grid ${isOddOneOut ? 'three-cols' : ''}" id="choices-container"></div>
         <div class="progress-status-box">
           <span>驗收進度</span>
           <span id="progress-text">${currentStage} / 4 關</span>
@@ -745,6 +749,7 @@
       const choicesBox = document.getElementById("choices-container");
 
       if (currentStage < 3) {
+        // 前 3 關：單字音素二選一盲測
         const wordData = quest.words[currentStage];
         currentTargetWord = wordData.en;
         currentTargetAudio = wordData.audio || "";
@@ -763,16 +768,29 @@
         });
 
       } else if (currentStage === 3) {
+        // 方案 B：課文抓鬼（Odd One Out）
         currentTargetWord = quest.sentence.en;
         currentTargetAudio = quest.sentence.audio || "";
-        document.getElementById("stage-level-tag").innerText = "FINAL STAGE · 課文關鍵音鎖定";
 
-        quest.words.forEach(w => {
+        // 挑選 1 個課文裡絕對沒有的幽靈干擾字（isCorrect = true，因為要抓出沒出現的）
+        const ghostWord = GHOST_WORDS_POOL[Math.floor(Math.random() * GHOST_WORDS_POOL.length)];
+
+        // 選取 2 個課文裡有出現的真單字（isCorrect = false）
+        const presentWord1 = quest.words[0].en;
+        const presentWord2 = quest.words[1].en;
+
+        const oddChoices = [
+          { text: ghostWord, isCorrect: true },     // 幽靈字：目標答案
+          { text: presentWord1, isCorrect: false },  // 課文有出現
+          { text: presentWord2, isCorrect: false }   // 課文有出現
+        ].sort(() => Math.random() - 0.5);
+
+        oddChoices.forEach(opt => {
           const btn = document.createElement("button");
           btn.className = "choice-card-btn locked";
           btn.innerText = "🔒 請先聽";
-          btn.dataset.text = w.en;
-          btn.onclick = () => checkSentenceAnswer(w.en, btn);
+          btn.dataset.text = opt.text;
+          btn.onclick = () => checkOddAnswer(opt.isCorrect, btn, ghostWord);
           choicesBox.appendChild(btn);
         });
       }
@@ -798,7 +816,12 @@
             btn.classList.remove("locked");
             btn.innerText = btn.dataset.text;
           });
-          document.getElementById("challenge-prompt").innerText = "選項已解鎖！哪一個才是目標字？";
+          const prompt = document.getElementById("challenge-prompt");
+          if (currentStage === 3) {
+            prompt.innerText = "抓鬼時刻！哪一個單字「沒出現在課文」中？";
+          } else {
+            prompt.innerText = "選項已解鎖！哪一個才是目標字？";
+          }
           if (counter) {
             counter.innerText = "✅ 已聽滿！請在下方選擇答案";
             counter.style.borderColor = "var(--green)";
@@ -818,14 +841,14 @@
       } else {
         btnElement.classList.add("wrong");
         playBuzzerSound();
-        alert("❌ 聽錯了！\n\n答案已重新鎖定，必須重新聽滿 2 遍才能再次作答！請用心聽！");
+        alert("❌ 聽錯了！發音不對喔！\n\n答案已重新鎖定，必須重新聽滿 2 遍才能再次作答！請用心聽！");
         generateChallengeStage();
       }
     }
 
-    function checkSentenceAnswer(selectedWord, btnElement) {
-      const sentence = ALL_QUESTS[currentQuestIdx].sentence.en.toLowerCase();
-      if (sentence.includes(selectedWord.toLowerCase())) {
+    // 方案 B 專用答題判定
+    function checkOddAnswer(isCorrect, btnElement, ghostWord) {
+      if (isCorrect) {
         btnElement.classList.add("correct");
         playFanfareSound();
         currentStage++;
@@ -834,7 +857,7 @@
       } else {
         btnElement.classList.add("wrong");
         playBuzzerSound();
-        alert("❌ 課文裡沒有這個字！\n\n答案已重新鎖定，請再專心聽 2 次！");
+        alert(`❌ 抓錯鬼了！這個字課文裡「有出現」喔！\n\n答案已重新鎖定，請再聽課文 2 次找出誰是冒牌貨！`);
         generateChallengeStage();
       }
     }
