@@ -106,8 +106,8 @@
 
     .header-actions {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
       width: 100%;
     }
 
@@ -115,9 +115,9 @@
       background: #1e293b;
       border: 1.5px solid var(--border);
       color: #fff;
-      padding: 8px 6px;
+      padding: 10px 8px;
       border-radius: 12px;
-      font-size: 0.82rem;
+      font-size: 0.85rem;
       font-weight: 800;
       cursor: pointer;
       text-align: center;
@@ -136,11 +136,6 @@
       background: rgba(168, 85, 247, 0.15);
       border-color: #a855f7;
       color: #d8b4fe;
-    }
-    .pill-btn.diary-btn {
-      background: rgba(250, 204, 21, 0.15);
-      border-color: var(--gold);
-      color: #fef08a;
     }
 
     .parent-overview-panel {
@@ -470,7 +465,7 @@
     }
     .modal-box {
       width: 100%;
-      max-width: 420px;
+      max-width: 440px;
       background: linear-gradient(180deg, #1e293b, #090e1a);
       border: 3px solid var(--gold);
       border-radius: 24px;
@@ -506,59 +501,76 @@
       margin-top: 10px;
     }
 
-    /* 隨堂考樣式 */
+    /* 隨堂考樣式 (10 題實戰版) */
+    .quiz-score-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(168, 85, 247, 0.15);
+      border: 1px solid var(--purple);
+      border-radius: 12px;
+      padding: 8px 12px;
+      margin-bottom: 14px;
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: #d8b4fe;
+    }
     .quiz-question-card {
       background: #0f172a;
       border: 1.5px solid var(--border);
       border-radius: 14px;
-      padding: 12px;
-      margin-bottom: 12px;
+      padding: 14px 12px;
+      margin-bottom: 14px;
       text-align: left;
     }
-    .quiz-prompt { font-weight: 800; color: #fff; font-size: 1.05rem; margin-bottom: 8px; }
+    .quiz-type-badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #c084fc;
+      background: rgba(168, 85, 247, 0.2);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      padding: 2px 8px;
+      border-radius: 6px;
+      margin-bottom: 6px;
+    }
+    .quiz-prompt { font-weight: 800; color: #fff; font-size: 1.02rem; line-height: 1.45; margin-bottom: 10px; }
     .quiz-opt-btn {
       display: block;
       width: 100%;
       background: #1e293b;
-      border: 1px solid var(--border);
-      color: #cbd5e1;
-      padding: 8px 12px;
+      border: 1.5px solid var(--border);
+      color: #e2e8f0;
+      padding: 10px 12px;
       border-radius: 10px;
       font-weight: 700;
-      font-size: 0.92rem;
+      font-size: 0.95rem;
       margin-bottom: 6px;
       text-align: left;
       cursor: pointer;
+      transition: all 0.15s ease;
     }
+    .quiz-opt-btn:active { transform: scale(0.98); }
     .quiz-opt-btn.correct { background: var(--green); color: #052e16; border-color: #86efac; }
-    .quiz-opt-btn.wrong { background: var(--red); color: #fff; }
-
-    /* 聯絡簿樣式 */
-    .diary-textarea {
-      width: 100%;
-      height: 190px;
-      background: #090e1a;
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      color: #f8fafc;
-      padding: 12px;
-      font-size: 0.9rem;
-      line-height: 1.6;
-      resize: none;
-      outline: none;
-      margin: 12px 0;
-      user-select: text;
+    .quiz-opt-btn.wrong { background: var(--red); color: #fff; border-color: #fca5a5; }
+    .quiz-explanation {
+      display: none;
+      font-size: 0.84rem;
+      color: #94a3b8;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 6px 10px;
+      border-radius: 8px;
+      margin-top: 6px;
+      line-height: 1.4;
     }
-    .copy-btn {
-      width: 100%;
-      background: linear-gradient(180deg, var(--gold), #d97706);
-      color: #000;
-      border: none;
-      padding: 12px;
-      border-radius: 14px;
-      font-weight: 900;
-      font-size: 1rem;
-      cursor: pointer;
+    .quiz-summary-card {
+      background: rgba(30, 41, 59, 0.8);
+      border: 2px solid var(--gold);
+      border-radius: 16px;
+      padding: 14px;
+      margin-top: 14px;
+      text-align: center;
+      display: none;
     }
 
     .bag-grid {
@@ -608,7 +620,7 @@
     <div class="user-info-bar">
       <span>🎯 語音冒險任務</span>
       <span class="user-tag" onclick="changeStudentName()">
-        🧑‍🎓 特訓員：<span id="current-user-display" style="text-decoration: underline;">載入中...</span> ✏️️
+        🧑‍🎓 特訓員：<span id="current-user-display" style="text-decoration: underline;">載入中...</span> ✏️
       </span>
     </div>
 
@@ -618,8 +630,7 @@
       </div>
       <div class="header-actions">
         <button class="pill-btn parent-btn" id="parent-toggle-btn" onclick="toggleParentPanel()">📋 大綱</button>
-        <button class="pill-btn quiz-btn" onclick="openQuizModal()">📝 隨堂考</button>
-        <button class="pill-btn diary-btn" onclick="openDiaryModal()">📖 聯絡簿</button>
+        <button class="pill-btn quiz-btn" onclick="openQuizModal()">📝 隨堂考 (10題)</button>
         <button class="pill-btn bag-btn" onclick="openBagModal()">🎒 圖鑑</button>
       </div>
     </div>
@@ -655,7 +666,6 @@
 
   </div>
 
-  <!-- 成果 Modal -->
   <div class="modal-overlay" id="loot-modal">
     <div class="modal-box">
       <span style="display:inline-block; padding:4px 16px; border-radius:999px; font-weight:800; font-size:0.85rem; background:linear-gradient(90deg,#ec4899,#8b5cf6); color:#fff;" id="loot-rarity">神話級 MYTHIC</span>
@@ -679,28 +689,28 @@
     </div>
   </div>
 
-  <!-- 隨堂考準備 Modal -->
+  <!-- 隨堂考準備 Modal (10 題高頻實戰版) -->
   <div class="modal-overlay" id="quiz-modal">
     <div class="modal-box">
-      <h3 style="font-size:1.35rem; color:var(--purple); margin-bottom:4px;">📝 隨堂考衝刺模擬 (5 題)</h3>
-      <div style="font-size:0.88rem; color:var(--text-sub); margin-bottom:14px;">快速自我檢測，回補習班考試拿 100 分！</div>
+      <h3 style="font-size:1.35rem; color:var(--purple); margin-bottom:4px;">📝 隨堂考衝刺模擬 (10 題)</h3>
+      <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px;">涵蓋拼字形近字辨析、克漏字與發音陷阱！</div>
+      
+      <div class="quiz-score-header">
+        <span id="quiz-progress-indicator">測驗進度：0 / 10 題</span>
+        <span id="quiz-live-score">即時得分：0 分</span>
+      </div>
+
       <div id="quiz-content-box"></div>
+      
+      <div class="quiz-summary-card" id="quiz-summary-box">
+        <div style="font-size:1.2rem; font-weight:900; color:var(--gold);" id="quiz-final-score">🎉 測驗完成！</div>
+        <div style="font-size:0.9rem; color:#cbd5e1; margin-top:6px;" id="quiz-final-feedback"></div>
+      </div>
+
       <button class="close-btn" style="background:#475569;" onclick="closeQuizModal()">關閉模擬考</button>
     </div>
   </div>
 
-  <!-- 聯絡簿 Modal -->
-  <div class="modal-overlay" id="diary-modal">
-    <div class="modal-box">
-      <h3 style="font-size:1.35rem; color:var(--gold); margin-bottom:4px;">📖 課後學習聯絡簿</h3>
-      <div style="font-size:0.88rem; color:var(--text-sub);">系統已為您自動彙整今日學習摘要：</div>
-      <textarea class="diary-textarea" id="diary-text-content" readonly></textarea>
-      <button class="copy-btn" onclick="copyDiaryContent()">📋 一鍵複製給家長 (LINE / 聯絡簿)</button>
-      <button class="close-btn" style="background:#475569; margin-top:8px;" onclick="closeDiaryModal()">返回</button>
-    </div>
-  </div>
-
-  <!-- 圖鑑 Modal -->
   <div class="modal-overlay" id="bag-modal">
     <div class="modal-box">
       <h3 style="font-size:1.35rem; color:var(--gold);">🎒 4,000 隻全服萬物圖鑑庫</h3>
@@ -776,7 +786,6 @@
     let currentTargetWord = "";
     let currentTargetAudio = "";
     let unlockedPets = JSON.parse(localStorage.getItem("unlocked_catalog_ids") || '["pet_1"]');
-    let lastWonPet = null;
     
     let currentListenCount = 0;
     let isAudioPlaying = false;
@@ -1106,7 +1115,6 @@
       const quest = ALL_QUESTS[currentQuestIdx];
       const randomIdx = Math.floor(Math.random() * TOTAL_PETS_COUNT);
       const loot = getPetByIndex(randomIdx);
-      lastWonPet = loot;
 
       if (!unlockedPets.includes(loot.id)) {
         unlockedPets.push(loot.id);
@@ -1147,94 +1155,177 @@
       generateChallengeStage();
     }
 
-    /* ─── 隨堂考準備模組 (5 題模擬測驗) ─── */
+    /* ─── 隨堂考準備模組 (升級 10 題實戰版) ─── */
+    let quizCurrentAnswered = 0;
+    let quizCorrectCount = 0;
+
     function openQuizModal() {
       const quest = ALL_QUESTS[currentQuestIdx];
       const box = document.getElementById("quiz-content-box");
+      const summaryBox = document.getElementById("quiz-summary-box");
       box.innerHTML = "";
+      summaryBox.style.display = "none";
 
-      const wordsPool = [...quest.words].sort(() => Math.random() - 0.5);
-      const quizQuestions = wordsPool.slice(0, 5);
+      quizCurrentAnswered = 0;
+      quizCorrectCount = 0;
+      updateQuizScoreDisplay();
 
-      quizQuestions.forEach((qItem, qIdx) => {
-        const otherWords = quest.words.filter(w => w.en !== qItem.en);
-        const distractors = otherWords.sort(() => Math.random() - 0.5).slice(0, 2);
-        const options = [
-          { text: qItem.zh, isCorrect: true },
-          { text: distractors[0] ? distractors[0].zh : "其他選項", isCorrect: false },
-          { text: distractors[1] ? distractors[1].zh : "無關干擾", isCorrect: false }
-        ].sort(() => Math.random() - 0.5);
+      // 建立包含 10 題的題庫清單（若單字少於 10 個則循環補齊）
+      let wordsPool = [...quest.words].sort(() => Math.random() - 0.5);
+      while (wordsPool.length < 10) {
+        wordsPool = wordsPool.concat([...quest.words].sort(() => Math.random() - 0.5));
+      }
+      const selectedWords = wordsPool.slice(0, 10);
+
+      selectedWords.forEach((targetWord, qIdx) => {
+        const otherWords = quest.words.filter(w => w.en !== targetWord.en);
+        const distractorsPool = otherWords.sort(() => Math.random() - 0.5);
+
+        // 輪替 4 種題型
+        const questionType = qIdx % 4;
+        let typeBadge = "";
+        let promptText = "";
+        let options = [];
+        let explanationText = "";
+
+        if (questionType === 0) {
+          typeBadge = "拼字辨析";
+          promptText = `Q${qIdx + 1}. 中文「${targetWord.zh}」的正確英文拼法是？`;
+          options = [
+            { text: targetWord.en, isCorrect: true },
+            { text: targetWord.distractor || (distractorsPool[0] ? distractorsPool[0].en : "wrong"), isCorrect: false },
+            { text: distractorsPool[1] ? distractorsPool[1].en : "error", isCorrect: false }
+          ].sort(() => Math.random() - 0.5);
+          explanationText = `正解為「${targetWord.en}」，注意不要與干擾字「${targetWord.distractor}」混淆。`;
+
+        } else if (questionType === 1) {
+          typeBadge = "語境克漏字";
+          let sentenceText = quest.sentence.en;
+          const reg = new RegExp(`\\b${targetWord.en}\\b`, "i");
+
+          if (reg.test(sentenceText)) {
+            const maskedSentence = sentenceText.replace(reg, "【 _____ 】");
+            promptText = `Q${qIdx + 1}. 根據段落語意，空格應填入哪一個單字？<br><span style="color:#93c5fd; font-size:0.95rem;">"${maskedSentence}"</span>`;
+          } else {
+            promptText = `Q${qIdx + 1}. 根據本段課文語境，「${targetWord.zh}」應使用哪一個詞彙？`;
+          }
+
+          options = [
+            { text: targetWord.en, isCorrect: true },
+            { text: distractorsPool[0] ? distractorsPool[0].en : "distractor", isCorrect: false },
+            { text: distractorsPool[1] ? distractorsPool[1].en : "sample", isCorrect: false }
+          ].sort(() => Math.random() - 0.5);
+          explanationText = `此處語境對應單字【${targetWord.en}】（${targetWord.zh}）。`;
+
+        } else if (questionType === 2) {
+          typeBadge = "發音規則與音素";
+          promptText = `Q${qIdx + 1}. 關於單字【${targetWord.en}】（${targetWord.zh}）的讀音特徵，下列何者正確？`;
+
+          let hintText = targetWord.hint || "注意重音位置與母音長短音。";
+          options = [
+            { text: hintText, isCorrect: true },
+            { text: "字首不發音且尾音需長聲拉長（錯誤選項）", isCorrect: false },
+            { text: "全部音節皆為重讀發音，不含弱化母音（錯誤選項）", isCorrect: false }
+          ].sort(() => Math.random() - 0.5);
+          explanationText = `發音重點：${hintText}`;
+
+        } else {
+          typeBadge = "形近字挑戰";
+          promptText = `Q${qIdx + 1}. 請辨別下列何者才是正確的【${targetWord.zh}】？（小心形近假字）`;
+          
+          options = [
+            { text: targetWord.en, isCorrect: true },
+            { text: targetWord.distractor, isCorrect: false },
+            { text: `${targetWord.en}s`, isCorrect: false }
+          ].sort(() => Math.random() - 0.5);
+          explanationText = `目標字為【${targetWord.en}】，常見混淆字為【${targetWord.distractor}】。`;
+        }
 
         const card = document.createElement("div");
         card.className = "quiz-question-card";
-        card.innerHTML = `<div class="quiz-prompt">Q${qIdx + 1}. 【${qItem.en}】的意思是？</div>`;
+        card.innerHTML = `
+          <div class="quiz-type-badge">📌 ${typeBadge}</div>
+          <div class="quiz-prompt">${promptText}</div>
+        `;
+
+        const expBox = document.createElement("div");
+        expBox.className = "quiz-explanation";
+        expBox.innerText = `💡 老師解析：${explanationText}`;
 
         options.forEach(opt => {
           const btn = document.createElement("button");
           btn.className = "quiz-opt-btn";
           btn.innerText = opt.text;
           btn.onclick = () => {
+            const allBtns = card.querySelectorAll(".quiz-opt-btn");
+            allBtns.forEach(b => b.disabled = true);
+
+            quizCurrentAnswered++;
+
             if (opt.isCorrect) {
+              quizCorrectCount++;
               btn.classList.add("correct");
               btn.innerText = `⭕ 正確！ ${opt.text}`;
               playCoinSound();
             } else {
               btn.classList.add("wrong");
-              btn.innerText = `❌ 不對喔！正解是：${qItem.zh}`;
+              btn.innerText = `❌ 錯誤！你的答案：${opt.text}`;
+              allBtns.forEach(b => {
+                if (b.innerText === targetWord.en || b.innerText === targetWord.hint) {
+                  b.classList.add("correct");
+                }
+              });
               playBuzzerSound();
+            }
+
+            expBox.style.display = "block";
+            updateQuizScoreDisplay();
+
+            if (quizCurrentAnswered >= 10) {
+              finishQuizSession();
             }
           };
           card.appendChild(btn);
         });
 
+        card.appendChild(expBox);
         box.appendChild(card);
       });
 
       document.getElementById("quiz-modal").style.display = "flex";
     }
 
+    function updateQuizScoreDisplay() {
+      const progressInd = document.getElementById("quiz-progress-indicator");
+      const scoreInd = document.getElementById("quiz-live-score");
+      if (progressInd) progressInd.innerText = `測驗進度：${quizCurrentAnswered} / 10 題`;
+      if (scoreInd) scoreInd.innerText = `答對：${quizCorrectCount} 題 (${quizCorrectCount * 10} 分)`;
+    }
+
+    function finishQuizSession() {
+      const summaryBox = document.getElementById("quiz-summary-box");
+      const scoreText = document.getElementById("quiz-final-score");
+      const feedbackText = document.getElementById("quiz-final-feedback");
+
+      const finalScore = quizCorrectCount * 10;
+      scoreText.innerText = `🎉 測驗完成！最終得分：${finalScore} 分`;
+
+      if (finalScore === 100) {
+        feedbackText.innerText = "太神啦！10 題全數答對！隨堂考直接穩拿滿分！💯";
+        playFanfareSound();
+      } else if (finalScore >= 80) {
+        feedbackText.innerText = "表現非常亮眼！錯的題目稍微看一下解析，隨堂考沒問題！✨";
+        playCoinSound();
+      } else {
+        feedbackText.innerText = "完成 10 題特訓！把解析看過一次，建議回頭多聽 2 遍單字拆解喔！💪";
+      }
+
+      summaryBox.style.display = "block";
+      summaryBox.scrollIntoView({ behavior: 'smooth' });
+    }
+
     function closeQuizModal() {
       document.getElementById("quiz-modal").style.display = "none";
-    }
-
-    /* ─── 聯絡簿模組 (自動產生 ＋ 一鍵複製) ─── */
-    function openDiaryModal() {
-      const quest = ALL_QUESTS[currentQuestIdx];
-      const today = new Date().toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' });
-      const petInfo = lastWonPet ? `${lastWonPet.num} ${lastWonPet.name} (${lastWonPet.rarity})` : "尚未開箱或保留前次神寵";
-
-      const diaryText = 
-`【📚 英語課堂課後學習聯絡簿】
-📅 日期：${today}
-🧑‍🎓 學員：${currentStudentName}
-🎯 本週進度：${quest.label}
-----------------------------------------
-✅ 學習任務成效：
-1. 核心單字嘴型拆解：已完整聽辨 (${listenedWordsSet.size}/${quest.words.length})
-2. 單字音素盲測關卡：4/4 全數過關
-3. 課文語意段落聆聽：已完成朗讀對照
-🎁 今日解鎖戰力神寵：${petInfo}
-----------------------------------------
-👩‍🏫 老師叮嚀：
-今日在音素聽辨與段落理解表現優異！回家請保持語感，下週課堂隨堂考請加油！💪`;
-
-      document.getElementById("diary-text-content").value = diaryText;
-      document.getElementById("diary-modal").style.display = "flex";
-    }
-
-    function closeDiaryModal() {
-      document.getElementById("diary-modal").style.display = "none";
-    }
-
-    function copyDiaryContent() {
-      const textarea = document.getElementById("diary-text-content");
-      textarea.select();
-      navigator.clipboard.writeText(textarea.value).then(() => {
-        alert("✅ 聯絡簿內容已成功複製！可以直接貼到 LINE 或家長聯絡簿囉！");
-      }).catch(() => {
-        document.execCommand('copy');
-        alert("✅ 聯絡簿內容已複製！");
-      });
     }
 
     function playSmartAudio(audioPath, fallbackText, rate = 0.8, onEndedCallback = null) {
