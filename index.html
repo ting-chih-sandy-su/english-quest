@@ -21,7 +21,7 @@
       --red: #ef4444;
       --border: #334155;
       --text-main: #f8fafc;
-      --text-sub: #94a3b8;
+      --text-sub: #cbd5e1;
     }
 
     * {
@@ -39,26 +39,26 @@
       color: var(--text-main);
       display: flex;
       justify-content: center;
-      padding: 16px 12px 40px;
+      padding: 18px 14px 44px;
       overflow-x: hidden;
       overflow-y: auto;
     }
 
     .app-viewport {
       width: 100%;
-      max-width: 440px;
+      max-width: 460px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 18px;
       position: relative;
     }
 
-    /* 頂部列：下拉選單（適合好幾十週）＋ 功能鍵 */
+    /* 頂部列 */
     .control-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
 
     .quest-select-wrap {
@@ -71,9 +71,9 @@
       background: #1e293b;
       border: 2px solid var(--border);
       color: #38bdf8;
-      font-size: 0.85rem;
+      font-size: 0.95rem;
       font-weight: 800;
-      padding: 8px 12px;
+      padding: 10px 14px;
       border-radius: 14px;
       outline: none;
       cursor: pointer;
@@ -82,13 +82,13 @@
       -webkit-appearance: none;
       background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
       background-repeat: no-repeat;
-      background-position: right 10px center;
-      background-size: 16px;
+      background-position: right 12px center;
+      background-size: 18px;
     }
 
     .header-actions {
       display: flex;
-      gap: 6px;
+      gap: 8px;
       flex-shrink: 0;
     }
 
@@ -96,9 +96,9 @@
       background: #1e293b;
       border: 1.5px solid var(--border);
       color: #fff;
-      padding: 8px 12px;
-      border-radius: 12px;
-      font-size: 0.78rem;
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: 0.88rem;
       font-weight: 800;
       cursor: pointer;
       white-space: nowrap;
@@ -123,73 +123,73 @@
       background: rgba(15, 23, 42, 0.95);
       border: 2px solid var(--green);
       border-radius: 16px;
-      padding: 12px 14px;
-      font-size: 0.82rem;
+      padding: 14px 16px;
+      font-size: 0.92rem;
       color: #e2e8f0;
-      line-height: 1.55;
+      line-height: 1.6;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
     }
     .parent-overview-panel.show { display: block; }
-    .parent-overview-panel h4 { color: #86efac; font-size: 0.9rem; margin-bottom: 6px; }
+    .parent-overview-panel h4 { color: #86efac; font-size: 1rem; margin-bottom: 8px; }
 
     /* 聽力挑戰核心舞台 */
     .challenge-arena {
       background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
       border: 2px solid var(--border);
       border-radius: 24px;
-      padding: 20px 16px;
+      padding: 22px 16px;
       display: flex;
       flex-direction: column;
       align-items: center;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-      gap: 12px;
+      gap: 14px;
     }
 
     .stage-badge {
-      font-size: 0.78rem;
+      font-size: 0.88rem;
       font-weight: 800;
       color: var(--gold);
       background: rgba(250, 204, 21, 0.12);
       border: 1px solid rgba(250, 204, 21, 0.3);
-      padding: 4px 14px;
+      padding: 6px 16px;
       border-radius: 999px;
     }
 
     .challenge-title {
-      font-size: 1.05rem;
+      font-size: 1.25rem;
       font-weight: 800;
       text-align: center;
-      line-height: 1.4;
+      line-height: 1.45;
       color: #f1f5f9;
-      min-height: 32px;
+      min-height: 38px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
     .listen-counter-pill {
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       font-weight: 800;
       color: #38bdf8;
       background: rgba(56, 189, 248, 0.1);
-      border: 1px solid var(--cyan);
+      border: 1.5px solid var(--cyan);
       border-radius: 999px;
-      padding: 4px 14px;
+      padding: 6px 16px;
     }
 
     .audio-speaker-pulse {
-      width: 76px;
-      height: 76px;
+      width: 82px;
+      height: 82px;
       border-radius: 50%;
       background: linear-gradient(135deg, var(--cyan), #0284c7);
-      border: 3.5px solid #fff;
+      border: 4px solid #fff;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2.1rem;
+      font-size: 2.4rem;
       cursor: pointer;
       box-shadow: 0 0 24px rgba(56, 189, 248, 0.5);
-      margin: 4px 0 6px;
+      margin: 4px 0 8px;
       transition: transform 0.15s;
     }
     .audio-speaker-pulse:active { transform: scale(0.92); }
@@ -204,7 +204,7 @@
       grid-template-columns: 1fr 1fr;
       gap: 12px;
       width: 100%;
-      margin-top: 4px;
+      margin-top: 6px;
     }
     .choices-grid.three-cols {
       grid-template-columns: 1fr 1fr 1fr;
@@ -215,10 +215,10 @@
       background: #090e1a;
       border: 2px solid var(--border);
       color: #fff;
-      min-height: 58px;
-      padding: 12px 8px;
-      border-radius: 16px;
-      font-size: 1.15rem;
+      min-height: 64px;
+      padding: 12px 10px;
+      border-radius: 18px;
+      font-size: 1.35rem;
       font-weight: 800;
       cursor: pointer;
       text-align: center;
@@ -233,6 +233,7 @@
       cursor: not-allowed;
       filter: grayscale(1);
       pointer-events: none;
+      font-size: 1.15rem;
     }
     .choice-card-btn.correct { 
       background: var(--green); 
@@ -257,9 +258,9 @@
       background: linear-gradient(180deg, #f59e0b, #d97706);
       border: 3px solid #fef08a;
       color: #000;
-      padding: 16px;
-      border-radius: 18px;
-      font-size: 1.25rem;
+      padding: 18px;
+      border-radius: 20px;
+      font-size: 1.35rem;
       font-weight: 900;
       cursor: pointer;
       box-shadow: 0 0 30px rgba(245, 158, 11, 0.7);
@@ -273,19 +274,19 @@
 
     .progress-box {
       width: 100%;
-      margin-top: 4px;
+      margin-top: 6px;
     }
     .progress-status-box {
       display: flex;
       justify-content: space-between;
-      font-size: 0.78rem;
+      font-size: 0.88rem;
       font-weight: 800;
       color: var(--text-sub);
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
     .progress-bar-wrap {
       width: 100%;
-      height: 8px;
+      height: 10px;
       background: #090e1a;
       border-radius: 999px;
       overflow: hidden;
@@ -302,47 +303,47 @@
     .reference-deck {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 14px;
     }
 
     .section-title {
-      font-size: 0.82rem;
+      font-size: 0.95rem;
       font-weight: 800;
       color: var(--gold);
-      margin-bottom: -4px;
+      margin-bottom: -2px;
     }
 
     .ref-cards-container {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
     }
     .ref-card {
-      background: rgba(30, 41, 59, 0.7);
+      background: rgba(30, 41, 59, 0.75);
       border: 1.5px solid var(--border);
-      border-radius: 14px;
-      padding: 10px 14px;
+      border-radius: 16px;
+      padding: 12px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
     }
     .ref-card-left {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 4px;
     }
-    .ref-en { font-size: 1.05rem; font-weight: 800; color: #fff; }
-    .ref-zh { font-size: 0.78rem; color: var(--text-sub); font-weight: 700; }
-    .ref-hint { color: #38bdf8; font-size: 0.74rem; }
+    .ref-en { font-size: 1.22rem; font-weight: 800; color: #fff; letter-spacing: 0.5px; }
+    .ref-zh { font-size: 0.92rem; color: var(--text-sub); font-weight: 700; line-height: 1.4; }
+    .ref-hint { color: #38bdf8; font-size: 0.86rem; }
     
     .slow-audio-btn {
       background: rgba(56, 189, 248, 0.12);
       border: 1.5px solid var(--cyan);
       color: var(--cyan);
-      padding: 6px 12px;
-      border-radius: 10px;
-      font-size: 0.76rem;
+      padding: 8px 14px;
+      border-radius: 12px;
+      font-size: 0.86rem;
       font-weight: 800;
       cursor: pointer;
       white-space: nowrap;
@@ -352,11 +353,11 @@
     .article-full-card {
       background: rgba(30, 41, 59, 0.9);
       border: 2px solid var(--border);
-      border-radius: 18px;
-      padding: 14px 16px;
+      border-radius: 20px;
+      padding: 16px 18px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 14px;
       transition: all 0.3s;
     }
     .article-full-card.listening-required {
@@ -367,24 +368,24 @@
       border-color: var(--green);
       background: linear-gradient(180deg, rgba(20, 83, 45, 0.8), rgba(5, 46, 22, 0.8));
     }
-    .article-tag { font-size: 0.72rem; font-weight: 800; color: var(--gold); }
-    .article-en { font-size: 0.92rem; font-weight: 700; line-height: 1.5; color: #f8fafc; }
-    .article-zh { font-size: 0.78rem; color: var(--text-sub); line-height: 1.4; }
+    .article-tag { font-size: 0.82rem; font-weight: 800; color: var(--gold); }
+    .article-en { font-size: 1.08rem; font-weight: 700; line-height: 1.6; color: #f8fafc; }
+    .article-zh { font-size: 0.92rem; color: var(--text-sub); line-height: 1.5; }
 
     .article-btn-action {
       width: 100%;
       background: linear-gradient(180deg, var(--gold), #ca8a04);
       color: #0b1120;
       border: none;
-      padding: 10px 16px;
-      border-radius: 12px;
-      font-size: 0.88rem;
+      padding: 12px 18px;
+      border-radius: 14px;
+      font-size: 0.98rem;
       font-weight: 900;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 8px;
       box-shadow: 0 2px 0 #854d0e;
     }
     .article-btn-action.playing {
@@ -418,23 +419,23 @@
     }
     .modal-box {
       width: 100%;
-      max-width: 380px;
+      max-width: 400px;
       background: linear-gradient(180deg, #1e293b, #090e1a);
       border: 3px solid var(--gold);
       border-radius: 24px;
-      padding: 22px 18px;
+      padding: 24px 20px;
       text-align: center;
       box-shadow: 0 0 50px rgba(250, 204, 21, 0.4);
     }
     .report-card-wrap {
       background: rgba(15, 23, 42, 0.8);
       border: 1.5px dashed var(--green);
-      border-radius: 14px;
-      padding: 12px 14px;
+      border-radius: 16px;
+      padding: 14px 16px;
       text-align: left;
-      margin: 12px 0;
-      font-size: 0.8rem;
-      line-height: 1.6;
+      margin: 14px 0;
+      font-size: 0.9rem;
+      line-height: 1.65;
     }
     .report-row { display: flex; justify-content: space-between; }
     .report-badge { color: #86efac; font-weight: 800; }
@@ -443,9 +444,9 @@
       background: linear-gradient(180deg, var(--green), #15803d);
       border: none;
       color: #fff;
-      padding: 12px;
-      border-radius: 14px;
-      font-size: 1rem;
+      padding: 14px;
+      border-radius: 16px;
+      font-size: 1.1rem;
       font-weight: 900;
       cursor: pointer;
     }
@@ -453,16 +454,16 @@
     .bag-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
+      gap: 10px;
       max-height: 48vh;
       overflow-y: auto;
-      margin: 14px 0;
+      margin: 16px 0;
     }
     .bag-cell {
       background: #0f172a;
       border: 1.5px solid var(--border);
-      border-radius: 12px;
-      padding: 8px 4px;
+      border-radius: 14px;
+      padding: 10px 6px;
       text-align: center;
     }
     .bag-cell.unlocked { border-color: var(--gold); background: #1e293b; }
@@ -495,7 +496,6 @@
   <div class="app-viewport">
     
     <div class="control-header">
-      <!-- 下拉選單：即便有 50 週也不會爆版 -->
       <div class="quest-select-wrap">
         <select class="quest-dropdown" id="quest-dropdown-select" onchange="switchQuestFromSelect(this.value)"></select>
       </div>
@@ -537,18 +537,18 @@
   <!-- 成果 Modal -->
   <div class="modal-overlay" id="loot-modal">
     <div class="modal-box">
-      <span style="display:inline-block; padding:4px 14px; border-radius:999px; font-weight:800; font-size:0.75rem; background:linear-gradient(90deg,#ec4899,#8b5cf6); color:#fff;" id="loot-rarity">神話級 MYTHIC</span>
-      <div style="font-size:3.8rem; margin:8px 0;" id="loot-icon">🐉</div>
-      <div style="font-size:1.35rem; font-weight:900;" id="loot-name">彩虹神龍</div>
-      <div style="font-size:0.92rem; color:var(--gold); font-weight:800; margin-bottom:4px;" id="loot-power">⚡ 戰鬥力: 999,999</div>
+      <span style="display:inline-block; padding:4px 16px; border-radius:999px; font-weight:800; font-size:0.85rem; background:linear-gradient(90deg,#ec4899,#8b5cf6); color:#fff;" id="loot-rarity">神話級 MYTHIC</span>
+      <div style="font-size:4.2rem; margin:10px 0;" id="loot-icon">🐉</div>
+      <div style="font-size:1.5rem; font-weight:900;" id="loot-name">彩虹神龍</div>
+      <div style="font-size:1rem; color:var(--gold); font-weight:800; margin-bottom:6px;" id="loot-power">⚡ 戰鬥力: 999,999</div>
       
       <div class="report-card-wrap">
-        <div style="font-weight:900; color:var(--gold); border-bottom:1px solid #334155; padding-bottom:4px; margin-bottom:6px;">
+        <div style="font-weight:900; color:var(--gold); border-bottom:1px solid #334155; padding-bottom:6px; margin-bottom:8px; font-size:0.95rem;">
           📝 本週課堂複習成效報告單
         </div>
         <div class="report-row"><span>1. 音素聽力盲測：</span><span class="report-badge">全數通過 (4/4)</span></div>
         <div class="report-row"><span>2. 整篇課文聆聽：</span><span class="report-badge" id="report-article-check">100% 完整聽畢</span></div>
-        <div style="margin-top:8px; color:#94a3b8; font-size:0.75rem; border-top:1px dashed #334155; padding-top:6px;">
+        <div style="margin-top:10px; color:#cbd5e1; font-size:0.85rem; border-top:1px dashed #334155; padding-top:8px;">
           👩‍🏫 <strong>老師評語：</strong>孩子今日認真聽辨音素細節，已確實掌握核心讀音，請家長安心給予放鬆時間！
         </div>
       </div>
@@ -560,8 +560,8 @@
   <!-- 圖鑑 Modal -->
   <div class="modal-overlay" id="bag-modal">
     <div class="modal-box">
-      <h3 style="font-size:1.25rem; color:var(--gold);">🎒 萬物收集圖鑑庫</h3>
-      <div style="font-size:0.8rem; color:var(--text-sub); margin-top:4px;">
+      <h3 style="font-size:1.35rem; color:var(--gold);">🎒 萬物收集圖鑑庫</h3>
+      <div style="font-size:0.88rem; color:var(--text-sub); margin-top:6px;">
         已解鎖進度：<span id="bag-progress">0</span> / 1,000 種全服圖鑑
       </div>
       <div class="bag-grid" id="bag-grid"></div>
@@ -569,7 +569,7 @@
     </div>
   </div>
 
-  <!-- 引入外部題庫檔：即使累積 100 週也完全不影響主程式運作！ -->
+  <!-- 引入外部題庫檔 -->
   <script src="quests.js"></script>
 
   <script>
@@ -733,15 +733,15 @@
         if (quest.sentence.audio && quest.sentence.audio.trim() !== "" && !hasCompletedArticleAudio) {
           arena.innerHTML = `
             <div class="stage-badge" style="color:#f59e0b; border-color:#f59e0b;">⚠ 聽力已達標，但課文未聽！</div>
-            <div class="challenge-title" style="font-size:0.95rem;">請點擊下方黃色按鈕，將整篇「課文音檔」完整聽完才能開箱！</div>
-            <div style="font-size:3rem; margin:12px 0;">🔒</div>
+            <div class="challenge-title" style="font-size:1.05rem;">請點擊下方黃色按鈕，將整篇「課文音檔」完整聽完才能開箱！</div>
+            <div style="font-size:3.2rem; margin:14px 0;">🔒</div>
           `;
           return;
         }
 
         arena.innerHTML = `
           <div class="stage-badge">🎉 聽力驗收全數通關！</div>
-          <div class="challenge-title" style="color:var(--gold); font-size:1.2rem;">🔥 神秘寶箱能量已滿！</div>
+          <div class="challenge-title" style="color:var(--gold); font-size:1.35rem;">🔥 神秘寶箱能量已滿！</div>
           <button class="ready-gacha-btn" onclick="executeVictory()">🎁 點擊狂暴開箱抽神寵！</button>
         `;
         return;
@@ -944,9 +944,9 @@
         const cell = document.createElement("div");
         cell.className = `bag-cell ${isUnlocked ? 'unlocked' : 'locked'}`;
         cell.innerHTML = `
-          <div style="font-size:0.6rem; color:#94a3b8;">${p.num}</div>
-          <div style="font-size:1.6rem; margin:2px 0;">${isUnlocked ? p.icon : '❓'}</div>
-          <div style="font-size:0.7rem; font-weight:700;">${isUnlocked ? p.name : '未解鎖'}</div>
+          <div style="font-size:0.75rem; color:#94a3b8;">${p.num}</div>
+          <div style="font-size:1.8rem; margin:4px 0;">${isUnlocked ? p.icon : '❓'}</div>
+          <div style="font-size:0.82rem; font-weight:700;">${isUnlocked ? p.name : '未解鎖'}</div>
         `;
         box.appendChild(cell);
       });
