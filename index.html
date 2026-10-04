@@ -49,8 +49,28 @@
       max-width: 460px;
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 16px;
       position: relative;
+    }
+
+    /* 頂部學生身分資訊列 */
+    .user-info-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      font-weight: 800;
+    }
+    .user-tag {
+      color: var(--cyan);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
 
     .control-header {
@@ -500,6 +520,14 @@
 
   <div class="app-viewport">
     
+    <!-- 學生身分資訊與切換 -->
+    <div class="user-info-bar">
+      <span>🎯 語音冒險任務</span>
+      <span class="user-tag" onclick="changeStudentName()">
+        🧑‍🎓 特訓員：<span id="current-user-display" style="text-decoration: underline;">載入中...</span> ✏️
+      </span>
+    </div>
+
     <div class="control-header">
       <div class="quest-select-wrap">
         <select class="quest-dropdown" id="quest-dropdown-select" onchange="switchQuestFromSelect(this.value)"></select>
@@ -551,6 +579,7 @@
         <div style="font-weight:900; color:var(--gold); border-bottom:1px solid #334155; padding-bottom:6px; margin-bottom:8px; font-size:0.95rem;">
           📝 本週課堂複習成效報告單
         </div>
+        <div class="report-row"><span>特訓學員：</span><span class="report-badge" id="report-student-name">--</span></div>
         <div class="report-row"><span>1. 音素聽力盲測：</span><span class="report-badge">全數通過 (4/4)</span></div>
         <div class="report-row"><span>2. 核心單字拆解：</span><span class="report-badge">100% 逐字完成</span></div>
         <div style="margin-top:10px; color:#cbd5e1; font-size:0.85rem; border-top:1px dashed #334155; padding-top:8px;">
@@ -573,11 +602,31 @@
     </div>
   </div>
 
-  <!-- 引入外部題庫檔 -->
   <script src="quests.js"></script>
 
   <script>
     const GAS_SUBMIT_URL = "https://script.google.com/macros/s/AKfycbySNVF6K3fjZyUzdd5dGm5YdhSS9yUyooHTqnkmWLD-fHju55sLwXJvSnn7SXf2Ds4rnQ/exec";
+
+    // ─── 學生姓名管理（記在 localStorage，支援更名） ───
+    let currentStudentName = localStorage.getItem("phonics_student_name");
+    if (!currentStudentName || currentStudentName.trim() === "" || currentStudentName === "孩子" || currentStudentName === "學生") {
+      currentStudentName = prompt("🎮 歡迎來到英語特訓！請輸入你的名字：", "特訓員") || "特訓員";
+      localStorage.setItem("phonics_student_name", currentStudentName.trim());
+    }
+
+    function initUserDisplay() {
+      const display = document.getElementById("current-user-display");
+      if (display) display.innerText = currentStudentName;
+    }
+
+    function changeStudentName() {
+      const newName = prompt("請輸入新的特訓員姓名：", currentStudentName);
+      if (newName && newName.trim() !== "") {
+        currentStudentName = newName.trim();
+        localStorage.setItem("phonics_student_name", currentStudentName);
+        initUserDisplay();
+      }
+    }
 
     const GHOST_WORDS_POOL = ["pizza", "monkey", "banana", "robot", "guitar", "castle", "tiger", "rocket"];
 
@@ -916,10 +965,10 @@
         localStorage.setItem("unlocked_catalog_ids", JSON.stringify(unlockedPets));
       }
 
-      // ─── 以 text/plain 送出 JSON，規避 Google Apps Script CORS 阻擋 ───
+      // ─── 自動將學生真實姓名與紀錄非同步傳送至 Google 試算表 ───
       if (GAS_SUBMIT_URL && GAS_SUBMIT_URL.trim() !== "") {
         const payload = JSON.stringify({
-          studentName: "孩子",
+          studentName: currentStudentName, // 👈 真實學生姓名
           questLabel: quest.label,
           phonicsScore: "4/4 全數通過",
           articleStatus: `${listenedWordsSet.size}/${quest.words.length} 單字聽畢`,
@@ -932,10 +981,11 @@
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: payload
         }).then(() => {
-          console.log("紀錄已送出至 Google 試算表");
+          console.log(`紀錄已送出：學員【${currentStudentName}】`);
         }).catch(err => console.error("回傳試算表失敗:", err));
       }
 
+      document.getElementById("report-student-name").innerText = currentStudentName;
       document.getElementById("loot-rarity").innerText = `${loot.num} · ${loot.rarity}`;
       document.getElementById("loot-icon").innerText = loot.icon;
       document.getElementById("loot-name").innerText = loot.name;
@@ -1109,6 +1159,7 @@
     }
 
     window.addEventListener("DOMContentLoaded", () => {
+      initUserDisplay();
       initQuestDropdown();
       startQuest(ALL_QUESTS[0]);
     });
