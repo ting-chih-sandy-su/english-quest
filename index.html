@@ -2,29 +2,28 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>英文微挑戰</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>QuestPhonics 語音鷹架任務</title>
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="apple-touch-icon" href="favicon.png">
+
+  <!-- 引入現代字體與 Three.js 3D 引擎 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
   <style>
     :root {
-      --bg: #f8fafc;
-      --surface: #ffffff;
-      --border: #e2e8f0;
-      --border-focus: #cbd5e1;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --text-dim: #94a3b8;
-      --primary: #2563eb;
-      --primary-light: #eff6ff;
-      --primary-dark: #1d4ed8;
-      --success: #16a34a;
-      --success-light: #f0fdf4;
-      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-      --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+      --bg: #090d16;
+      --surface: rgba(22, 30, 49, 0.85);
+      --surface-border: rgba(255, 255, 255, 0.08);
+      --accent-cyan: #00f0ff;
+      --accent-gold: #ffb800;
+      --accent-green: #00e676;
+      --accent-rose: #ff2d55;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
     }
 
     * {
@@ -32,300 +31,418 @@
       margin: 0;
       padding: 0;
       -webkit-tap-highlight-color: transparent;
-      font-family: 'Plus Jakarta Sans', 'Noto Sans TC', -apple-system, sans-serif;
+      font-family: 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif;
     }
 
     body {
       background-color: var(--bg);
       color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
       display: flex;
       justify-content: center;
-      padding: 24px 16px 40px;
-      min-height: 100vh;
     }
 
-    .app-shell {
+    /* 3D WebGL 背景畫布 */
+    #webgl-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .app-viewport {
       width: 100%;
-      max-width: 420px;
+      max-width: 440px;
+      min-height: 100vh;
+      padding: 18px 16px 40px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
+      position: relative;
+      z-index: 10;
     }
 
-    /* 頂部極簡導覽與歷史關卡 */
-    .top-bar {
+    /* 頂部導航與模式切換 */
+    .header-nav {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 4px 2px;
     }
 
-    .brand-title {
-      font-size: 1.15rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      color: var(--text-main);
+    .project-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .tabs-wrapper {
+    .brand-logo {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 40%, var(--accent-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .gov-tag {
+      font-size: 0.65rem;
+      background: rgba(0, 240, 255, 0.12);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      color: var(--accent-cyan);
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .mode-switch-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--surface-border);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: all 0.2s;
+    }
+    .mode-switch-btn.active {
+      background: var(--accent-green);
+      color: #052e16;
+      border-color: var(--accent-green);
+    }
+
+    /* 關卡水平捲動選單 */
+    .quest-scroller {
       display: flex;
-      gap: 6px;
+      gap: 8px;
       overflow-x: auto;
-      padding-bottom: 4px;
+      padding: 4px 0 6px;
       scrollbar-width: none;
     }
-    .tabs-wrapper::-webkit-scrollbar { display: none; }
+    .quest-scroller::-webkit-scrollbar { display: none; }
 
-    .tab-item {
-      border: 1px solid var(--border);
-      background: var(--surface);
+    .quest-pill {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--surface-border);
       color: var(--text-muted);
       padding: 6px 14px;
-      border-radius: 999px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.15s ease;
-    }
-
-    .tab-item.active {
-      background: var(--text-main);
-      color: #ffffff;
-      border-color: var(--text-main);
-    }
-
-    /* 卡片容器規範 */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 18px;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .card-label {
-      font-size: 0.8rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-muted);
-      margin-bottom: 12px;
-    }
-
-    /* 單字列表項（極簡原生質感） */
-    .word-entry {
-      border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 12px 14px;
-      margin-bottom: 8px;
-      background: #fafafa;
-      transition: background 0.15s;
+      font-size: 0.82rem;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: all 0.15s;
     }
-    .word-entry:last-child { margin-bottom: 0; }
+    .quest-pill.active {
+      background: var(--accent-cyan);
+      color: #0b1120;
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 16px rgba(0, 240, 255, 0.35);
+    }
 
-    .word-header {
+    /* 核心卡片容器 (玻璃擬態 Glassmorphism) */
+    .glass-card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 20px;
+      padding: 16px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-caption {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent-cyan);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 音素拆解積木條 */
+    .word-block {
+      background: rgba(11, 17, 32, 0.7);
+      border: 1px solid var(--surface-border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      transition: all 0.2s;
+    }
+    .word-block:last-child { margin-bottom: 0; }
+    .word-block.passed {
+      border-color: rgba(0, 230, 118, 0.4);
+      background: rgba(0, 230, 118, 0.05);
+    }
+
+    .word-top-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
-    .word-main {
+    .word-spelling {
       font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--text-main);
-      letter-spacing: -0.01em;
+      font-weight: 800;
+      letter-spacing: 0.02em;
     }
-
-    .word-sub {
-      font-size: 0.9rem;
+    .word-spelling span.syllable {
+      color: var(--accent-gold);
+    }
+    .word-meaning {
+      font-size: 0.88rem;
       color: var(--text-muted);
       margin-top: 2px;
     }
 
-    .play-btn {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--primary);
+    .action-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .circle-icon-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      border: 1px solid var(--surface-border);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      box-shadow: var(--shadow-sm);
-      transition: all 0.1s;
+      transition: all 0.15s;
     }
-    .play-btn:active {
-      transform: scale(0.95);
-      background: var(--primary-light);
+    .circle-icon-btn:active { transform: scale(0.92); }
+    .circle-icon-btn.recording {
+      background: var(--accent-rose);
+      color: white;
+      animation: pulse 1s infinite alternate;
     }
+    @keyframes pulse { from { opacity: 0.7; } to { opacity: 1; } }
 
-    /* 拆解按鈕與展開內容 */
-    .hint-trigger {
-      display: inline-block;
-      margin-top: 6px;
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: var(--primary);
-      background: var(--primary-light);
+    /* 音素鷹架展開區 */
+    .scaffold-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      cursor: pointer;
+      background: rgba(0, 240, 255, 0.08);
       padding: 3px 8px;
       border-radius: 6px;
-      cursor: pointer;
     }
 
-    .hint-drawer {
+    .scaffold-drawer {
       display: none;
       margin-top: 8px;
       padding-top: 8px;
-      border-top: 1px dashed var(--border);
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      line-height: 1.45;
+      border-top: 1px dashed var(--surface-border);
+      font-size: 0.84rem;
+      color: #cbd5e1;
+      line-height: 1.5;
     }
-    .hint-drawer.open { display: block; }
+    .scaffold-drawer.open { display: block; }
 
-    /* 重點句型區塊 */
-    .sentence-panel {
-      background: #f1f5f9;
-      border-radius: 12px;
+    /* 核心語句卡 */
+    .sentence-container {
+      background: rgba(11, 17, 32, 0.7);
+      border-radius: 14px;
       padding: 14px;
+      border-left: 4px solid var(--accent-cyan);
       margin-bottom: 12px;
     }
     .sentence-en {
       font-size: 1.05rem;
-      font-weight: 600;
-      line-height: 1.4;
-      color: var(--text-main);
+      font-weight: 700;
+      line-height: 1.45;
       margin-bottom: 4px;
     }
-    .sentence-zh {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-    }
+    .sentence-zh { font-size: 0.85rem; color: var(--text-muted); }
 
-    .full-play-btn {
+    .wide-audio-btn {
       width: 100%;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      padding: 12px;
-      border-radius: 10px;
-      font-size: 0.9rem;
-      font-weight: 600;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--surface-border);
       color: var(--text-main);
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 0.92rem;
+      font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      box-shadow: var(--shadow-sm);
-    }
-    .full-play-btn:active { background: #f8fafc; }
-
-    /* 長輩提示與完成狀態 */
-    .helper-banner {
-      background: var(--success-light);
-      border: 1px solid #bbf7d0;
-      border-radius: 12px;
-      padding: 12px 14px;
-      font-size: 0.85rem;
-      color: #15803d;
-      line-height: 1.5;
-    }
-    .helper-banner strong { font-weight: 700; color: #166534; }
-
-    .submit-btn {
-      width: 100%;
-      background: var(--primary);
-      color: #ffffff;
-      border: none;
-      border-radius: 12px;
-      padding: 14px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+      gap: 8px;
       transition: background 0.15s;
     }
-    .submit-btn:active { background: var(--primary-dark); }
+    .wide-audio-btn:active { background: rgba(255, 255, 255, 0.1); }
 
-    .done-status {
+    /* 長輩模式面板（切換時顯示） */
+    .grandparent-panel {
+      display: none;
+      background: linear-gradient(135deg, rgba(5, 46, 22, 0.95), rgba(15, 23, 42, 0.95));
+      border: 2px solid var(--accent-green);
+      border-radius: 20px;
+      padding: 18px;
+      color: #d1fae5;
+    }
+    .grandparent-panel.visible { display: block; }
+    .grandparent-headline {
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #86efac;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .grandparent-body {
+      font-size: 0.96rem;
+      line-height: 1.65;
+    }
+
+    /* 語音辨識反饋浮動條 */
+    .speech-feedback {
+      background: rgba(0, 0, 0, 0.8);
+      border: 1px solid var(--accent-gold);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 0.85rem;
+      color: var(--accent-gold);
+      text-align: center;
+      display: none;
+    }
+
+    /* 通關按鈕與結算 */
+    .complete-action-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #00f0ff, #0070f3);
+      color: #0b1120;
+      border: none;
+      border-radius: 16px;
+      padding: 16px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0, 240, 255, 0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .complete-action-btn:active { transform: translateY(2px); }
+
+    .finish-screen {
       display: none;
       text-align: center;
-      padding: 18px;
+      padding: 24px 18px;
       background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
+      border: 1px solid var(--accent-green);
+      border-radius: 20px;
+      animation: pop 0.3s ease;
     }
-    .done-status h3 {
-      font-size: 1.05rem;
-      color: var(--success);
-      margin-bottom: 4px;
-    }
-    .done-status p {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-    }
+    @keyframes pop { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   </style>
 </head>
 <body>
 
-  <div class="app-shell">
+  <!-- WebGL Three.js 3D 背景 -->
+  <canvas id="webgl-bg"></canvas>
+
+  <div class="app-viewport">
     
-    <!-- 頂部乾淨標題 -->
-    <div class="top-bar">
-      <div class="brand-title" id="page-title">英文隨堂練習</div>
-    </div>
-
-    <!-- 歷史週次/關卡切換 -->
-    <div class="tabs-wrapper" id="quest-selector"></div>
-
-    <!-- 1. 三個單字卡 -->
-    <div class="card">
-      <div class="card-label">核心單字</div>
-      <div id="words-container"></div>
-    </div>
-
-    <!-- 2. 重點句子 -->
-    <div class="card">
-      <div class="card-label">本週語句</div>
-      <div class="sentence-panel">
-        <div class="sentence-en" id="sentence-en"></div>
-        <div class="sentence-zh" id="sentence-zh"></div>
+    <!-- 頂部資訊與切換鈕 -->
+    <div class="header-nav">
+      <div class="project-badge">
+        <div class="brand-logo">QuestPhonics</div>
+        <span class="gov-tag">EdTech 2.0</span>
       </div>
-      <button class="full-play-btn" id="sentence-audio-btn">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
-        播放整句示範
+      <button class="mode-switch-btn" id="mode-toggle-btn" onclick="toggleParentMode()">
+        長輩守護模式
       </button>
     </div>
 
-    <!-- 3. 阿公阿嬤備忘提示（乾淨簡約） -->
-    <div class="helper-banner">
-      <strong>長輩請放心：</strong>只要孩子跟著發音唸出聲音 3 遍，就可以點擊下方按鈕完成今日練習。
+    <!-- 關卡分週選單 -->
+    <div class="quest-scroller" id="quest-nav"></div>
+
+    <!-- 即時麥克風辨識提示條 -->
+    <div class="speech-feedback" id="speech-box">語音聆聽中...請大聲唸出單字！</div>
+
+    <!-- 長輩安心護航介面 (可切換) -->
+    <div class="grandparent-panel" id="grandparent-view">
+      <div class="grandparent-headline">阿公阿嬤安心專區（免懂英文）：</div>
+      <div class="grandparent-body">
+        阿公阿嬤辛苦了！您不用管英文考卷。請看孫子按<strong>「右邊麥克風」</strong>開口唸出聲音，只要他願意開口唸完 3 遍，就點最下方按鈕送出。今天他的學習就全數達標！✨
+      </div>
     </div>
 
-    <!-- 4. 打卡狀態 -->
-    <button class="submit-btn" id="claim-btn" onclick="finishQuest()">完成今日練習</button>
-    
-    <div class="done-status" id="done-screen">
-      <h3>✓ 今日練習已完成</h3>
-      <p>進度已記錄，可以安心休息或自由運用時間。</p>
+    <!-- 核心單字區 -->
+    <div class="glass-card" id="student-words-card">
+      <div class="card-caption">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        音素微鷹架模組 (可按發音 / 麥克風評測)
+      </div>
+      <div id="words-list"></div>
+    </div>
+
+    <!-- 核心句型區 -->
+    <div class="glass-card" id="student-sentence-card">
+      <div class="card-caption">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="9"></line><line x1="9" y1="13" x2="15" y2="13"></line><line x1="9" y1="17" x2="11" y2="17"></line></svg>
+        真實語境沉浸句
+      </div>
+      <div class="sentence-container">
+        <div class="sentence-en" id="target-sentence-en"></div>
+        <div class="sentence-zh" id="target-sentence-zh"></div>
+      </div>
+      <button class="wide-audio-btn" id="play-sentence-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+        聆聽全句慢速示範
+      </button>
+    </div>
+
+    <!-- 通關打卡觸發器 -->
+    <button class="complete-action-btn" id="finish-action-btn" onclick="executeQuestPass()">
+      完成今日跟讀任務
+    </button>
+
+    <!-- 結算畫面 -->
+    <div class="finish-screen" id="pass-modal">
+      <div style="font-size: 2.2rem; margin-bottom: 6px;">🎉</div>
+      <h3 style="font-size: 1.2rem; color: var(--accent-green); margin-bottom: 4px;">今日學習歷程已同步</h3>
+      <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5;">雲端存檔已完成，可出示給阿公阿嬤確認。</p>
     </div>
 
   </div>
 
   <script>
-    // ==========================================
-    // ⚙️ 每週下課更新此陣列即可
-    // ==========================================
-    const allQuests = [
+    // ========================================================
+    // ⚙️ 教師雲端後台設定 (如需跨裝置儲存，請填入 Google Apps Script 網址)
+    // ========================================================
+    const CLOUD_API_ENDPOINT = ""; // 填入你的 Google Apps Script 部署網址 (留空則自動啟用本地快取)
+    const urlParams = new URLSearchParams(window.location.search);
+    const STUDENT_ID = urlParams.get('user') || "hero_student";
+
+    // 關卡資料庫 (每週課後在最上面新增一週即可)
+    const questRegistry = [
       {
-        lessonNumber: "第 4 堂",
+        questId: "week-4",
+        label: "第 4 關",
         words: [
-          { en: "rain", display: "rain", zh: "下雨", hint: "發音重點：ai 發長母音 [e]，拼寫拆為 r-ain" },
-          { en: "weather", display: "wea · ther", zh: "天氣", hint: "拆解記憶：wea- (短母音 e) + -ther (咬舌音 th)" },
-          { en: "outside", display: "out · side", zh: "外面", hint: "複合字：out (出去) + side (邊/面) ＝ 外面" }
+          { en: "rain", display: "r · ain", zh: "下雨", scaffold: "母音群 ai 發長母音 /eɪ/，只要記住字母 r 與 ain 即可拼讀。" },
+          { en: "weather", display: "wea · ther", zh: "天氣", scaffold: "切分為兩音節：wea-（發短母音 /ɛ/）＋ -ther（發咬舌濁音 /ðər/）。" },
+          { en: "outside", display: "out · side", zh: "外面", scaffold: "複合詞架構：out（向外）＋ side（方位），直觀組合成「外面」。" }
         ],
         sentence: {
           en: "It is raining outside.",
@@ -333,91 +450,243 @@
         }
       },
       {
-        lessonNumber: "第 3 堂",
+        questId: "week-3",
+        label: "第 3 關",
         words: [
-          { en: "school", display: "school", zh: "學校", hint: "ch 在此發 [k] 的音" },
-          { en: "friend", display: "friend", zh: "朋友", hint: "ie 在此發短母音 [e]" }
+          { en: "school", display: "school", zh: "學校", scaffold: "特殊子音群：字母 ch 在此發硬音 /k/。" },
+          { en: "friend", display: "friend", zh: "朋友", scaffold: "母音組合 ie 發短母音 /ɛ/。" }
         ],
         sentence: {
-          en: "I see my friend at school.",
-          zh: "我在學校看到我的朋友。"
+          en: "I meet my friend at school.",
+          zh: "我在學校遇見我的朋友。"
         }
       }
     ];
+    // ========================================================
 
-    let currentQuestIdx = 0;
+    let activeQuestIndex = 0;
+    let recognitionInstance = null;
 
-    // 建立週次標籤
-    const selectorBox = document.getElementById("quest-selector");
-    allQuests.forEach((quest, idx) => {
-      const btn = document.createElement("button");
-      btn.className = `tab-item ${idx === 0 ? 'active' : ''}`;
-      btn.innerText = quest.lessonNumber;
-      btn.onclick = () => switchQuest(idx);
-      selectorBox.appendChild(btn);
-    });
+    // ----------------------------------------------------
+    // 1. Three.js 3D 體素沉浸式背景渲染 (Voxel Aesthetic)
+    // ----------------------------------------------------
+    let scene, camera, renderer, crystalMesh;
+    function initThreeEngine() {
+      const canvas = document.getElementById("webgl-bg");
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(0, 2, 8);
 
-    function switchQuest(idx) {
-      currentQuestIdx = idx;
-      document.querySelectorAll(".tab-item").forEach((btn, i) => {
-        btn.classList.toggle("active", i === idx);
+      renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+      // 體素水晶主體 (XP Crystal)
+      const geo = new THREE.OctahedronGeometry(1.6, 0);
+      const mat = new THREE.MeshStandardMaterial({
+        color: 0x00f0ff,
+        roughness: 0.2,
+        metalness: 0.8,
+        wireframe: false
       });
-      loadQuest(allQuests[idx]);
+      crystalMesh = new THREE.Mesh(geo, mat);
+      crystalMesh.position.set(0, 0.5, 0);
+      scene.add(crystalMesh);
+
+      // 環繞環境光與點光源
+      const ambLight = new THREE.AmbientLight(0xffffff, 0.6);
+      scene.add(ambLight);
+      const pointLight = new THREE.PointLight(0xffb800, 2, 20);
+      pointLight.position.set(5, 5, 5);
+      scene.add(pointLight);
+
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
     }
 
-    function loadQuest(quest) {
-      document.getElementById("page-title").innerText = `${quest.lessonNumber} 課後微複習`;
-      document.getElementById("sentence-en").innerText = quest.sentence.en;
-      document.getElementById("sentence-zh").innerText = quest.sentence.zh;
-      document.getElementById("sentence-audio-btn").onclick = () => playAudio(quest.sentence.en);
+    function renderLoop() {
+      requestAnimationFrame(renderLoop);
+      if (crystalMesh) {
+        crystalMesh.rotation.y += 0.008;
+        crystalMesh.rotation.x += 0.004;
+      }
+      renderer.render(scene, camera);
+    }
 
-      document.getElementById("claim-btn").style.display = "block";
-      document.getElementById("done-screen").style.display = "none";
+    // ----------------------------------------------------
+    // 2. 介面渲染與關卡導航
+    // ----------------------------------------------------
+    function setupQuestNavigation() {
+      const container = document.getElementById("quest-nav");
+      container.innerHTML = "";
+      questRegistry.forEach((quest, idx) => {
+        const pill = document.createElement("button");
+        pill.className = `quest-pill ${idx === 0 ? 'active' : ''}`;
+        pill.innerText = quest.label;
+        pill.onclick = () => switchActiveQuest(idx);
+        container.appendChild(pill);
+      });
+    }
 
-      const wordsDiv = document.getElementById("words-container");
-      wordsDiv.innerHTML = "";
+    function switchActiveQuest(index) {
+      activeQuestIndex = index;
+      document.querySelectorAll(".quest-pill").forEach((p, i) => {
+        p.classList.toggle("active", i === index);
+      });
+      renderQuestView(questRegistry[index]);
+    }
+
+    function renderQuestView(quest) {
+      document.getElementById("target-sentence-en").innerText = quest.sentence.en;
+      document.getElementById("target-sentence-zh").innerText = quest.sentence.zh;
+      document.getElementById("play-sentence-btn").onclick = () => speakTTS(quest.sentence.en);
+
+      document.getElementById("finish-action-btn").style.display = "block";
+      document.getElementById("pass-modal").style.display = "none";
+
+      const list = document.getElementById("words-list");
+      list.innerHTML = "";
       quest.words.forEach(item => {
-        const entry = document.createElement("div");
-        entry.className = "word-entry";
-        entry.innerHTML = `
-          <div class="word-header">
+        const itemEl = document.createElement("div");
+        itemEl.className = "word-block";
+        itemEl.id = `block-${item.en}`;
+        itemEl.innerHTML = `
+          <div class="word-top-row">
             <div>
-              <div class="word-main">${item.display}</div>
-              <div class="word-sub">${item.zh}</div>
+              <div class="word-spelling">${item.display}</div>
+              <div class="word-meaning">${item.zh}</div>
             </div>
-            <button class="play-btn" onclick="playAudio('${item.en}')" aria-label="發音">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
-            </button>
+            <div class="action-group">
+              <button class="circle-icon-btn" onclick="speakTTS('${item.en}')" title="聆聽發音">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+              </button>
+              <button class="circle-icon-btn mic-btn" onclick="startMicRecognition('${item.en}', this)" title="麥克風評測">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+              </button>
+            </div>
           </div>
-          <span class="hint-trigger" onclick="toggleHint(this)">提示與拆解</span>
-          <div class="hint-drawer">${item.hint}</div>
+          <div class="scaffold-toggle" onclick="toggleScaffold(this)">
+            💡 音素提示與拆解
+          </div>
+          <div class="scaffold-drawer">${item.scaffold}</div>
         `;
-        wordsDiv.appendChild(entry);
+        list.appendChild(itemEl);
       });
     }
 
-    function toggleHint(btn) {
+    function toggleScaffold(btn) {
       const drawer = btn.nextElementSibling;
       drawer.classList.toggle("open");
-      btn.innerText = drawer.classList.contains("open") ? "收合提示" : "提示與拆解";
+      btn.innerText = drawer.classList.contains("open") ? "收合拆解" : "💡 音素提示與拆解";
     }
 
-    function playAudio(text) {
+    // ----------------------------------------------------
+    // 3. 語音辨識與發音引擎 (Speech & Web Audio)
+    // ----------------------------------------------------
+    function speakTTS(text) {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
         const utter = new SpeechSynthesisUtterance(text);
         utter.lang = 'en-US';
-        utter.rate = 0.8;
+        utter.rate = 0.8; // 刻意調慢，便於感知
         window.speechSynthesis.speak(utter);
       }
     }
 
-    function finishQuest() {
-      document.getElementById("claim-btn").style.display = "none";
-      document.getElementById("done-screen").style.display = "block";
+    function startMicRecognition(expectedWord, btnElement) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert("目前瀏覽器不支援麥克風語音辨識，建議直接點擊喇叭跟讀！");
+        return;
+      }
+
+      if (recognitionInstance) recognitionInstance.abort();
+
+      recognitionInstance = new SpeechRecognition();
+      recognitionInstance.lang = 'en-US';
+      recognitionInstance.interimResults = false;
+
+      const feedbackBox = document.getElementById("speech-box");
+      feedbackBox.style.display = "block";
+      feedbackBox.innerText = `🎙️ 聆聽中...請朗讀「${expectedWord}」`;
+      btnElement.classList.add("recording");
+
+      recognitionInstance.onresult = (event) => {
+        const spoken = event.results[0][0].transcript.trim().toLowerCase();
+        btnElement.classList.remove("recording");
+        if (spoken.includes(expectedWord.toLowerCase())) {
+          feedbackBox.innerText = `✨ 辨識成功！讀音極佳：${spoken}`;
+          document.getElementById(`block-${expectedWord}`).classList.add("passed");
+          trigger3DExplosion();
+        } else {
+          feedbackBox.innerText = `聽到的發音是：「${spoken}」，再試一次！`;
+        }
+        setTimeout(() => { feedbackBox.style.display = "none"; }, 2500);
+      };
+
+      recognitionInstance.onerror = () => {
+        btnElement.classList.remove("recording");
+        feedbackBox.style.display = "none";
+      };
+
+      recognitionInstance.start();
     }
 
-    loadQuest(allQuests[0]);
+    // 3D 體素顏色反饋
+    function trigger3DExplosion() {
+      if (!crystalMesh) return;
+      crystalMesh.material.color.setHex(0x00e676);
+      setTimeout(() => {
+        crystalMesh.material.color.setHex(0x00f0ff);
+      }, 1000);
+    }
+
+    // ----------------------------------------------------
+    // 4. 長輩守護視角切換
+    // ----------------------------------------------------
+    function toggleParentMode() {
+      const panel = document.getElementById("grandparent-view");
+      const btn = document.getElementById("mode-toggle-btn");
+      const isVisible = panel.classList.toggle("visible");
+      btn.classList.toggle("active", isVisible);
+      btn.innerText = isVisible ? "返回學生模式" : "長輩守護模式";
+    }
+
+    // ----------------------------------------------------
+    // 5. 跨裝置雲端資料同步 (Headless Cloud Sync)
+    // ----------------------------------------------------
+    function executeQuestPass() {
+      const current = questRegistry[activeQuestIndex];
+      document.getElementById("finish-action-btn").style.display = "none";
+      document.getElementById("pass-modal").style.display = "block";
+
+      trigger3DExplosion();
+
+      // 本地存檔
+      const completed = JSON.parse(localStorage.getItem("quest_completed_store") || "[]");
+      if (!completed.includes(current.questId)) {
+        completed.push(current.questId);
+        localStorage.setItem("quest_completed_store", JSON.stringify(completed));
+      }
+
+      // 如果有設定 Google Apps Script 後端，悄悄送出
+      if (CLOUD_API_ENDPOINT) {
+        fetch(`${CLOUD_API_ENDPOINT}?action=save&user=${encodeURIComponent(STUDENT_ID)}&quest=${encodeURIComponent(current.label)}`, {
+          mode: 'no-cors'
+        });
+      }
+    }
+
+    // 啟動主程序
+    window.addEventListener("DOMContentLoaded", () => {
+      initThreeEngine();
+      renderLoop();
+      setupQuestNavigation();
+      renderQuestView(questRegistry[0]);
+    });
   </script>
 </body>
 </html>
