@@ -53,7 +53,7 @@
       position: relative;
     }
 
-    /* 頂部學生身分資訊列 */
+    /* 學生姓名列 */
     .user-info-bar {
       display: flex;
       justify-content: space-between;
@@ -151,6 +151,7 @@
     .parent-overview-panel.show { display: block; }
     .parent-overview-panel h4 { color: #86efac; font-size: 1rem; margin-bottom: 8px; }
 
+    /* 挑戰核心舞台 */
     .challenge-arena {
       background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
       border: 2px solid var(--border);
@@ -389,6 +390,7 @@
       color: #052e16;
     }
 
+    /* ─── 全文架構 ＋ 螢光筆高亮區 ─── */
     .article-full-card {
       background: rgba(30, 41, 59, 0.9);
       border: 2px solid var(--border);
@@ -400,8 +402,28 @@
       transition: all 0.3s;
     }
     .article-tag { font-size: 0.82rem; font-weight: 800; color: var(--gold); }
-    .article-en { font-size: 1.08rem; font-weight: 700; line-height: 1.6; color: #f8fafc; }
-    .article-zh { font-size: 0.92rem; color: var(--text-sub); line-height: 1.5; }
+    
+    .article-reading-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 1.02rem;
+      line-height: 1.6;
+    }
+
+    /* 螢光筆標記效果：當前段落亮起，其餘變半透明 */
+    .paragraph-block {
+      padding: 8px 10px;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+      color: #64748b; /* 未選中時淡灰色 */
+    }
+    .paragraph-block.highlighted {
+      background: rgba(250, 204, 21, 0.18);
+      border-left: 4px solid var(--gold);
+      color: #f8fafc; /* 選中時全亮 */
+      font-weight: 700;
+    }
 
     .article-btn-action {
       width: 100%;
@@ -520,7 +542,6 @@
 
   <div class="app-viewport">
     
-    <!-- 學生身分資訊與切換 -->
     <div class="user-info-bar">
       <span>🎯 語音冒險任務</span>
       <span class="user-tag" onclick="changeStudentName()">
@@ -547,21 +568,22 @@
 
     <div class="reference-deck">
       <div class="section-title">
-        <span>🔤 核心單字拆解（請全部點聽完成）：</span>
+        <span>🔤 本段核心單字拆解（請全部點聽完成）：</span>
         <span class="word-listen-tracker-badge" id="word-tracker-badge">進度 0 / 0</span>
       </div>
       <div class="ref-cards-container" id="ref-cards-box"></div>
 
-      <div class="section-title">📖 整篇課文自由複習朗讀：</div>
+      <div class="section-title">
+        <span>📖 整篇完整課文（螢光筆標記當前段落）：</span>
+      </div>
       <div class="article-full-card" id="article-card-box">
         <div>
-          <div class="article-tag">課文語音</div>
-          <div class="article-en" id="article-card-en"></div>
-          <div class="article-zh" id="article-card-zh"></div>
+          <div class="article-tag" id="article-main-title">全篇閱讀對照</div>
+          <div class="article-reading-container" id="article-paragraphs-box"></div>
         </div>
         <button class="article-btn-action" id="article-action-btn" onclick="handleArticleAudioClick()">
           <span id="article-btn-icon">🎧</span>
-          <span id="article-btn-text">課文錄音 (MP3)</span>
+          <span id="article-btn-text">朗讀本段錄音 (MP3)</span>
         </button>
       </div>
     </div>
@@ -607,7 +629,6 @@
   <script>
     const GAS_SUBMIT_URL = "https://script.google.com/macros/s/AKfycbySNVF6K3fjZyUzdd5dGm5YdhSS9yUyooHTqnkmWLD-fHju55sLwXJvSnn7SXf2Ds4rnQ/exec";
 
-    // ─── 學生姓名管理（記在 localStorage，支援更名） ───
     let currentStudentName = localStorage.getItem("phonics_student_name");
     if (!currentStudentName || currentStudentName.trim() === "" || currentStudentName === "孩子" || currentStudentName === "學生") {
       currentStudentName = prompt("🎮 歡迎來到英語特訓！請輸入你的名字：", "特訓員") || "特訓員";
@@ -687,7 +708,7 @@
       const wordsList = quest.words.map(w => `<b>${w.en}</b> (${w.zh})`).join("、");
       const autoOverview = `
         • <b>重點詞彙</b>：${wordsList}<br>
-        • <b>語境實用語句</b>：${quest.sentence.en}<br>
+        • <b>當前段落語句</b>：${quest.sentence.en}<br>
         • <b>驗收目標</b>：下方核心單字全員點聽＋聽音盲測 4 關全數通過。
       `;
       document.getElementById("parent-overview-content").innerHTML = autoOverview;
@@ -712,8 +733,25 @@
 
       updateWordTrackerBadge(quest);
 
-      document.getElementById("article-card-en").innerText = quest.sentence.en;
-      document.getElementById("article-card-zh").innerText = quest.sentence.zh;
+      // ─── 螢光筆全文渲染 ───
+      const paragraphsBox = document.getElementById("article-paragraphs-box");
+      paragraphsBox.innerHTML = "";
+
+      const groupData = (typeof FULL_ARTICLE_TEXTS !== "undefined" && quest.articleGroup) ? FULL_ARTICLE_TEXTS[quest.articleGroup] : null;
+
+      if (groupData) {
+        document.getElementById("article-main-title").innerText = groupData.title;
+        groupData.paragraphs.forEach((p, pIdx) => {
+          const pEl = document.createElement("div");
+          const isCurrent = (p.id === quest.id);
+          pEl.className = `paragraph-block ${isCurrent ? 'highlighted' : ''}`;
+          pEl.innerHTML = `<b>P${pIdx + 1}.</b> ${p.text}`;
+          paragraphsBox.appendChild(pEl);
+        });
+      } else {
+        document.getElementById("article-main-title").innerText = "課文對照閱讀";
+        paragraphsBox.innerHTML = `<div class="paragraph-block highlighted">${quest.sentence.en}</div>`;
+      }
     }
 
     function updateWordTrackerBadge(quest) {
@@ -829,8 +867,8 @@
       const neededListenCount = isOddOneOut ? 1 : 2;
 
       arena.innerHTML = `
-        <div class="stage-badge" id="stage-level-tag">${isOddOneOut ? 'FINAL STAGE · 課文聽力抓鬼' : `STAGE ${currentStage + 1} / 4 · 單字音素盲測`}</div>
-        <div class="challenge-title" id="challenge-prompt">${isOddOneOut ? '點擊大喇叭聽課文！找出哪一個單字「沒出現在課文」中？' : '點擊大喇叭，聽滿 2 遍解鎖選項！'}</div>
+        <div class="stage-badge" id="stage-level-tag">${isOddOneOut ? 'FINAL STAGE · 段落聽力抓鬼' : `STAGE ${currentStage + 1} / 4 · 單字音素盲測`}</div>
+        <div class="challenge-title" id="challenge-prompt">${isOddOneOut ? '點擊大喇叭聽本段課文！找出哪一個單字「沒出現在段落」中？' : '點擊大喇叭，聽滿 2 遍解鎖選項！'}</div>
         <div class="listen-counter-pill" id="listen-counter">🎧 聆聽解鎖進度：0 / ${neededListenCount} 遍</div>
         <div class="audio-speaker-pulse" id="stage-speaker" onclick="handleChallengeSpeakerClick(${neededListenCount})">🔊</div>
         <div class="choices-grid ${isOddOneOut ? 'three-cols' : ''}" id="choices-container"></div>
@@ -912,7 +950,7 @@
           });
           const prompt = document.getElementById("challenge-prompt");
           if (currentStage === 3) {
-            prompt.innerText = "抓鬼時刻！哪一個單字「沒出現在課文」中？";
+            prompt.innerText = "抓鬼時刻！哪一個單字「沒出現在段落」中？";
           } else {
             prompt.innerText = "選項已解鎖！哪一個才是目標字？";
           }
@@ -948,7 +986,7 @@
       } else {
         btnElement.classList.add("wrong");
         playBuzzerSound();
-        alert(`❌ 抓錯鬼了！這個字課文裡「有出現」喔！\n\n答案已重新鎖定，請再聽課文 1 次找出誰是冒牌貨！`);
+        alert(`❌ 抓錯鬼了！這個字在段落裡「有出現」喔！\n\n答案已重新鎖定，請再聽一次找出誰是冒牌貨！`);
         generateChallengeStage();
       }
     }
@@ -965,10 +1003,9 @@
         localStorage.setItem("unlocked_catalog_ids", JSON.stringify(unlockedPets));
       }
 
-      // ─── 自動將學生真實姓名與紀錄非同步傳送至 Google 試算表 ───
       if (GAS_SUBMIT_URL && GAS_SUBMIT_URL.trim() !== "") {
         const payload = JSON.stringify({
-          studentName: currentStudentName, // 👈 真實學生姓名
+          studentName: currentStudentName,
           questLabel: quest.label,
           phonicsScore: "4/4 全數通過",
           articleStatus: `${listenedWordsSet.size}/${quest.words.length} 單字聽畢`,
