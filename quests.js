@@ -1,9 +1,24 @@
-// quests.js - 題庫專屬檔案（已校正為每週六上課日期）
+// quests.js - 題庫專屬檔案（已結合整篇課文架構與段落標籤）
+
+// Unit 35 完整課文（供全域螢光筆對照使用）
+const FULL_ARTICLE_TEXTS = {
+  u35: {
+    title: "Unit 35: Crows — The Feathered Geniuses",
+    paragraphs: [
+      { id: "u35_p1", text: "When we think of intelligent animals, we usually think dogs, cats, and apes. But a crow is among the most intelligent animals in the world." },
+      { id: "u35_p2", text: "Crows have memories and they are able to imagine the future. A crow can hold a tiny stick in its mouth and use it to get at tasty insects." },
+      { id: "u35_p3", text: "Crows can remember human faces. Some scientists believe that they can even tell other crows whether a human is friendly or not." },
+      { id: "u35_p4", text: "They found that crows were able to solve a puzzle just as well as a seven-year-old human. So if anyone ever calls you 'bird brain,' be sure to thank them for the compliment." }
+    ]
+  }
+};
+
 const ALL_QUESTS = [
-  // ─── 🦅 本週：2026/10/03 (週六) 上課進度 (Unit 35 烏鴉大冒險) ───
+  // ─── Unit 35 烏鴉大冒險 (依段落順序切分) ───
   {
     id: "u35_p1",
-    label: "📅 [2026/09/19 週六] Unit 35 (1) 聰明動物篇",
+    articleGroup: "u35",
+    label: "📅 [10/03] Unit 35 · Part 1 (第 1 段)",
     words: [
       { en: "intelligent", display: "in · tel · li · gent", zh: "聰明的", audio: "", distractor: "diligent", hint: "前綴 in- 開頭；注意中間短母音 /ɛ/ 與結尾 -gent 軟音 /dʒənt/。" },
       { en: "animal", display: "an · i · mal", zh: "動物", audio: "", distractor: "enamel", hint: "開頭 a 發蝴蝶音 /æ/；注意字尾 -mal 為弱化母音 /məl/。" },
@@ -23,7 +38,8 @@ const ALL_QUESTS = [
   },
   {
     id: "u35_p2",
-    label: "📅 [2026/09/19 週六] Unit 35 (2) 工具與覓食篇",
+    articleGroup: "u35",
+    label: "📅 [10/03] Unit 35 · Part 2 (第 2 段)",
     words: [
       { en: "problem", display: "prob · lem", zh: "問題；難題", audio: "", distractor: "program", hint: "雙子音群 pr- 開頭；第一音節 prob- 發短母音 /ɑ/。" },
       { en: "tool", display: "tool", zh: "工具", audio: "", distractor: "pool", hint: "開頭是舌尖齒齦音 /t/ 不是雙唇爆破音 /p/；oo 發長母音 /u/。" },
@@ -43,7 +59,8 @@ const ALL_QUESTS = [
   },
   {
     id: "u35_p3",
-    label: "📅 [2026/09/19 週六] Unit 35 (3) 科學驗證篇",
+    articleGroup: "u35",
+    label: "📅 [10/03] Unit 35 · Part 3 (第 3 段)",
     words: [
       { en: "though", display: "though", zh: "不過(句尾)", audio: "", distractor: "thought", hint: "咬舌濁音 /ð/ 開頭；結尾 gh 不發音，母音發雙母音 /o/。" },
       { en: "remember", display: "re · mem · ber", zh: "記得", audio: "", distractor: "resemble", hint: "重音在第二音節 -mem-；字尾 -ber 發輕濁音 /bɚ/。" },
@@ -63,7 +80,8 @@ const ALL_QUESTS = [
   },
   {
     id: "u35_p4",
-    label: "📅 [2026/09/19 週六] Unit 35 (4) 終極讚美篇",
+    articleGroup: "u35",
+    label: "📅 [10/03] Unit 35 · Part 4 (第 4 段)",
     words: [
       { en: "just as well as", display: "just · as · well · as", zh: "和…一樣好", audio: "", distractor: "just as good as", hint: "well 為副詞修飾動詞動作；注意 as...as 兩端弱讀連音。" },
       { en: "stage", display: "stage", zh: "階段", audio: "", distractor: "state", hint: "雙子音 st- 開頭；a 發長母音 /e/；字尾 -ge 發擦濁音 /dʒ/。" },
@@ -81,10 +99,10 @@ const ALL_QUESTS = [
       audio: "audio/crow_u35.mp3" 
     }
   },
-  // ─── 🌧 歷史複習關卡 ───
+  // ─── 歷史複習關卡 ───
   {
     id: "w4",
-    label: "📅 [2026/09/12 週六] Week 4 (天氣與活動複習)",
+    label: "📅 [09/26] Week 4 · (天氣與活動複習)",
     words: [
       { en: "rain", display: "r · ain", zh: "下雨", audio: "", distractor: "lane", hint: "開頭是 /r/ 不是 /l/；ai 發長母音 /eɪ/！" },
       { en: "weather", display: "wea · ther", zh: "天氣", audio: "", distractor: "feather", hint: "開頭是 /w/ 不是 /f/；結尾 -ther 有咬舌濁音！" },
