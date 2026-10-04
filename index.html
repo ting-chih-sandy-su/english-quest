@@ -31,40 +31,91 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
-    /* 頂部遊戲模式選擇列 */
+    /* 頂部導航與圖鑑狀態欄 */
+    .top-control-deck {
+      max-width: 420px;
+      width: 95%;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 6px;
+      z-index: 20;
+    }
+
+    .hud-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .quest-tabs-wrapper {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .quest-tabs-wrapper::-webkit-scrollbar { display: none; }
+
+    .q-tab {
+      background: #1e293b;
+      border: 2px solid #334155;
+      color: #94a3b8;
+      padding: 4px 10px;
+      border-radius: 10px;
+      font-size: 0.78rem;
+      font-weight: bold;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .q-tab.active {
+      background: #0284c7;
+      color: #ffffff;
+      border-color: #38bdf8;
+    }
+
+    .bag-trigger-btn {
+      background: linear-gradient(180deg, #ec4899, #be185d);
+      border: 2px solid #831843;
+      color: white;
+      border-radius: 12px;
+      padding: 4px 12px;
+      font-weight: 800;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    /* 遊戲模式切換條 */
     .mode-selector-bar {
       display: flex;
       gap: 6px;
-      margin-bottom: 8px;
-      z-index: 20;
-      max-width: 420px;
-      width: 95%;
       overflow-x: auto;
-      padding: 4px;
       scrollbar-width: none;
     }
     .mode-selector-bar::-webkit-scrollbar { display: none; }
 
     .mode-btn {
-      background: #1e293b;
-      border: 2px solid #334155;
-      color: #94a3b8;
-      padding: 6px 12px;
-      border-radius: 12px;
-      font-size: 0.8rem;
+      background: #0f172a;
+      border: 1.5px solid #334155;
+      color: #64748b;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.75rem;
       font-weight: bold;
       white-space: nowrap;
       cursor: pointer;
-      transition: all 0.15s;
     }
     .mode-btn.active {
-      background: #0284c7;
-      color: #ffffff;
-      border-color: #38bdf8;
-      box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+      background: #f59e0b;
+      color: #000;
+      border-color: #fbbf24;
     }
 
-    /* 遊戲容器維持完美手遊比例 */
+    /* 遊戲畫布容器 */
     #game-canvas-container {
       width: 100%;
       height: 100%;
@@ -81,44 +132,148 @@
       display: block;
       border-radius: 16px;
     }
+
+    /* 圖鑑背包 Modal 彈窗 (HTML 原生疊層) */
+    .full-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-box {
+      width: 100%;
+      max-width: 360px;
+      background: #111827;
+      border: 3px solid #f59e0b;
+      border-radius: 20px;
+      padding: 18px;
+      text-align: center;
+      color: white;
+    }
+
+    .bag-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      max-height: 50vh;
+      overflow-y: auto;
+      margin: 14px 0;
+      padding: 4px;
+    }
+
+    .bag-cell {
+      background: #1e293b;
+      border: 2px solid #334155;
+      border-radius: 12px;
+      padding: 8px 4px;
+      text-align: center;
+    }
+    .bag-cell.unlocked { border-color: #f59e0b; }
+    .bag-cell.locked { opacity: 0.35; filter: grayscale(1); }
+    .bag-cell-icon { font-size: 1.8rem; margin-bottom: 2px; }
+    .bag-cell-name { font-size: 0.72rem; font-weight: bold; }
+
+    .modal-close-btn {
+      width: 100%;
+      background: #22c55e;
+      border: none;
+      color: #052e16;
+      padding: 10px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 900;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
-  <!-- 模式切換按鈕 -->
-  <div class="mode-selector-bar">
-    <button class="mode-btn active" onclick="switchGameMode('EGG')">🥚 幸運開蛋</button>
-    <button class="mode-btn" onclick="switchGameMode('DOORS')">🚪 密室破門</button>
-    <button class="mode-btn" onclick="switchGameMode('SLAP')">🥊 揍飛怪獸</button>
-    <button class="mode-btn" onclick="switchGameMode('SLOT')">🎰 幸運拉霸</button>
+  <!-- 頂部控制面板：週次歷史 ＋ 寵物圖鑑 ＋ 模式切換 -->
+  <div class="top-control-deck">
+    <div class="hud-row">
+      <div class="quest-tabs-wrapper" id="quest-nav-box"></div>
+      <button class="bag-trigger-btn" onclick="openBagModal()">🎒 寵物圖鑑</button>
+    </div>
+    <div class="mode-selector-bar">
+      <button class="mode-btn active" onclick="switchGameMode('EGG')">🥚 幸運開蛋</button>
+      <button class="mode-btn" onclick="switchGameMode('DOORS')">🚪 密室破門</button>
+      <button class="mode-btn" onclick="switchGameMode('SLAP')">🥊 揍飛怪獸</button>
+      <button class="mode-btn" onclick="switchGameMode('SLOT')">🎰 幸運拉霸</button>
+    </div>
   </div>
 
   <div id="game-canvas-container"></div>
 
-  <script>
-    const WEEK_DATA = {
-      levelLabel: "WORLD 4: RAINY FOREST",
-      words: [
-        { en: "rain", display: "r · ain", zh: "下雨" },
-        { en: "weather", display: "wea · ther", zh: "天氣" },
-        { en: "outside", display: "out · side", zh: "外面" }
-      ],
-      sentence: {
-        en: "It is raining outside.",
-        zh: "外面正在下雨。"
-      }
-    };
+  <!-- 寵物背包彈窗 -->
+  <div class="full-modal" id="bag-modal">
+    <div class="modal-box">
+      <h3 style="font-size: 1.2rem; color: #f59e0b;">🎒 寵物收藏圖鑑</h3>
+      <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 4px;">
+        收集進度：<span id="bag-progress">0 / 6</span>
+      </div>
+      <div class="bag-grid" id="bag-items-box"></div>
+      <button class="modal-close-btn" onclick="closeBagModal()">返回任務</button>
+    </div>
+  </div>
 
-    const PET_ROSTER = [
-      { name: "TITANIC RAINBOW DRAGON", rarity: "MYTHIC", color: 0xec4899, power: "999,999", quote: "傳奇彩虹神龍！全服只有 0.1% 掉落率" },
-      { name: "GOLDEN BANANA DOG", rarity: "LEGENDARY", color: 0xf59e0b, power: "88,000", quote: "黃金香蕉狗！走路自帶滑倒音效" },
-      { name: "CYBER GLITCH CAT", rarity: "RARE", color: 0x06b6d4, power: "12,500", quote: "賽博駭客貓，能把考卷直接格式化" },
-      { name: "MOLDY TOAST", rarity: "COMMON", color: 0x94a3b8, power: "25", quote: "雖然戰鬥力很低，但烤過挺好吃的" }
+  <script>
+    // ========================================================
+    // ⚙️ 關卡歷史資料庫 (每週課後在最上面新增一週即可)
+    // ========================================================
+    const ALL_QUESTS = [
+      {
+        id: "w4",
+        label: "第 4 關",
+        words: [
+          { en: "rain", display: "r · ain", zh: "下雨" },
+          { en: "weather", display: "wea · ther", zh: "天氣" },
+          { en: "outside", display: "out · side", zh: "外面" }
+        ],
+        sentence: {
+          en: "It is raining outside.",
+          zh: "外面正在下雨。"
+        }
+      },
+      {
+        id: "w3",
+        label: "第 3 關 (複習)",
+        words: [
+          { en: "happy", display: "hap · py", zh: "高興的" },
+          { en: "school", display: "school", zh: "學校" },
+          { en: "friend", display: "friend", zh: "朋友" }
+        ],
+        sentence: {
+          en: "I see my friend at school.",
+          zh: "我在學校看到我的朋友。"
+        }
+      }
     ];
 
-    let currentMode = 'EGG'; // 預設模式
-    let phaserGame = null;
+    // 全服寵物圖鑑庫 (含 ID、數值、圖示、稀有度)
+    const PET_CATALOG = [
+      { id: "p1", name: "TITANIC RAINBOW DRAGON", rarity: "MYTHIC", color: 0xec4899, power: "999,999", icon: "🐉", quote: "傳奇彩虹神龍！全服只有 0.1% 掉落率" },
+      { id: "p2", name: "GOLDEN BANANA DOG", rarity: "LEGENDARY", color: 0xf59e0b, power: "88,000", icon: "🐕", quote: "黃金香蕉狗！走路自帶滑倒音效" },
+      { id: "p3", name: "BLIZZARD UNICORN", rarity: "LEGENDARY", color: 0x38bdf8, power: "52,000", icon: "🦄", quote: "能把考卷全部冰凍的極地神獸" },
+      { id: "p4", name: "CYBER GLITCH CAT", rarity: "RARE", color: 0x06b6d4, power: "12,500", icon: "🐱", quote: "賽博駭客貓，能把題目直接格式化" },
+      { id: "p5", name: "RADIOACTIVE TOILET", rarity: "RARE", color: 0xa855f7, power: "4,800", icon: "🚽", quote: "按下沖水鍵會發射超強音波攻擊！" },
+      { id: "p6", name: "MOLDY TOAST", rarity: "COMMON", color: 0x94a3b8, power: "25", icon: "🍞", quote: "雖然戰鬥力很低，但烤過挺好吃的" }
+    ];
 
+    let currentQuestIdx = 0;
+    let currentMode = 'EGG';
+    let phaserGame = null;
+    let unlockedPets = JSON.parse(localStorage.getItem("unlocked_pet_ids") || "[]");
+
+    // --------------------------------------------------------
+    // Phaser 3 場景引擎
+    // --------------------------------------------------------
     class GameScene extends Phaser.Scene {
       constructor() {
         super({ key: 'GameScene' });
@@ -135,21 +290,22 @@
 
         const W = 400;
         const H = 720;
+        const activeQuest = ALL_QUESTS[currentQuestIdx];
 
-        // 背景
+        // 1. 背景網格
         this.add.rectangle(W / 2, H / 2, W, H, 0x0a0f1d);
         this.grid = this.add.grid(W / 2, H / 2, W, H, 32, 32, 0x000000, 0, 0x1e293b, 0.25);
 
-        // 頂部 HUD
-        this.createHUD(W);
+        // 2. 頂部能量槽
+        this.createHUD(W, activeQuest);
 
-        // 依據選擇的模式渲染中央舞台
+        // 3. 依模式建立中央舞台
         this.buildStageByMode(W / 2, H * 0.35);
 
-        // 下方符文任務石板 (共用)
-        this.createRuneDeck(W / 2, H * 0.61);
+        // 4. 建立 3 單字 ＋ 1 句子任務符文
+        this.createRuneDeck(W / 2, H * 0.61, activeQuest);
 
-        // 粒子發射器
+        // 5. 粒子發射器
         this.particleEmitter = this.add.particles(0, 0, 'glowParticle', {
           speed: { min: 80, max: 200 },
           scale: { start: 0.8, end: 0 },
@@ -180,8 +336,8 @@
         aGfx.generateTexture('runeCharged', 360, 52);
       }
 
-      createHUD(w) {
-        this.add.text(w / 2, 28, WEEK_DATA.levelLabel, {
+      createHUD(w, quest) {
+        this.add.text(w / 2, 28, `${quest.label} · QUEST ENERGIZER`, {
           fontFamily: 'sans-serif',
           fontSize: '13px',
           fontStyle: 'bold',
@@ -198,14 +354,10 @@
         }).setOrigin(0.5);
       }
 
-      // ==========================================
-      // 4 種核心舞台分流建置
-      // ==========================================
       buildStageByMode(cx, cy) {
         this.stageContainer = this.add.container(cx, cy);
 
         if (currentMode === 'EGG') {
-          // 模式 1：開蛋
           this.pedestal = this.add.ellipse(0, 75, 150, 36, 0x38bdf8, 0.2);
           this.eggGfx = this.add.graphics();
           this.drawEgg(0x38bdf8, 0x1d4ed8);
@@ -226,7 +378,6 @@
           this.stageLabel = this.add.text(cx, cy + 110, '⚡ 點擊下方單字注入能量開蛋', { fontFamily: 'sans-serif', fontSize: '13px', color: '#94a3b8', fontStyle: 'bold' }).setOrigin(0.5);
 
         } else if (currentMode === 'DOORS') {
-          // 模式 2：密室破門 (Doors 風)
           this.doorBox = this.add.rectangle(0, 0, 110, 150, 0x334155).setStrokeStyle(4, 0x64748b);
           this.doorText = this.add.text(0, -20, 'DOOR 01', { fontFamily: 'sans-serif', fontSize: '18px', fontStyle: 'bold', color: '#facc15' }).setOrigin(0.5);
           this.doorLock = this.add.text(0, 30, '🔒 LOCKED', { fontFamily: 'sans-serif', fontSize: '13px', color: '#ef4444', fontStyle: 'bold' }).setOrigin(0.5);
@@ -238,26 +389,17 @@
           this.stageLabel = this.add.text(cx, cy + 110, '🏃 解開 4 道密碼破門逃脫！', { fontFamily: 'sans-serif', fontSize: '13px', color: '#94a3b8', fontStyle: 'bold' }).setOrigin(0.5);
 
         } else if (currentMode === 'SLAP') {
-          // 模式 3：巴掌亂鬥 (Slap Battles 風)
           this.monster = this.add.circle(0, 0, 55, 0xec4899).setStrokeStyle(4, 0xffffff);
           this.monsterFace = this.add.text(0, -5, '🤪', { fontSize: '46px' }).setOrigin(0.5);
           this.stageContainer.add([this.monster, this.monsterFace]);
 
-          this.idleTween = this.tweens.add({
-            targets: this.stageContainer,
-            scaleX: 1.06,
-            duration: 600,
-            yoyo: true,
-            repeat: -1
-          });
-
+          this.idleTween = this.tweens.add({ targets: this.stageContainer, scaleX: 1.06, duration: 600, yoyo: true, repeat: -1 });
           this.stageContainer.setSize(110, 110);
           this.stageContainer.setInteractive();
           this.stageContainer.on('pointerdown', () => this.handleActionTrigger());
           this.stageLabel = this.add.text(cx, cy + 110, '🥊 聽讀蓄力，把怪獸打飛到太空！', { fontFamily: 'sans-serif', fontSize: '13px', color: '#94a3b8', fontStyle: 'bold' }).setOrigin(0.5);
 
         } else if (currentMode === 'SLOT') {
-          // 模式 4：拉霸機 (RNG Slot 風)
           this.slotFrame = this.add.rectangle(0, 0, 180, 110, 0x1e293b).setStrokeStyle(4, 0xfacc15);
           this.slotReel = this.add.text(0, 0, '💎 | 💎 | 💎', { fontFamily: 'sans-serif', fontSize: '20px', fontStyle: 'bold', color: '#ffffff' }).setOrigin(0.5);
           this.stageContainer.add([this.slotFrame, this.slotReel]);
@@ -279,13 +421,12 @@
         this.eggGfx.strokeCircle(0, 0, 52);
       }
 
-      // 下方 3 單字 + 1 句共用石板
-      createRuneDeck(centerX, startY) {
-        WEEK_DATA.words.forEach((item, idx) => {
+      createRuneDeck(centerX, startY, quest) {
+        quest.words.forEach((item, idx) => {
           this.createRuneButton(centerX, startY + idx * 62, item, `word_${idx}`);
         });
         const sentenceY = startY + 3 * 62 + 8;
-        this.createSentenceRune(centerX, sentenceY);
+        this.createSentenceRune(centerX, sentenceY, quest.sentence);
       }
 
       createRuneButton(x, y, item, key) {
@@ -303,17 +444,17 @@
         });
       }
 
-      createSentenceRune(x, y) {
+      createSentenceRune(x, y, sentenceObj) {
         const container = this.add.container(x, y);
         const bg = this.add.image(0, 0, 'runeBase').setInteractive({ useHandCursor: true });
-        const label = this.add.text(-150, -14, '📜 通關密碼句：', { fontFamily: 'sans-serif', fontSize: '11px', color: '#38bdf8' });
-        const sentenceText = this.add.text(-150, 6, WEEK_DATA.sentence.en, { fontFamily: 'sans-serif', fontSize: '15px', fontStyle: 'bold', color: '#ffffff' });
+        const label = this.add.text(-150, -14, '📜 本週密碼句：', { fontFamily: 'sans-serif', fontSize: '11px', color: '#38bdf8' });
+        const sentenceText = this.add.text(-150, 6, sentenceObj.en, { fontFamily: 'sans-serif', fontSize: '15px', fontStyle: 'bold', color: '#ffffff' });
         const icon = this.add.text(145, 0, '⚡', { fontSize: '18px' }).setOrigin(0.5);
 
         container.add([bg, label, sentenceText, icon]);
         bg.on('pointerdown', () => {
           this.triggerJuicyPress(container);
-          this.speak(WEEK_DATA.sentence.en);
+          this.speak(sentenceObj.en);
           this.awardProgress('sentence', bg, container.x, container.y);
         });
       }
@@ -339,7 +480,6 @@
           });
           this.energyText.setText(`PROGRESS ${this.chargedCount} / ${this.maxCharges}`);
 
-          // 粒子流飛向舞台
           this.particleEmitter.explode(16, originX, originY);
           this.tweens.add({
             targets: { x: originX, y: originY },
@@ -352,7 +492,6 @@
             }
           });
 
-          // 各模式即時互動回饋
           if (currentMode === 'DOORS') {
             this.doorText.setText(`DOOR 0${this.chargedCount}`);
           }
@@ -394,34 +533,60 @@
           return;
         }
 
-        // 通關衝擊與音效
         this.cameras.main.shake(400, 0.035);
         this.cameras.main.flash(400, 255, 255, 255);
         this.playVictoryFanfare();
 
-        const loot = PET_ROSTER[Math.floor(Math.random() * PET_ROSTER.length)];
+        // 保底抽卡機制：優先掉落未獲得寵物
+        let candidatePool = PET_CATALOG;
+        if (unlockedPets.length < PET_CATALOG.length) {
+          const unowned = PET_CATALOG.filter(p => !unlockedPets.includes(p.id));
+          if (Math.random() < 0.7 && unowned.length > 0) {
+            candidatePool = unowned;
+          }
+        }
+        const loot = candidatePool[Math.floor(Math.random() * candidatePool.length)];
+
+        // 存入背包 localStorage
+        if (!unlockedPets.includes(loot.id)) {
+          unlockedPets.push(loot.id);
+          localStorage.setItem("unlocked_pet_ids", JSON.stringify(unlockedPets));
+        }
+
         this.showGachaCardModal(loot);
       }
 
       showGachaCardModal(loot) {
         const W = 400;
         const H = 720;
-        const overlay = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0.88).setInteractive();
+        const overlay = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0.9).setInteractive();
         const cardBox = this.add.container(W / 2, H / 2);
 
-        const cardBg = this.add.rectangle(0, 0, 310, 420, 0x111827).setStrokeStyle(4, loot.color);
-        const badge = this.add.text(0, -170, `★ ${loot.rarity} ★`, { fontFamily: 'sans-serif', fontSize: '14px', fontStyle: 'bold', color: '#ffffff' }).setOrigin(0.5);
-        const orb = this.add.circle(0, -70, 54, loot.color, 0.85);
+        const cardBg = this.add.rectangle(0, 0, 310, 440, 0x111827).setStrokeStyle(4, loot.color);
+        const badge = this.add.text(0, -180, `★ ${loot.rarity} ★`, { fontFamily: 'sans-serif', fontSize: '14px', fontStyle: 'bold', color: '#ffffff' }).setOrigin(0.5);
 
-        const nameLabel = this.add.text(0, 15, loot.name, { fontFamily: 'sans-serif', fontSize: '17px', fontStyle: 'bold', color: '#ffffff', align: 'center' }).setOrigin(0.5);
-        const powerLabel = this.add.text(0, 45, `⚡ POWER: ${loot.power}`, { fontFamily: 'sans-serif', fontSize: '15px', color: '#facc15', fontStyle: 'bold' }).setOrigin(0.5);
-        const quoteLabel = this.add.text(0, 95, loot.quote, { fontFamily: 'sans-serif', fontSize: '12px', color: '#cbd5e1', wordWrap: { width: 260 }, align: 'center' }).setOrigin(0.5);
-        const passText = this.add.text(0, 145, '✓ 今日跟讀通關！拿給阿嬤看換遊戲時間', { fontFamily: 'sans-serif', fontSize: '11px', fontWeight: 'bold', color: '#86efac' }).setOrigin(0.5);
+        // 寵物立繪圖示
+        const orb = this.add.circle(0, -90, 50, loot.color, 0.3);
+        const avatar = this.add.text(0, -90, loot.icon, { fontSize: '50px' }).setOrigin(0.5);
 
-        const closeBtn = this.add.rectangle(0, 185, 200, 38, 0x22c55e).setInteractive({ useHandCursor: true });
-        const closeTxt = this.add.text(0, 185, '收進背包', { fontFamily: 'sans-serif', fontSize: '14px', fontWeight: 'bold', color: '#052e16' }).setOrigin(0.5);
+        const nameLabel = this.add.text(0, -15, loot.name, { fontFamily: 'sans-serif', fontSize: '16px', fontStyle: 'bold', color: '#ffffff', align: 'center' }).setOrigin(0.5);
+        const powerLabel = this.add.text(0, 15, `⚡ POWER: ${loot.power}`, { fontFamily: 'sans-serif', fontSize: '14px', color: '#facc15', fontStyle: 'bold' }).setOrigin(0.5);
+        const quoteLabel = this.add.text(0, 60, loot.quote, { fontFamily: 'sans-serif', fontSize: '12px', color: '#cbd5e1', wordWrap: { width: 260 }, align: 'center' }).setOrigin(0.5);
 
-        cardBox.add([cardBg, badge, orb, nameLabel, powerLabel, quoteLabel, passText, closeBtn, closeTxt]);
+        // 阿嬤安心免死標籤 (大框放大)
+        const passBox = this.add.rectangle(0, 125, 270, 52, 0x052e16).setStrokeStyle(2, 0x22c55e);
+        const passText = this.add.text(0, 125, '✨ 今日跟讀任務已通關！\n拿這張神寵給阿嬤看換放鬆時間', {
+          fontFamily: 'sans-serif',
+          fontSize: '12px',
+          fontWeight: 'bold',
+          color: '#86efac',
+          align: 'center'
+        }).setOrigin(0.5);
+
+        const closeBtn = this.add.rectangle(0, 185, 220, 38, 0x22c55e).setInteractive({ useHandCursor: true });
+        const closeTxt = this.add.text(0, 185, '收進背包圖鑑 🎮', { fontFamily: 'sans-serif', fontSize: '14px', fontWeight: 'bold', color: '#052e16' }).setOrigin(0.5);
+
+        cardBox.add([cardBg, badge, orb, avatar, nameLabel, powerLabel, quoteLabel, passBox, passText, closeBtn, closeTxt]);
 
         cardBox.setScale(0);
         this.tweens.add({ targets: cardBox, scale: 1, duration: 350, ease: 'Back.easeOut' });
@@ -466,8 +631,70 @@
       }
     }
 
-    // 啟動與切換模式
-    function initGame() {
+    // --------------------------------------------------------
+    // HTML 介面控制（關卡切換 ＋ 圖鑑背包）
+    // --------------------------------------------------------
+    function initQuestTabs() {
+      const box = document.getElementById("quest-nav-box");
+      box.innerHTML = "";
+      ALL_QUESTS.forEach((q, idx) => {
+        const btn = document.createElement("button");
+        btn.className = `q-tab ${idx === currentQuestIdx ? 'active' : ''}`;
+        btn.innerText = q.label;
+        btn.onclick = () => switchQuest(idx);
+        box.appendChild(btn);
+      });
+    }
+
+    function switchQuest(idx) {
+      if (currentQuestIdx === idx) return;
+      currentQuestIdx = idx;
+      initQuestTabs();
+      if (phaserGame && phaserGame.scene) {
+        phaserGame.scene.scenes[0].scene.restart();
+      }
+    }
+
+    function switchGameMode(modeKey) {
+      if (currentMode === modeKey) return;
+      currentMode = modeKey;
+
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('onclick').includes(modeKey));
+      });
+
+      if (phaserGame && phaserGame.scene) {
+        phaserGame.scene.scenes[0].scene.restart();
+      }
+    }
+
+    // 開啟圖鑑背包 Modal
+    function openBagModal() {
+      const box = document.getElementById("bag-items-box");
+      box.innerHTML = "";
+      document.getElementById("bag-progress").innerText = `${unlockedPets.length} / ${PET_CATALOG.length}`;
+
+      PET_CATALOG.forEach(p => {
+        const isUnlocked = unlockedPets.includes(p.id);
+        const cell = document.createElement("div");
+        cell.className = `bag-cell ${isUnlocked ? 'unlocked' : 'locked'}`;
+        cell.innerHTML = `
+          <div class="bag-cell-icon">${isUnlocked ? p.icon : '❓'}</div>
+          <div class="bag-cell-name">${isUnlocked ? p.name.split(' ')[0] : '未解鎖'}</div>
+        `;
+        box.appendChild(cell);
+      });
+
+      document.getElementById("bag-modal").style.display = "flex";
+    }
+
+    function closeBagModal() {
+      document.getElementById("bag-modal").style.display = "none";
+    }
+
+    // 啟動程式
+    window.addEventListener('load', () => {
+      initQuestTabs();
       const config = {
         type: Phaser.AUTO,
         parent: 'game-canvas-container',
@@ -480,24 +707,6 @@
         scene: GameScene
       };
       phaserGame = new Phaser.Game(config);
-    }
-
-    function switchGameMode(modeKey) {
-      if (currentMode === modeKey) return;
-      currentMode = modeKey;
-
-      document.querySelectorAll('.mode-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.getAttribute('onclick').includes(modeKey));
-      });
-
-      // 重新重啟當前場景
-      if (phaserGame && phaserGame.scene) {
-        phaserGame.scene.scenes[0].scene.restart();
-      }
-    }
-
-    window.addEventListener('load', () => {
-      initGame();
     });
   </script>
 </body>
