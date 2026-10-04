@@ -501,7 +501,7 @@
       margin-top: 10px;
     }
 
-    /* 隨堂考樣式 (10 題實戰版) */
+    /* 隨堂考樣式 */
     .quiz-score-header {
       display: flex;
       justify-content: space-between;
@@ -689,7 +689,7 @@
     </div>
   </div>
 
-  <!-- 隨堂考準備 Modal (10 題深度混合題型) -->
+  <!-- 隨堂考準備 Modal (10 題零重複實戰版) -->
   <div class="modal-overlay" id="quiz-modal">
     <div class="modal-box">
       <h3 style="font-size:1.35rem; color:var(--purple); margin-bottom:4px;">📝 隨堂考衝刺模擬 (10 題)</h3>
@@ -1155,12 +1155,12 @@
       generateChallengeStage();
     }
 
-    /* ─── 4 大高誘答力混合題型引擎 (10 題實戰版) ─── */
+    /* ─── 4 大高誘答力混合題型引擎 (10 題零重複強化版) ─── */
     let quizCurrentAnswered = 0;
     let quizCorrectCount = 0;
 
-    // 動態生成微型高仿拼字錯誤（替換常見易錯母音）
     function generateSubtleSpellingTrap(word) {
+      if (!word) return "trap";
       if (word.length <= 3) return word + "e";
       if (word.includes("i")) return word.replace(/i/, "e");
       if (word.includes("e")) return word.replace(/e/, "a");
@@ -1170,7 +1170,7 @@
     }
 
     function openQuizModal() {
-      const quest = ALL_QUESTS[currentQuestIdx];
+      const currentQuest = ALL_QUESTS[currentQuestIdx];
       const box = document.getElementById("quiz-content-box");
       const summaryBox = document.getElementById("quiz-summary-box");
       box.innerHTML = "";
@@ -1180,15 +1180,46 @@
       quizCorrectCount = 0;
       updateQuizScoreDisplay();
 
-      let wordsPool = [...quest.words].sort(() => Math.random() - 0.5);
-      while (wordsPool.length < 10) {
-        wordsPool = wordsPool.concat([...quest.words].sort(() => Math.random() - 0.5));
+      // ─── 題庫去重抽取邏輯：保證 10 題單字絕對不重複 ───
+      // 1. 先將當前關卡的字打散放進名單（附帶所屬句子供克漏字使用）
+      let selectedWords = currentQuest.words.map(w => ({ ...w, contextSentence: currentQuest.sentence.en })).sort(() => Math.random() - 0.5);
+
+      // 2. 如果不足 10 題，自動從題庫其他關卡撈取「還未出現過」的單字補齊
+      if (selectedWords.length < 10) {
+        const poolOthers = [];
+        ALL_QUESTS.forEach(q => {
+          q.words.forEach(w => {
+            const isAlreadySelected = selectedWords.some(sw => sw.en.trim().toLowerCase() === w.en.trim().toLowerCase());
+            const isAlreadyInPool = poolOthers.some(pw => pw.en.trim().toLowerCase() === w.en.trim().toLowerCase());
+            if (!isAlreadySelected && !isAlreadyInPool) {
+              poolOthers.push({ ...w, contextSentence: q.sentence.en });
+            }
+          });
+        });
+
+        poolOthers.sort(() => Math.random() - 0.5);
+
+        while (selectedWords.length < 10 && poolOthers.length > 0) {
+          selectedWords.push(poolOthers.pop());
+        }
       }
-      const selectedWords = wordsPool.slice(0, 10);
+
+      // 截取剛好 10 題並打散題序
+      selectedWords = selectedWords.slice(0, 10).sort(() => Math.random() - 0.5);
+
+      // 全題庫單字池（供選項干擾字安全隨機抽取）
+      const globalAllWords = [];
+      ALL_QUESTS.forEach(q => q.words.forEach(w => {
+        if (!globalAllWords.some(gw => gw.en.toLowerCase() === w.en.toLowerCase())) {
+          globalAllWords.push(w);
+        }
+      }));
 
       selectedWords.forEach((targetWord, qIdx) => {
-        const otherWords = quest.words.filter(w => w.en !== targetWord.en);
-        const distractorsPool = otherWords.sort(() => Math.random() - 0.5);
+        // 從全題庫排除自身，挑選高鑑別干擾字
+        const otherDistractors = globalAllWords
+          .filter(w => w.en.toLowerCase() !== targetWord.en.toLowerCase())
+          .sort(() => Math.random() - 0.5);
 
         const questionType = qIdx % 4;
         let typeBadge = "";
@@ -1199,7 +1230,7 @@
         if (questionType === 0) {
           // 題型 1：中選英拼字辨析
           typeBadge = "拼字辨析";
-          const trapA = targetWord.distractor || (distractorsPool[0] ? distractorsPool[0].en : "wrong");
+          const trapA = targetWord.distractor || (otherDistractors[0] ? otherDistractors[0].en : "wrong");
           const trapB = generateSubtleSpellingTrap(targetWord.en);
 
           promptText = `Q${qIdx + 1}. 中文「${targetWord.zh}」的正確拼法是？（小心相似字）`;
@@ -1213,20 +1244,20 @@
         } else if (questionType === 1) {
           // 題型 2：段落語境克漏字
           typeBadge = "語境克漏字";
-          let sentenceText = quest.sentence.en;
+          let sentenceText = targetWord.contextSentence || currentQuest.sentence.en;
           const reg = new RegExp(`\\b${targetWord.en}\\b`, "i");
 
           if (reg.test(sentenceText)) {
             const masked = sentenceText.replace(reg, "______");
             promptText = `Q${qIdx + 1}. 根據文意語境，空格應填入？<br><span style="color:#93c5fd; font-size:0.95rem; font-style:italic;">"${masked}"</span>`;
           } else {
-            promptText = `Q${qIdx + 1}. 根據本段課文語境，「${targetWord.zh}」在此處的精確英文是？`;
+            promptText = `Q${qIdx + 1}. 根據課文語境，「${targetWord.zh}」在此處的精確英文是？`;
           }
 
           options = [
             { text: targetWord.en, isCorrect: true },
-            { text: distractorsPool[0] ? distractorsPool[0].en : "tool", isCorrect: false },
-            { text: distractorsPool[1] ? distractorsPool[1].en : "problem", isCorrect: false }
+            { text: otherDistractors[0] ? otherDistractors[0].en : "tool", isCorrect: false },
+            { text: otherDistractors[1] ? otherDistractors[1].en : "problem", isCorrect: false }
           ].sort(() => Math.random() - 0.5);
           explanationText = `此處語境對應單字【${targetWord.en}】（${targetWord.zh}）。`;
 
@@ -1264,7 +1295,7 @@
           }
 
         } else {
-          // 題型 4：高擬真形近字／假詞對決（Hardcore Distractor Challenge）
+          // 題型 4：高擬真形近字／假詞對決
           typeBadge = "形近字魔王題";
           const realWord = targetWord.en;
           const confuser = targetWord.distractor || generateSubtleSpellingTrap(realWord);
