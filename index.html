@@ -104,7 +104,6 @@
     .pill-btn.parent-btn { background: rgba(34, 197, 94, 0.15); border-color: #22c55e; color: #86efac; }
     .pill-btn.parent-btn.active { background: #22c55e; color: #052e16; }
 
-    /* 全自動生成的家長大綱面板 */
     .parent-overview-panel {
       display: none;
       background: linear-gradient(135deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.98));
@@ -128,7 +127,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 220px;
+      min-height: 235px;
       position: relative;
     }
 
@@ -143,28 +142,44 @@
     }
 
     .challenge-title {
-      font-size: 1.05rem;
+      font-size: 1.02rem;
       font-weight: 900;
       text-align: center;
+      margin-bottom: 6px;
+    }
+
+    /* 聽音解鎖提示條 */
+    .listen-counter-pill {
+      font-size: 0.76rem;
+      font-weight: 800;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid var(--cyan);
+      border-radius: 999px;
+      padding: 2px 10px;
       margin-bottom: 8px;
     }
 
     .audio-speaker-pulse {
-      width: 60px;
-      height: 60px;
+      width: 62px;
+      height: 62px;
       border-radius: 50%;
       background: linear-gradient(180deg, var(--cyan), #0284c7);
       border: 3px solid #fff;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.7rem;
+      font-size: 1.8rem;
       cursor: pointer;
-      box-shadow: 0 0 16px rgba(56, 189, 248, 0.5);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
       margin-bottom: 12px;
       transition: transform 0.1s;
     }
     .audio-speaker-pulse:active { transform: scale(0.9); }
+    .audio-speaker-pulse.playing {
+      animation: pulsePlay 0.8s infinite alternate;
+      border-color: var(--gold);
+    }
 
     .choices-grid {
       display: grid;
@@ -172,6 +187,7 @@
       gap: 10px;
       width: 100%;
     }
+
     .choice-card-btn {
       background: #0f172a;
       border: 2px solid var(--border-dark);
@@ -185,6 +201,12 @@
       transition: all 0.15s;
     }
     .choice-card-btn:active { transform: scale(0.95); }
+    .choice-card-btn.locked {
+      opacity: 0.35;
+      cursor: not-allowed;
+      filter: grayscale(1);
+      pointer-events: none;
+    }
     .choice-card-btn.correct { background: var(--green); border-color: #fff; color: #000; }
     .choice-card-btn.wrong { background: var(--red); border-color: #fff; animation: shakeBtn 0.3s; }
 
@@ -201,7 +223,7 @@
       color: #000;
       padding: 14px;
       border-radius: 16px;
-      font-size: 1.2rem;
+      font-size: 1.18rem;
       font-weight: 900;
       cursor: pointer;
       box-shadow: 0 0 25px rgba(245, 158, 11, 0.8);
@@ -329,7 +351,6 @@
     }
     @keyframes pulsePlay { from { transform: scale(1); } to { transform: scale(1.05); } }
 
-    /* 通關聯絡簿 Modal */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -431,7 +452,7 @@
       </div>
     </div>
 
-    <!-- 系統全自動組合的家長大綱 -->
+    <!-- 自動組裝大綱 -->
     <div class="parent-overview-panel" id="parent-panel">
       <h4>📌 本週學習目標（系統自動生成）</h4>
       <div id="parent-overview-content"></div>
@@ -497,10 +518,6 @@
   </div>
 
   <script>
-    // ========================================================
-    // ⚙️ 題庫極簡架構：完全不用手寫任何大綱！
-    // 系統會根據 words 與 sentence 自動組合成專業家長說明
-    // ========================================================
     const ALL_QUESTS = [
       {
         id: "w4",
@@ -551,6 +568,10 @@
     let currentTargetAudio = "";
     let unlockedPets = JSON.parse(localStorage.getItem("unlocked_catalog_ids") || '["pet_1"]');
     
+    // 🎧 強制聆聽次數鎖 (每題必須親自點聽滿次數才解鎖選項)
+    let currentListenCount = 0;
+    const REQUIRED_LISTEN_COUNT = 2; // 每題強制必須聽滿 2 遍！
+    let isAudioPlaying = false;
     let hasCompletedArticleAudio = false;
     let articleAudioElement = null;
 
@@ -584,13 +605,12 @@
       generateChallengeStage();
     }
 
-    // 💡 做法 2：系統動態自動組裝大綱，免手寫任何字！
     function renderAllModules(quest) {
       const wordsList = quest.words.map(w => `<b>${w.en}</b> (${w.zh})`).join("、");
       const autoOverview = `
         • <b>重點詞彙</b>：${wordsList}<br>
         • <b>語境實用語句</b>：${quest.sentence.en}<br>
-        • <b>驗收目標</b>：完成 4 階音素聽辨盲測並完整聽畢課文錄音。
+        • <b>驗收目標</b>：每題強制聽讀滿 2 次解鎖，杜絕瞎猜；課文錄音完整聽畢。
       `;
       document.getElementById("parent-overview-content").innerHTML = autoOverview;
 
@@ -671,14 +691,13 @@
             playCoinSound();
           };
         }).catch(err => {
-          speakTTS(quest.sentence.en, 0.8);
-          setTimeout(() => {
+          speakTTS(quest.sentence.en, 0.8, () => {
             hasCompletedArticleAudio = true;
             btn.className = "article-btn-action done";
             icon.innerText = "✅";
             text.innerText = "已完成";
             document.getElementById("article-card-box").className = "article-full-card listened-completed";
-          }, 2500);
+          });
         });
       } else {
         speakTTS(quest.sentence.en, 0.8);
@@ -686,11 +705,23 @@
       }
     }
 
+    // 題目生成：進入時選項「全數鎖定」，逼他必須點喇叭！
     function generateChallengeStage() {
       const quest = ALL_QUESTS[currentQuestIdx];
       const arena = document.getElementById("main-challenge-arena");
+      currentListenCount = 0; // 重置聆聽計數
 
+      // 若 4 關全過，檢查課文是否聽完
       if (currentStage >= 4) {
+        if (quest.sentence.audio && quest.sentence.audio.trim() !== "" && !hasCompletedArticleAudio) {
+          arena.innerHTML = `
+            <div class="stage-badge" style="color:#f59e0b; border-color:#f59e0b;">⚠️️ 聽力已達標，但課文未聽！</div>
+            <div class="challenge-title" style="font-size:0.95rem; line-height:1.4;">請點擊下方黃色按鈕，將整篇「課文音檔」完整聽完才能開箱！</div>
+            <div style="font-size:2.8rem; margin:10px 0;">🔒</div>
+          `;
+          return;
+        }
+
         arena.innerHTML = `
           <div class="stage-badge">🎉 聽力驗收全數通關！</div>
           <div class="challenge-title" style="color:var(--gold);">🔥 神秘寶箱能量已滿！</div>
@@ -700,9 +731,10 @@
       }
 
       arena.innerHTML = `
-        <div class="stage-badge" id="stage-level-tag">STAGE ${currentStage + 1} / 4 · 單字音素盲測</div>
-        <div class="challenge-title" id="challenge-prompt">仔細聽喇叭！哪一個才是目標字？</div>
-        <div class="audio-speaker-pulse" onclick="replayChallengeAudio()">🔊</div>
+        <div class="stage-badge" id="stage-level-tag">STAGE ${currentStage + 1} / 4 · 音素殘酷聽辨</div>
+        <div class="challenge-title" id="challenge-prompt">點擊大喇叭，聽滿 2 遍解鎖選項！</div>
+        <div class="listen-counter-pill" id="listen-counter">🎧 聆聽解鎖進度：0 / 2 遍</div>
+        <div class="audio-speaker-pulse" id="stage-speaker" onclick="handleChallengeSpeakerClick()">🔊</div>
         <div class="choices-grid" id="choices-container"></div>
         <div class="progress-status-box">
           <span>驗收進度</span>
@@ -719,7 +751,6 @@
         const wordData = quest.words[currentStage];
         currentTargetWord = wordData.en;
         currentTargetAudio = wordData.audio || "";
-        document.getElementById("challenge-prompt").innerText = `仔細聽喇叭！哪一個是「${wordData.zh}」？`;
 
         const options = Math.random() > 0.5 ? 
           [ { text: wordData.en, isCorrect: true }, { text: wordData.distractor, isCorrect: false } ] :
@@ -727,34 +758,61 @@
 
         options.forEach(opt => {
           const btn = document.createElement("button");
-          btn.className = "choice-card-btn";
-          btn.innerText = opt.text;
+          // 初始狀態：全部鎖死！點不下去！
+          btn.className = "choice-card-btn locked";
+          btn.innerText = "🔒 請先聽";
+          btn.dataset.text = opt.text;
           btn.onclick = () => checkAnswer(opt.isCorrect, btn);
           choicesBox.appendChild(btn);
         });
-
-        replayChallengeAudio();
 
       } else if (currentStage === 3) {
         currentTargetWord = quest.sentence.en;
         currentTargetAudio = quest.sentence.audio || "";
         document.getElementById("stage-level-tag").innerText = "FINAL STAGE · 課文關鍵音鎖定";
-        document.getElementById("challenge-prompt").innerText = "聽完整課文！選出你在句子裡聽到的核心字！";
 
         quest.words.forEach(w => {
           const btn = document.createElement("button");
-          btn.className = "choice-card-btn";
-          btn.innerText = w.en;
+          btn.className = "choice-card-btn locked";
+          btn.innerText = "🔒 請先聽";
+          btn.dataset.text = w.en;
           btn.onclick = () => checkSentenceAnswer(w.en, btn);
           choicesBox.appendChild(btn);
         });
-
-        replayChallengeAudio();
       }
     }
 
-    function replayChallengeAudio() {
-      playSmartAudio(currentTargetAudio, currentTargetWord, 0.75);
+    // 點擊大喇叭：播放音訊，播放完畢才累計次數
+    function handleChallengeSpeakerClick() {
+      if (isAudioPlaying) return; // 播放中防狂點
+      isAudioPlaying = true;
+
+      const speaker = document.getElementById("stage-speaker");
+      speaker.classList.add("playing");
+
+      playSmartAudio(currentTargetAudio, currentTargetWord, 0.75, () => {
+        // 音訊真正播完的回呼 (onEnded)
+        isAudioPlaying = false;
+        speaker.classList.remove("playing");
+        currentListenCount++;
+
+        const counter = document.getElementById("listen-counter");
+        if (counter) counter.innerText = `🎧 聆聽解鎖進度：${currentListenCount} / ${REQUIRED_LISTEN_COUNT} 遍`;
+
+        // 聽滿 2 遍，真正解鎖按鈕！
+        if (currentListenCount >= REQUIRED_LISTEN_COUNT) {
+          document.querySelectorAll(".choice-card-btn").forEach(btn => {
+            btn.classList.remove("locked");
+            btn.innerText = btn.dataset.text;
+          });
+          document.getElementById("challenge-prompt").innerText = "選項已解鎖！哪一個才是目標字？";
+          if (counter) {
+            counter.innerText = "✅ 已聽滿！請在下方選擇答案";
+            counter.style.borderColor = "var(--green)";
+            counter.style.color = "#86efac";
+          }
+        }
+      });
     }
 
     function checkAnswer(isCorrect, btnElement) {
@@ -767,9 +825,9 @@
       } else {
         btnElement.classList.add("wrong");
         playBuzzerSound();
-        speakTTS(currentTargetWord, 0.55);
-        alert("❌ 聽錯了！發音完全不同！\n\n系統正在播放極慢速發音，請把耳朵貼近聽清楚，不能用猜的！");
-        btnElement.classList.remove("wrong");
+        alert("❌ 聽錯了！\n\n答案已重新鎖定，必須重新聽滿 2 遍才能再次作答！請用心聽！");
+        // 答錯懲罰：重新鎖定！逼他再聽 2 次！
+        generateChallengeStage();
       }
     }
 
@@ -784,9 +842,8 @@
       } else {
         btnElement.classList.add("wrong");
         playBuzzerSound();
-        alert("❌ 課文裡沒有這個字！請再專心聽一次！");
-        btnElement.classList.remove("wrong");
-        replayChallengeAudio();
+        alert("❌ 課文裡沒有這個字！\n\n答案已重新鎖定，請再專心聽 2 次！");
+        generateChallengeStage();
       }
     }
 
@@ -824,7 +881,8 @@
       generateChallengeStage();
     }
 
-    function playSmartAudio(audioPath, fallbackText, rate = 0.8) {
+    // 支援音訊播放完畢回呼（Callback）
+    function playSmartAudio(audioPath, fallbackText, rate = 0.8, onEndedCallback = null) {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
       }
@@ -832,21 +890,31 @@
       if (audioPath && audioPath.trim() !== "") {
         const audio = new Audio(audioPath);
         audio.playbackRate = rate;
+        
+        audio.onended = () => {
+          if (onEndedCallback) onEndedCallback();
+        };
+
         audio.play().catch(err => {
-          speakTTS(fallbackText, rate);
+          speakTTS(fallbackText, rate, onEndedCallback);
         });
       } else {
-        speakTTS(fallbackText, rate);
+        speakTTS(fallbackText, rate, onEndedCallback);
       }
     }
 
-    function speakTTS(text, rate = 0.8) {
+    function speakTTS(text, rate = 0.8, onEndedCallback = null) {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
         const utter = new SpeechSynthesisUtterance(text);
         utter.lang = 'en-US';
         utter.rate = rate;
+        if (onEndedCallback) {
+          utter.onend = () => onEndedCallback();
+        }
         window.speechSynthesis.speak(utter);
+      } else {
+        if (onEndedCallback) setTimeout(onEndedCallback, 1200);
       }
     }
 
