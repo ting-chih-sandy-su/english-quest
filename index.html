@@ -17,6 +17,7 @@
       --cyan-dark: #0369a1;
       --green: #22c55e;
       --green-dark: #15803d;
+      --purple: #c084fc;
       --bg: #090d16;
       --card-bg: #151d30;
       --card-border: #22314e;
@@ -44,24 +45,23 @@
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      align-items: center;
       padding: 16px;
       overflow-x: hidden;
     }
 
-    /* 手機/居中容器：保證在電腦與手機上都不會跑版 */
     .game-wrapper {
       width: 100%;
-      max-width: 420px;
+      max-width: 430px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
       position: relative;
       z-index: 1;
+      padding-bottom: 30px;
     }
 
-    /* 頂部 HUD */
+    /* 頂部 HUD 狀態列 */
     .top-hud {
       width: 100%;
       display: flex;
@@ -77,16 +77,65 @@
       font-size: 1rem;
       font-weight: 800;
       color: var(--gold);
-      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .hud-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     .hud-energy {
       background: #090d16;
       border: 2px solid var(--card-border);
       border-radius: 999px;
-      padding: 4px 12px;
-      font-size: 0.85rem;
+      padding: 4px 10px;
+      font-size: 0.82rem;
       font-weight: 800;
       color: var(--cyan);
+    }
+    .bag-trigger-btn {
+      background: linear-gradient(180deg, #ec4899, #be185d);
+      border: 2px solid #831843;
+      box-shadow: 0 3px 0 #500724;
+      color: white;
+      border-radius: 14px;
+      padding: 5px 10px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .bag-trigger-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #500724; }
+
+    /* 歷史關卡滾動橫條 */
+    .quest-scroller {
+      width: 100%;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    .quest-scroller::-webkit-scrollbar { display: none; }
+    .quest-tab {
+      background: #151d30;
+      border: 2px solid var(--card-border);
+      box-shadow: 0 3px 0 #000;
+      color: #94a3b8;
+      padding: 6px 14px;
+      border-radius: 12px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .quest-tab.active {
+      background: var(--cyan);
+      color: #0b1120;
+      border-color: var(--cyan-dark);
+      box-shadow: 0 3px 0 #0369a1;
     }
 
     /* 中央開蛋舞台 */
@@ -96,7 +145,7 @@
       border: 3px solid var(--card-border);
       box-shadow: 0 8px 0 #000, 0 12px 30px rgba(0,0,0,0.5);
       border-radius: 26px;
-      padding: 24px 16px 18px;
+      padding: 22px 16px 18px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -104,16 +153,14 @@
       position: relative;
     }
 
-    /* 巨大開箱蛋（向量純淨高清，保證置中且絕不模糊） */
     .egg-anchor {
       position: relative;
       display: flex;
       justify-content: center;
       align-items: center;
       cursor: pointer;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
-
     .egg-body {
       width: 120px;
       height: 155px;
@@ -132,8 +179,6 @@
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-8px); }
     }
-
-    /* 蛋集滿 4 顆能量後的狂暴發光震動 */
     .egg-anchor.ready .egg-body {
       background: radial-gradient(circle at 35% 30%, #fef08a 0%, #f59e0b 60%, #b45309 100%);
       box-shadow: 0 0 45px rgba(245, 158, 11, 0.9), inset -8px -8px 0 rgba(0,0,0,0.3);
@@ -144,14 +189,12 @@
       0% { transform: rotate(-7deg) scale(1.06); }
       100% { transform: rotate(7deg) scale(1.06); }
     }
-
     .egg-pedestal {
       width: 140px;
       height: 24px;
       background: radial-gradient(ellipse at center, rgba(56, 189, 248, 0.4) 0%, transparent 70%);
       border-radius: 50%;
     }
-
     .stage-hint {
       margin-top: 10px;
       font-size: 0.9rem;
@@ -160,7 +203,7 @@
       text-align: center;
     }
 
-    /* 任務符文列表 */
+    /* 任務符文清單 */
     .task-container {
       width: 100%;
       display: flex;
@@ -175,21 +218,23 @@
       border-radius: 18px;
       padding: 12px 16px;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      flex-direction: column;
+      gap: 6px;
       cursor: pointer;
       transition: transform 0.1s, box-shadow 0.1s, border-color 0.2s;
     }
-    .task-box:active {
-      transform: translateY(3px);
-      box-shadow: 0 2px 0 #000;
-    }
+    .task-box:active { transform: translateY(3px); box-shadow: 0 2px 0 #000; }
     .task-box.done {
       border-color: var(--green);
       background: linear-gradient(180deg, #14532d, #052e16);
       box-shadow: 0 5px 0 #022c22;
     }
 
+    .task-main-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
     .word-en {
       font-size: 1.35rem;
       font-weight: 800;
@@ -223,6 +268,29 @@
       box-shadow: 0 3px 0 #14532d;
     }
 
+    /* 拆解抽屜 (Phonics 提示) */
+    .hint-trigger {
+      display: inline-block;
+      font-size: 0.76rem;
+      font-weight: 800;
+      color: var(--cyan);
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      padding: 3px 8px;
+      border-radius: 6px;
+      width: fit-content;
+      cursor: pointer;
+    }
+    .hint-drawer {
+      display: none;
+      padding-top: 6px;
+      border-top: 1px dashed var(--card-border);
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      line-height: 1.45;
+    }
+    .hint-drawer.open { display: block; }
+
     /* 句子卡片 */
     .sentence-box {
       background: linear-gradient(180deg, #1b2438, #111827);
@@ -242,23 +310,36 @@
       background: linear-gradient(180deg, #713f12, #451a03);
       box-shadow: 0 5px 0 #271001;
     }
-    .sentence-header {
-      font-size: 0.8rem;
-      font-weight: 800;
-      color: var(--gold);
+    .sentence-header { font-size: 0.8rem; font-weight: 800; color: var(--gold); }
+    .sentence-text { font-size: 1.15rem; font-weight: 800; color: #fff; }
+    .sentence-sub { font-size: 0.88rem; color: #94a3b8; font-weight: 700; }
+
+    /* 阿公阿嬤安心專區 (高對比大字卡) */
+    .grandparent-banner {
+      width: 100%;
+      background: linear-gradient(135deg, #143526, #062b1b);
+      border: 2px solid var(--green);
+      box-shadow: 0 4px 0 #022c22;
+      border-radius: 18px;
+      padding: 14px 16px;
+      color: #e2e8f0;
     }
-    .sentence-text {
-      font-size: 1.15rem;
-      font-weight: 800;
-      color: #fff;
+    .grandparent-title {
+      font-size: 0.96rem;
+      font-weight: 900;
+      color: #86efac;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    .sentence-sub {
-      font-size: 0.88rem;
-      color: #94a3b8;
-      font-weight: 700;
+    .grandparent-text {
+      font-size: 0.9rem;
+      line-height: 1.55;
+      color: #d1fae5;
     }
 
-    /* Gacha 抽卡結果全螢幕 Modal */
+    /* 彈窗與圖鑑 */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -271,7 +352,6 @@
       justify-content: center;
       padding: 16px;
     }
-
     .modal-card {
       width: 100%;
       max-width: 360px;
@@ -287,7 +367,6 @@
       0% { transform: scale(0.6) rotate(-8deg); opacity: 0; }
       100% { transform: scale(1) rotate(0deg); opacity: 1; }
     }
-
     .card-badge {
       display: inline-block;
       padding: 4px 14px;
@@ -302,16 +381,8 @@
     .r-rare { background: linear-gradient(90deg, #06b6d4, #3b82f6); color: #fff; }
     .r-common { background: #64748b; color: #fff; }
 
-    .card-avatar {
-      font-size: 4.8rem;
-      margin: 8px 0;
-      animation: bounce 1.5s infinite;
-    }
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-
+    .card-avatar { font-size: 4.8rem; margin: 8px 0; animation: bounce 1.5s infinite; }
+    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
     .card-name { font-size: 1.6rem; font-weight: 900; color: #fff; }
     .card-power { font-size: 1.1rem; color: var(--gold); font-weight: 800; margin: 4px 0 10px; }
     .card-desc {
@@ -323,19 +394,6 @@
       line-height: 1.45;
       margin-bottom: 14px;
     }
-
-    .grandparent-box {
-      background: rgba(34, 197, 94, 0.2);
-      border: 2px dashed var(--green);
-      border-radius: 14px;
-      padding: 10px;
-      color: #86efac;
-      font-size: 0.92rem;
-      font-weight: 700;
-      line-height: 1.5;
-      margin-bottom: 16px;
-    }
-
     .close-btn {
       width: 100%;
       background: linear-gradient(180deg, var(--green), var(--green-dark));
@@ -350,7 +408,28 @@
     }
     .close-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #052e16; }
 
-    /* 開箱白閃 */
+    /* 背包圖鑑網格 */
+    .bag-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      max-height: 48vh;
+      overflow-y: auto;
+      margin: 16px 0;
+      padding: 4px;
+    }
+    .bag-item {
+      background: #0f172a;
+      border: 2px solid #334155;
+      border-radius: 14px;
+      padding: 10px 4px;
+      text-align: center;
+    }
+    .bag-item.unlocked { border-color: var(--gold); background: #1e293b; }
+    .bag-item.locked { opacity: 0.35; filter: grayscale(1); }
+    .bag-icon { font-size: 2rem; margin-bottom: 4px; }
+    .bag-name { font-size: 0.75rem; font-weight: 700; }
+
     #flash {
       position: fixed;
       top: 0; left: 0;
@@ -361,7 +440,6 @@
       z-index: 999;
       transition: opacity 0.15s ease-out;
     }
-
     #confetti {
       position: fixed;
       top: 0; left: 0;
@@ -378,13 +456,19 @@
 
   <div class="game-wrapper">
     
-    <!-- 頂部資訊 -->
+    <!-- 頂部 HUD -->
     <div class="top-hud">
-      <div class="hud-title">⚔️ ROBLOX 幸運蛋開箱</div>
-      <div class="hud-energy" id="energy-badge">能量 0 / 4</div>
+      <div class="hud-title">⚔️ 每日開蛋任務</div>
+      <div class="hud-right">
+        <div class="hud-energy" id="energy-badge">能量 0 / 4</div>
+        <button class="bag-trigger-btn" onclick="openBagModal()">🎒 圖鑑</button>
+      </div>
     </div>
 
-    <!-- 舞台開蛋區 (100% 絕對居中) -->
+    <!-- 歷史週次分頁選單 -->
+    <div class="quest-scroller" id="quest-nav"></div>
+
+    <!-- 中央開蛋舞台 -->
     <div class="stage-container">
       <div class="egg-anchor" id="egg-target" onclick="hatchEgg()">
         <div class="egg-body" id="egg-visual">
@@ -395,20 +479,28 @@
       <div class="stage-hint" id="stage-desc">點擊下方 3 個字 + 1 句話注滿能量！</div>
     </div>
 
-    <!-- 任務清單 -->
+    <!-- 任務清單 (單字拆解 + 句子) -->
     <div class="task-container">
       <div id="words-box" style="display: flex; flex-direction: column; gap: 10px;"></div>
 
       <div class="sentence-box" id="sentence-card" onclick="tapSentence()">
-        <div class="sentence-header">📜 通關密碼句 (點擊聽讀)</div>
+        <div class="sentence-header">📜 本週通關密碼句 (點擊大聲聽讀)</div>
         <div class="sentence-text" id="sentence-en"></div>
         <div class="sentence-sub" id="sentence-zh"></div>
       </div>
     </div>
 
+    <!-- 阿公阿嬤安心專區 -->
+    <div class="grandparent-banner">
+      <div class="grandparent-title">👵👴 阿公阿嬤請看這：</div>
+      <div class="grandparent-text">
+        阿公阿嬤辛苦了！您不用管英文是什麼意思。只要看到孫子<strong>按喇叭聽完並唸出聲音 3 遍</strong>，看他點開上方大寶蛋抽到神寵，今天他就及格囉！✨
+      </div>
+    </div>
+
   </div>
 
-  <!-- 抽卡彈窗 -->
+  <!-- 1. 抽卡結果 Modal -->
   <div class="modal-overlay" id="gacha-modal">
     <div class="modal-card">
       <span class="card-badge" id="c-badge">神話級 MYTHIC</span>
@@ -417,7 +509,7 @@
       <div class="card-power" id="c-power">⚡ 戰鬥力: 999,999</div>
       <div class="card-desc" id="c-desc">全服爆率只有 0.1% 的極品神寵！</div>
       
-      <div class="grandparent-box">
+      <div style="background: rgba(34, 197, 94, 0.2); border: 2px dashed var(--green); border-radius: 14px; padding: 10px; color: #86efac; font-size: 0.92rem; font-weight: 700; line-height: 1.5; margin-bottom: 16px;">
         ✨ <strong>今日任務已通關！</strong><br>
         把這個金色神寵給阿公阿嬤看，去玩你的 Roblox 吧！
       </div>
@@ -426,52 +518,143 @@
     </div>
   </div>
 
-  <script>
-    // ==========================================
-    // ⚙️ 每週更新專區 (下課換這裡即可)
-    // ==========================================
-    const WEEK_DATA = {
-      words: [
-        { en: "rain", display: "r · ain", zh: "下雨" },
-        { en: "weather", display: "wea · ther", zh: "天氣" },
-        { en: "outside", display: "out · side", zh: "外面" }
-      ],
-      sentence: {
-        en: "It is raining outside.",
-        zh: "外面正在下雨。"
-      }
-    };
+  <!-- 2. 圖鑑背包 Modal -->
+  <div class="modal-overlay" id="bag-modal">
+    <div class="modal-card" style="max-width: 380px;">
+      <div class="card-name" style="font-size: 1.35rem;">🎒 寵物收藏圖鑑</div>
+      <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 4px;">已解鎖進度：<span id="bag-progress">0 / 6</span></div>
+      
+      <div class="bag-grid" id="bag-items-box"></div>
 
-    // 掉落神寵庫
-    const PET_POOL = [
-      { name: "彩虹霸王龍", rarity: "神話級 MYTHIC", rClass: "r-mythic", icon: "🦖", power: "⚡ 888,888", desc: "自帶彩虹軌跡的終極神龍，走到哪亮到哪。" },
-      { name: "黃金香蕉狗", rarity: "傳奇級 LEGENDARY", rClass: "r-legendary", icon: "🐕", power: "⚡ 65,000", desc: "香蕉皮做的小狗，跑得飛快但容易滑倒。" },
-      { name: "暴風雪獨角獸", rarity: "傳奇級 LEGENDARY", rClass: "r-legendary", icon: "🦄", power: "⚡ 52,000", desc: "發射冰錐光束，把無聊的考卷全部凍結！" },
-      { name: "發光馬桶怪", rarity: "稀有級 RARE", rClass: "r-rare", icon: "🚽", power: "⚡ 4,800", desc: "按下沖水鍵會發射超強音波攻擊！" },
-      { name: "發霉的生吐司", rarity: "普通級 COMMON", rClass: "r-common", icon: "🍞", power: "⚡ 15", desc: "雖然戰鬥力極低，但看起來挺香的。" }
+      <button class="close-btn" onclick="closeBagModal()">返回任務</button>
+    </div>
+  </div>
+
+  <script>
+    // ========================================================
+    // ⚙️ 1. 教師雲端後台設定 (若尚未設定 Google Apps Script 可先留空)
+    // ========================================================
+    const GOOGLE_SCRIPT_API = ""; 
+    const urlParams = new URLSearchParams(window.location.search);
+    const STUDENT_ID = urlParams.get('user') || "hero_student";
+
+    // ========================================================
+    // ⚙️ 2. 每週更新專區：每週只需在陣列最前面新增一筆，舊週次永遠留存！
+    // ========================================================
+    const ALL_QUESTS = [
+      {
+        id: "w4",
+        label: "第 4 關",
+        words: [
+          { en: "rain", display: "r · ain", zh: "下雨", hint: "發音拆解：ai 發長母音 [e]，拼寫拆為 r + ain 就能拼出來！" },
+          { en: "weather", display: "wea · ther", zh: "天氣", hint: "拆成兩半看：wea- (短母音 e) + -ther (th 咬舌頭濁音)！" },
+          { en: "outside", display: "out · side", zh: "外面", hint: "積木拼裝：out (出去) + side (旁邊) ＝ 外面！" }
+        ],
+        sentence: {
+          en: "It is raining outside.",
+          zh: "外面正在下雨。"
+        }
+      },
+      {
+        id: "w3",
+        label: "第 3 關 (複習)",
+        words: [
+          { en: "happy", display: "hap · py", zh: "高興的", hint: "a 發大嘴巴短母音 [æ]！" },
+          { en: "school", display: "school", zh: "學校", hint: "ch 在這裡發 [k] 的音！" },
+          { en: "friend", display: "friend", zh: "朋友", hint: "ie 在這裡發短母音 [e]！" }
+        ],
+        sentence: {
+          en: "I see my friend at school.",
+          zh: "我在學校看到我的朋友。"
+        }
+      }
     ];
 
+    // ========================================================
+    // 🐾 3. 寵物與迷因總圖鑑庫 (含稀有度、戰鬥力、搞笑說明)
+    // ========================================================
+    const PET_CATALOG = [
+      { id: "p1", name: "彩虹霸王龍", rarity: "神話級 MYTHIC", rClass: "r-mythic", icon: "🦖", power: "⚡ 888,888", desc: "自帶彩虹軌跡的終極神龍，走到哪亮到哪。" },
+      { id: "p2", name: "黃金香蕉狗", rarity: "傳奇級 LEGENDARY", rClass: "r-legendary", icon: "🐕", power: "⚡ 65,000", desc: "香蕉皮做的小狗，跑得飛快但容易滑倒。" },
+      { id: "p3", name: "暴風雪獨角獸", rarity: "傳奇級 LEGENDARY", rClass: "r-legendary", icon: "🦄", power: "⚡ 52,000", desc: "發射冰錐光束，把無聊的考卷全部凍結！" },
+      { id: "p4", name: "發光馬桶怪", rarity: "稀有級 RARE", rClass: "r-rare", icon: "🚽", power: "⚡ 4,800", desc: "按下沖水鍵會發射超強音波衝擊！" },
+      { id: "p5", name: "爆炸西瓜怪", rarity: "稀有級 RARE", rClass: "r-rare", icon: "🍉", power: "⚡ 2,300", desc: "受到驚嚇會吐出大量西瓜籽機關槍。" },
+      { id: "p6", name: "發霉的生吐司", rarity: "普通級 COMMON", rClass: "r-common", icon: "🍞", power: "⚡ 15", desc: "雖然戰鬥力極低，但烤一烤好像滿香的。" }
+    ];
+
+    let currentQuestIdx = 0;
     let chargedItems = new Set();
+    let unlockedPets = JSON.parse(localStorage.getItem("unlocked_pet_ids") || "[]");
 
-    // 渲染
-    document.getElementById("sentence-en").innerText = WEEK_DATA.sentence.en;
-    document.getElementById("sentence-zh").innerText = WEEK_DATA.sentence.zh;
+    // 初始化歷史關卡導覽
+    function initNav() {
+      const nav = document.getElementById("quest-nav");
+      nav.innerHTML = "";
+      ALL_QUESTS.forEach((q, idx) => {
+        const btn = document.createElement("button");
+        btn.className = `quest-tab ${idx === 0 ? 'active' : ''}`;
+        btn.innerText = q.label;
+        btn.onclick = () => switchQuest(idx);
+        nav.appendChild(btn);
+      });
+    }
 
-    const wordsBox = document.getElementById("words-box");
-    WEEK_DATA.words.forEach((item, idx) => {
-      const box = document.createElement("div");
-      box.className = "task-box";
-      box.id = `wb-${idx}`;
-      box.onclick = () => tapWord(idx, item.en);
-      box.innerHTML = `
-        <div>
-          <div class="word-en">${item.display}</div>
-          <div class="word-zh">${item.zh}</div>
-        </div>
-        <div class="sound-icon-badge" id="ib-${idx}">🔊</div>
-      `;
-      wordsBox.appendChild(box);
-    });
+    function switchQuest(idx) {
+      currentQuestIdx = idx;
+      document.querySelectorAll(".quest-tab").forEach((b, i) => {
+        b.classList.toggle("active", i === idx);
+      });
+      loadQuest(ALL_QUESTS[idx]);
+    }
+
+    function loadQuest(quest) {
+      chargedItems.clear();
+      updateProgress();
+
+      // 重置開蛋狀態
+      const eggTarget = document.getElementById("egg-target");
+      eggTarget.classList.remove("ready");
+      document.getElementById("egg-icon").innerText = "🔒";
+      document.getElementById("stage-desc").innerText = "點擊下方 3 個字 + 1 句話注滿能量！";
+      document.getElementById("stage-desc").style.color = "var(--cyan)";
+
+      // 句子
+      document.getElementById("sentence-en").innerText = quest.sentence.en;
+      document.getElementById("sentence-zh").innerText = quest.sentence.zh;
+      document.getElementById("sentence-card").classList.remove("done");
+
+      // 單字
+      const wordsBox = document.getElementById("words-box");
+      wordsBox.innerHTML = "";
+      quest.words.forEach((item, idx) => {
+        const box = document.createElement("div");
+        box.className = "task-box";
+        box.id = `wb-${idx}`;
+        box.onclick = (e) => {
+          if (e.target.closest('.hint-trigger')) return; // 點拆解不重複扣發音
+          tapWord(idx, item.en);
+        };
+
+        box.innerHTML = `
+          <div class="task-main-row">
+            <div>
+              <div class="word-en">${item.display}</div>
+              <div class="word-zh">${item.zh}</div>
+            </div>
+            <div class="sound-icon-badge" id="ib-${idx}">🔊</div>
+          </div>
+          <span class="hint-trigger" onclick="toggleHint(this)">💡 自然拼讀拆解</span>
+          <div class="hint-drawer">${item.hint}</div>
+        `;
+        wordsBox.appendChild(box);
+      });
+    }
+
+    function toggleHint(btn) {
+      const drawer = btn.nextElementSibling;
+      drawer.classList.toggle("open");
+      btn.innerText = drawer.classList.contains("open") ? "收合拆解" : "💡 自然拼讀拆解";
+    }
 
     function tapWord(idx, en) {
       playCoin();
@@ -488,7 +671,7 @@
 
     function tapSentence() {
       playCoin();
-      speak(WEEK_DATA.sentence.en);
+      speak(ALL_QUESTS[currentQuestIdx].sentence.en);
 
       if (!chargedItems.has("sentence")) {
         chargedItems.add("sentence");
@@ -505,25 +688,47 @@
         const eggTarget = document.getElementById("egg-target");
         eggTarget.classList.add("ready");
         document.getElementById("egg-icon").innerText = "✨";
-        document.getElementById("stage-desc").innerText = "🔥 能量充飽！點擊狂暴開蛋！";
+        document.getElementById("stage-desc").innerText = "🔥 能量充飽！快點擊開蛋！";
         document.getElementById("stage-desc").style.color = "var(--gold)";
         playFanfare();
       }
     }
 
+    // 抽卡開箱 (含 65% 保底防臉黑機制)
     function hatchEgg() {
       if (chargedItems.size < 4) {
         alert("請先將 3 個單字和 1 句話聽完，湊滿 4 顆能量！");
         return;
       }
 
-      // 白光與彩帶
       triggerFlash();
       playExplosion();
       fireConfetti();
 
-      const pet = PET_POOL[Math.floor(Math.random() * PET_POOL.length)];
-      
+      // 保底新寵物邏輯
+      let candidatePool = PET_CATALOG;
+      if (unlockedPets.length < PET_CATALOG.length) {
+        const unowned = PET_CATALOG.filter(p => !unlockedPets.includes(p.id));
+        if (Math.random() < 0.65 && unowned.length > 0) {
+          candidatePool = unowned;
+        }
+      }
+
+      const pet = candidatePool[Math.floor(Math.random() * candidatePool.length)];
+
+      if (!unlockedPets.includes(pet.id)) {
+        unlockedPets.push(pet.id);
+        localStorage.setItem("unlocked_pet_ids", JSON.stringify(unlockedPets));
+      }
+
+      // 雲端同步
+      if (GOOGLE_SCRIPT_API) {
+        fetch(`${GOOGLE_SCRIPT_API}?action=save&user=${encodeURIComponent(STUDENT_ID)}&quest=${encodeURIComponent(ALL_QUESTS[currentQuestIdx].label)}&pet=${encodeURIComponent(pet.name)}`, {
+          mode: 'no-cors'
+        });
+      }
+
+      // 渲染結果卡
       const badge = document.getElementById("c-badge");
       badge.innerText = pet.rarity;
       badge.className = `card-badge ${pet.rClass}`;
@@ -539,7 +744,31 @@
       document.getElementById("gacha-modal").style.display = "none";
     }
 
-    // 發音
+    // 背包圖鑑
+    function openBagModal() {
+      const box = document.getElementById("bag-items-box");
+      box.innerHTML = "";
+      document.getElementById("bag-progress").innerText = `${unlockedPets.length} / ${PET_CATALOG.length}`;
+
+      PET_CATALOG.forEach(p => {
+        const isUnlocked = unlockedPets.includes(p.id);
+        const item = document.createElement("div");
+        item.className = `bag-item ${isUnlocked ? 'unlocked' : 'locked'}`;
+        item.innerHTML = `
+          <div class="bag-icon">${isUnlocked ? p.icon : '❓'}</div>
+          <div class="bag-name">${isUnlocked ? p.name : '未解鎖'}</div>
+        `;
+        box.appendChild(item);
+      });
+
+      document.getElementById("bag-modal").style.display = "flex";
+    }
+
+    function closeBagModal() {
+      document.getElementById("bag-modal").style.display = "none";
+    }
+
+    // 發音引擎 (0.8 倍慢速清晰)
     function speak(txt) {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
@@ -556,7 +785,7 @@
       setTimeout(() => { f.style.opacity = "0"; }, 200);
     }
 
-    // 音效
+    // Web Audio 合成音效
     function playCoin() {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -609,7 +838,6 @@
       } catch (e) {}
     }
 
-    // 彩帶
     function fireConfetti() {
       const cvs = document.getElementById("confetti");
       const ctx = cvs.getContext("2d");
@@ -647,6 +875,12 @@
       }
       step();
     }
+
+    // 啟動
+    window.addEventListener("DOMContentLoaded", () => {
+      initNav();
+      loadQuest(ALL_QUESTS[0]);
+    });
   </script>
 </body>
 </html>
