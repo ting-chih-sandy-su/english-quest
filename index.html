@@ -2,139 +2,479 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ROBLOX ARCADE: 4-IN-1 GAME HUB</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ROBLOX ARCADE: 任務大冒險</title>
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="apple-touch-icon" href="favicon.png">
 
-  <!-- Phaser 3 引擎 CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+  <!-- 引入現代字體 (保證極致銳利，絕不模糊) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;800&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
 
   <style>
+    :root {
+      --bg: #090e1a;
+      --card-bg: #1e293b;
+      --card-inner: #0f172a;
+      --gold: #facc15;
+      --gold-border: #ca8a04;
+      --cyan: #38bdf8;
+      --cyan-border: #0284c7;
+      --green: #22c55e;
+      --green-border: #15803d;
+      --border-dark: #334155;
+      --text-main: #ffffff;
+      --text-sub: #94a3b8;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
+      font-family: 'Fredoka', 'Noto Sans TC', -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     body {
-      background-color: #050811;
-      width: 100vw;
-      height: 100vh;
+      background: radial-gradient(circle at 50% 20%, #1e293b 0%, #070a13 100%);
+      color: var(--text-main);
+      min-height: 100vh;
       display: flex;
-      flex-direction: column;
       justify-content: center;
-      align-items: center;
-      overflow: hidden;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 12px 10px 40px;
+      overflow-x: hidden;
+      position: relative;
     }
 
-    /* 頂部導航與圖鑑狀態欄 */
-    .top-control-deck {
-      max-width: 420px;
-      width: 95%;
+    /* 背景旋轉光芒 */
+    .sunburst-ambient {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 220vw;
+      height: 220vw;
+      transform: translate(-50%, -50%);
+      background: repeating-conic-gradient(
+        from 0deg,
+        rgba(56, 189, 248, 0.03) 0deg 15deg,
+        transparent 15deg 30deg
+      );
+      animation: ambientRotate 60s linear infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+    @keyframes ambientRotate {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    /* 主應用容器 (桌機居中、手機適配) */
+    .app-viewport {
+      width: 100%;
+      max-width: 430px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      margin-bottom: 6px;
-      z-index: 20;
+      gap: 12px;
+      position: relative;
+      z-index: 10;
     }
 
-    .hud-row {
+    /* 頂部 HUD：歷史週次 ＋ 長輩模式 ＋ 寵物背包 */
+    .control-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
 
-    .quest-tabs-wrapper {
+    .quest-tabs-scroll {
       display: flex;
       gap: 6px;
       overflow-x: auto;
       scrollbar-width: none;
     }
-    .quest-tabs-wrapper::-webkit-scrollbar { display: none; }
+    .quest-tabs-scroll::-webkit-scrollbar { display: none; }
 
-    .q-tab {
-      background: #1e293b;
-      border: 2px solid #334155;
-      color: #94a3b8;
-      padding: 4px 10px;
-      border-radius: 10px;
-      font-size: 0.78rem;
-      font-weight: bold;
-      white-space: nowrap;
-      cursor: pointer;
-    }
-    .q-tab.active {
-      background: #0284c7;
-      color: #ffffff;
-      border-color: #38bdf8;
-    }
-
-    .bag-trigger-btn {
-      background: linear-gradient(180deg, #ec4899, #be185d);
-      border: 2px solid #831843;
-      color: white;
+    .q-btn {
+      background: var(--card-bg);
+      border: 2px solid var(--border-dark);
+      box-shadow: 0 2px 0 #000;
+      color: var(--text-sub);
+      padding: 5px 12px;
       border-radius: 12px;
-      padding: 4px 12px;
-      font-weight: 800;
       font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .q-btn.active {
+      background: var(--cyan);
+      color: #0b1120;
+      border-color: var(--cyan-border);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+    }
+
+    .action-icons-group {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .pill-action-btn {
+      background: #1e293b;
+      border: 2px solid var(--border-dark);
+      box-shadow: 0 2px 0 #000;
+      color: #fff;
+      padding: 5px 10px;
+      border-radius: 12px;
+      font-size: 0.78rem;
+      font-weight: 800;
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 4px;
-      white-space: nowrap;
+      transition: transform 0.1s;
     }
+    .pill-action-btn:active { transform: translateY(2px); box-shadow: none; }
+    .pill-action-btn.bag-btn { background: linear-gradient(180deg, #ec4899, #be185d); border-color: #831843; }
+    .pill-action-btn.elder-btn { background: rgba(34, 197, 94, 0.15); border-color: #22c55e; color: #86efac; }
+    .pill-action-btn.elder-btn.active { background: #22c55e; color: #052e16; }
 
-    /* 遊戲模式切換條 */
-    .mode-selector-bar {
+    /* 遊戲模式選擇滑軌 */
+    .game-modes-deck {
       display: flex;
       gap: 6px;
       overflow-x: auto;
       scrollbar-width: none;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 4px;
+      border-radius: 14px;
+      border: 1px solid var(--border-dark);
     }
-    .mode-selector-bar::-webkit-scrollbar { display: none; }
+    .game-modes-deck::-webkit-scrollbar { display: none; }
 
-    .mode-btn {
-      background: #0f172a;
-      border: 1.5px solid #334155;
-      color: #64748b;
-      padding: 4px 10px;
-      border-radius: 8px;
-      font-size: 0.75rem;
-      font-weight: bold;
-      white-space: nowrap;
+    .g-mode-btn {
+      flex: 1;
+      min-width: 82px;
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      padding: 6px 8px;
+      border-radius: 10px;
+      font-size: 0.78rem;
+      font-weight: 800;
       cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+      white-space: nowrap;
     }
-    .mode-btn.active {
-      background: #f59e0b;
-      color: #000;
-      border-color: #fbbf24;
+    .g-mode-btn.active {
+      background: var(--gold);
+      color: #0b1120;
+      box-shadow: 0 2px 0 var(--gold-border);
     }
 
-    /* 遊戲畫布容器 */
-    #game-canvas-container {
-      width: 100%;
-      height: 100%;
-      max-width: 420px;
-      max-height: 720px;
+    /* 長輩安心導引面板 */
+    .elder-helper-banner {
+      display: none;
+      background: linear-gradient(135deg, rgba(22, 101, 52, 0.95), rgba(15, 23, 42, 0.95));
+      border: 2px solid var(--green);
+      border-radius: 18px;
+      padding: 14px 16px;
+      color: #d1fae5;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+    .elder-helper-banner.show { display: block; }
+    .elder-helper-banner strong { color: #86efac; font-weight: 900; }
+
+    /* 中央遊戲核心舞台 (隨模式切換外觀與反饋) */
+    .game-stage-arena {
+      background: linear-gradient(180deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98));
+      border: 3px solid var(--border-dark);
+      box-shadow: 0 8px 0 #000, 0 16px 30px rgba(0, 0, 0, 0.6);
+      border-radius: 26px;
+      padding: 24px 16px 18px;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
-      box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
-      aspect-ratio: 400 / 720;
+      position: relative;
+      overflow: hidden;
     }
 
-    canvas {
-      display: block;
+    .stage-actor-wrapper {
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    /* 角色 1：開蛋 (3D 向量漸層蛋) */
+    .actor-egg {
+      width: 110px;
+      height: 145px;
+      background: radial-gradient(circle at 35% 30%, #93c5fd, #1d4ed8 75%);
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      border: 4px solid #ffffff;
+      box-shadow: 0 10px 25px rgba(29, 78, 216, 0.5), inset -6px -6px 0 rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.6rem;
+      animation: floatMotion 2.4s ease-in-out infinite;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .actor-egg.ready {
+      background: radial-gradient(circle at 35% 30%, #fef08a, #ea580c 75%);
+      box-shadow: 0 0 45px rgba(245, 158, 11, 0.9);
+      animation: shake狂暴 0.4s infinite alternate;
+    }
+
+    /* 角色 2：密室破門 (鋼鐵大門) */
+    .actor-door {
+      width: 110px;
+      height: 140px;
+      background: linear-gradient(180deg, #334155, #1e293b);
+      border: 4px solid #64748b;
       border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      position: relative;
+    }
+    .actor-door.ready {
+      border-color: var(--green);
+      box-shadow: 0 0 35px rgba(34, 197, 94, 0.7);
+      animation: shake狂暴 0.35s infinite alternate;
     }
 
-    /* 圖鑑背包 Modal 彈窗 (HTML 原生疊層) */
-    .full-modal {
+    /* 角色 3：巴掌亂鬥 (搞笑魔王) */
+    .actor-monster {
+      width: 120px;
+      height: 120px;
+      background: radial-gradient(circle at 40% 35%, #f472b6, #db2777);
+      border: 4px solid #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 8px 25px rgba(219, 39, 119, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3.5rem;
+      animation: monsterFloat 1.8s ease-in-out infinite;
+    }
+    .actor-monster.ready {
+      background: radial-gradient(circle at 40% 35%, #f87171, #dc2626);
+      box-shadow: 0 0 40px rgba(220, 38, 38, 0.8);
+      animation: monsterRage 0.3s infinite alternate;
+    }
+
+    /* 角色 4：幸運拉霸 (Casino Slot) */
+    .actor-slot {
+      width: 160px;
+      height: 100px;
+      background: #0f172a;
+      border: 4px solid var(--gold);
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(250, 204, 21, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      letter-spacing: 4px;
+    }
+    .actor-slot.ready {
+      box-shadow: 0 0 45px rgba(250, 204, 21, 0.8);
+      animation: shake狂暴 0.4s infinite alternate;
+    }
+
+    @keyframes floatMotion {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    @keyframes monsterFloat {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    @keyframes shake狂暴 {
+      0% { transform: rotate(-7deg) scale(1.05); }
+      100% { transform: rotate(7deg) scale(1.05); }
+    }
+    @keyframes monsterRage {
+      0% { transform: scale(1.05) rotate(-10deg); }
+      100% { transform: scale(1.15) rotate(10deg); }
+    }
+
+    .stage-prompt-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #ffffff;
+      margin-top: 4px;
+    }
+    .stage-prompt-subtitle {
+      font-size: 0.85rem;
+      color: var(--cyan);
+      margin-top: 4px;
+      font-weight: 700;
+    }
+
+    /* 能量進度條 */
+    .energy-bar-wrap {
+      width: 100%;
+      height: 14px;
+      background: #0f172a;
+      border-radius: 999px;
+      border: 2px solid var(--border-dark);
+      margin-top: 12px;
+      overflow: hidden;
+      position: relative;
+    }
+    .energy-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--cyan), var(--gold));
+      border-radius: 999px;
+      transition: width 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* 任務牌組 (單字 + 提示抽屜 + 密碼句) */
+    .tasks-deck-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .task-card-item {
+      background: linear-gradient(180deg, #1e293b, #0f172a);
+      border: 2px solid var(--border-dark);
+      box-shadow: 0 4px 0 #000;
+      border-radius: 18px;
+      padding: 12px 14px;
+      transition: transform 0.1s, border-color 0.2s;
+    }
+    .task-card-item.charged {
+      border-color: var(--green);
+      background: linear-gradient(180deg, #14532d, #052e16);
+      box-shadow: 0 4px 0 #022c22;
+    }
+
+    .task-row-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .word-main-display {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: 0.5px;
+    }
+    .word-zh-sub {
+      font-size: 0.88rem;
+      color: var(--text-sub);
+      font-weight: 700;
+      margin-top: 2px;
+    }
+    .task-card-item.charged .word-zh-sub { color: #86efac; }
+
+    .sound-trigger-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #0284c7, #0369a1);
+      border: 2px solid var(--cyan);
+      box-shadow: 0 3px 0 #075985;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: transform 0.1s;
+    }
+    .sound-trigger-badge:active { transform: translateY(2px); box-shadow: none; }
+    .task-card-item.charged .sound-trigger-badge {
+      background: linear-gradient(180deg, var(--green), var(--green-border));
+      border-color: #86efac;
+      box-shadow: 0 3px 0 #14532d;
+    }
+
+    /* 💡 音素拆解展開抽屜 */
+    .scaffold-drawer-trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 8px;
+      font-size: 0.76rem;
+      font-weight: 800;
+      color: var(--cyan);
+      background: rgba(56, 189, 248, 0.1);
+      padding: 3px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      width: fit-content;
+    }
+    .scaffold-drawer-content {
+      display: none;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--border-dark);
+      font-size: 0.84rem;
+      color: #e2e8f0;
+      line-height: 1.5;
+    }
+    .scaffold-drawer-content.open { display: block; }
+
+    /* 通關密碼句卡片 */
+    .sentence-quest-card {
+      background: linear-gradient(180deg, #1e293b, #0f172a);
+      border: 2px solid var(--border-dark);
+      box-shadow: 0 4px 0 #000;
+      border-radius: 18px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    .sentence-quest-card:active { transform: translateY(2px); box-shadow: none; }
+    .sentence-quest-card.charged {
+      border-color: var(--gold);
+      background: linear-gradient(180deg, #713f12, #451a03);
+      box-shadow: 0 4px 0 #271001;
+    }
+    .sentence-label-tag {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--gold);
+    }
+    .sentence-en-text {
+      font-size: 1.1rem;
+      font-weight: 800;
+      line-height: 1.4;
+      color: #ffffff;
+    }
+    .sentence-zh-text {
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      font-weight: 700;
+    }
+
+    /* 全螢幕彈窗 Modal (抽卡與圖鑑) */
+    .full-overlay-modal {
       display: none;
       position: fixed;
       top: 0; left: 0;
@@ -147,94 +487,225 @@
       padding: 16px;
     }
 
-    .modal-box {
+    .modal-content-card {
       width: 100%;
       max-width: 360px;
-      background: #111827;
-      border: 3px solid #f59e0b;
-      border-radius: 20px;
-      padding: 18px;
+      background: linear-gradient(180deg, #1e293b, #090e1a);
+      border: 3px solid var(--gold);
+      box-shadow: 0 0 40px rgba(250, 204, 21, 0.4), 0 8px 0 #000;
+      border-radius: 26px;
+      padding: 22px 18px;
       text-align: center;
-      color: white;
+      animation: modalPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes modalPop {
+      from { transform: scale(0.7) rotate(-5deg); opacity: 0; }
+      to { transform: scale(1) rotate(0deg); opacity: 1; }
     }
 
-    .bag-grid {
+    .loot-rarity-badge {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 0.78rem;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+    .r-mythic { background: linear-gradient(90deg, #ec4899, #8b5cf6); color: #fff; }
+    .r-legendary { background: linear-gradient(90deg, #f59e0b, #ef4444); color: #fff; }
+    .r-rare { background: linear-gradient(90deg, #06b6d4, #3b82f6); color: #fff; }
+    .r-common { background: #64748b; color: #fff; }
+
+    .loot-avatar-icon {
+      font-size: 4.5rem;
+      margin: 6px 0;
+      animation: floatMotion 1.5s ease-in-out infinite;
+    }
+    .loot-name-title { font-size: 1.5rem; font-weight: 900; color: #ffffff; }
+    .loot-power-tag { font-size: 1rem; color: var(--gold); font-weight: 800; margin: 4px 0 8px; }
+    .loot-quote-box {
+      background: rgba(0, 0, 0, 0.35);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.82rem;
+      color: #cbd5e1;
+      line-height: 1.45;
+      margin-bottom: 14px;
+    }
+
+    /* 長輩免死通關認證大框 */
+    .grandparent-pass-seal {
+      background: rgba(34, 197, 94, 0.18);
+      border: 2px dashed var(--green);
+      border-radius: 14px;
+      padding: 10px 12px;
+      color: #86efac;
+      font-size: 0.9rem;
+      font-weight: 700;
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+
+    .modal-submit-btn {
+      width: 100%;
+      background: linear-gradient(180deg, var(--green), var(--green-border));
+      border: 2px solid #14532d;
+      box-shadow: 0 4px 0 #052e16;
+      color: #ffffff;
+      padding: 12px;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .modal-submit-btn:active { transform: translateY(2px); box-shadow: none; }
+
+    /* 圖鑑網格清單 */
+    .bag-grid-layout {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 8px;
-      max-height: 50vh;
+      max-height: 48vh;
       overflow-y: auto;
       margin: 14px 0;
-      padding: 4px;
+      padding: 2px;
     }
-
-    .bag-cell {
-      background: #1e293b;
-      border: 2px solid #334155;
+    .bag-card-cell {
+      background: #0f172a;
+      border: 2px solid var(--border-dark);
       border-radius: 12px;
       padding: 8px 4px;
       text-align: center;
     }
-    .bag-cell.unlocked { border-color: #f59e0b; }
-    .bag-cell.locked { opacity: 0.35; filter: grayscale(1); }
-    .bag-cell-icon { font-size: 1.8rem; margin-bottom: 2px; }
-    .bag-cell-name { font-size: 0.72rem; font-weight: bold; }
+    .bag-card-cell.unlocked { border-color: var(--gold); background: #1e293b; }
+    .bag-card-cell.locked { opacity: 0.35; filter: grayscale(1); }
+    .bag-icon-img { font-size: 1.8rem; margin-bottom: 2px; }
+    .bag-name-text { font-size: 0.72rem; font-weight: 700; }
 
-    .modal-close-btn {
-      width: 100%;
-      background: #22c55e;
-      border: none;
-      color: #052e16;
-      padding: 10px;
-      border-radius: 12px;
-      font-size: 0.95rem;
-      font-weight: 900;
-      cursor: pointer;
+    /* 開箱白閃光與彩帶畫布 */
+    #flash-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: #ffffff;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 999;
+      transition: opacity 0.15s ease-out;
+    }
+    #confetti-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      pointer-events: none;
+      z-index: 101;
     }
   </style>
 </head>
 <body>
 
-  <!-- 頂部控制面板：週次歷史 ＋ 寵物圖鑑 ＋ 模式切換 -->
-  <div class="top-control-deck">
-    <div class="hud-row">
-      <div class="quest-tabs-wrapper" id="quest-nav-box"></div>
-      <button class="bag-trigger-btn" onclick="openBagModal()">🎒 寵物圖鑑</button>
+  <div class="sunburst-ambient"></div>
+  <div id="flash-overlay"></div>
+  <canvas id="confetti-canvas"></canvas>
+
+  <div class="app-viewport">
+    
+    <!-- 頂部控制面板 -->
+    <div class="control-header">
+      <div class="quest-tabs-scroll" id="quest-nav-box"></div>
+      <div class="action-icons-group">
+        <button class="pill-action-btn elder-btn" id="elder-btn" onclick="toggleElderGuide()">👵 長輩指南</button>
+        <button class="pill-action-btn bag-btn" onclick="openBagModal()">🎒 寵物圖鑑</button>
+      </div>
     </div>
-    <div class="mode-selector-bar">
-      <button class="mode-btn active" onclick="switchGameMode('EGG')">🥚 幸運開蛋</button>
-      <button class="mode-btn" onclick="switchGameMode('DOORS')">🚪 密室破門</button>
-      <button class="mode-btn" onclick="switchGameMode('SLAP')">🥊 揍飛怪獸</button>
-      <button class="mode-btn" onclick="switchGameMode('SLOT')">🎰 幸運拉霸</button>
+
+    <!-- 遊戲模式滑軌 -->
+    <div class="game-modes-deck">
+      <button class="g-mode-btn active" onclick="setMode('EGG', this)">🥚 開蛋孵化</button>
+      <button class="g-mode-btn" onclick="setMode('DOORS', this)">🚪 密室破門</button>
+      <button class="g-mode-btn" onclick="setMode('SLAP', this)">🥊 揍飛怪獸</button>
+      <button class="g-mode-btn" onclick="setMode('SLOT', this)">🎰 幸運拉霸</button>
+    </div>
+
+    <!-- 長輩安心護航指南 (可切換顯示) -->
+    <div class="elder-helper-banner" id="elder-guide-box">
+      <strong>長輩請放心（免懂英文）：</strong><br>
+      請看孩子點擊下方 3 個單字與 1 個句子，跟著聲音朗讀。集滿上方能量後，點擊中央寶箱即可通關！
+    </div>
+
+    <!-- 核心互動舞台 (隨模式切換) -->
+    <div class="game-stage-arena">
+      <div class="stage-actor-wrapper" onclick="handleStageInteract()">
+        <!-- 角色動態注入處 -->
+        <div id="stage-actor-element"></div>
+      </div>
+      <div class="stage-prompt-title" id="stage-prompt-title">幸運開蛋任務</div>
+      <div class="stage-prompt-subtitle" id="stage-prompt-sub">點擊下方 3 個字＋1 個句子注滿能量！</div>
+      
+      <!-- 能量進度條 -->
+      <div class="energy-bar-wrap">
+        <div class="energy-bar-fill" id="energy-progress-fill"></div>
+      </div>
+    </div>
+
+    <!-- 任務牌組：3 個單字（含音素提示）＋ 1 個句子 -->
+    <div class="tasks-deck-container">
+      <div id="words-cards-deck" style="display: flex; flex-direction: column; gap: 10px;"></div>
+      
+      <!-- 核心語句卡 -->
+      <div class="sentence-quest-card" id="sentence-card" onclick="handleSentenceClick()">
+        <div class="sentence-label-tag">📜 本週通關密碼句 (點擊聽讀)</div>
+        <div class="sentence-en-text" id="target-sentence-en"></div>
+        <div class="sentence-zh-text" id="target-sentence-zh"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 1. 抽卡開獎彈窗 (全模式共通開箱反饋) -->
+  <div class="full-overlay-modal" id="loot-modal">
+    <div class="modal-content-card">
+      <span class="loot-rarity-badge" id="loot-rarity-badge">神話級 MYTHIC</span>
+      <div class="loot-avatar-icon" id="loot-avatar-icon">🐉</div>
+      <div class="loot-name-title" id="loot-name-title">彩虹機械龍</div>
+      <div class="loot-power-tag" id="loot-power-tag">⚡ 戰鬥力: 999,999</div>
+      <div class="loot-quote-box" id="loot-quote-box">全服爆率只有 1% 的極品神寵！</div>
+      
+      <!-- 長輩免死證明 -->
+      <div class="grandparent-pass-seal">
+        ✨ <strong>今日任務已通關！</strong><br>
+        出示此卡給阿公阿嬤確認，換今日放鬆時間！
+      </div>
+
+      <button class="modal-submit-btn" onclick="closeLootModal()">收進背包圖鑑 🎮</button>
     </div>
   </div>
 
-  <div id="game-canvas-container"></div>
-
-  <!-- 寵物背包彈窗 -->
-  <div class="full-modal" id="bag-modal">
-    <div class="modal-box">
-      <h3 style="font-size: 1.2rem; color: #f59e0b;">🎒 寵物收藏圖鑑</h3>
-      <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 4px;">
-        收集進度：<span id="bag-progress">0 / 6</span>
+  <!-- 2. 寵物收藏圖鑑背包 -->
+  <div class="full-overlay-modal" id="bag-modal">
+    <div class="modal-content-card" style="max-width: 380px;">
+      <h3 style="font-size: 1.3rem; color: var(--gold);">🎒 寵物收藏圖鑑</h3>
+      <div style="font-size: 0.82rem; color: var(--text-sub); margin-top: 4px;">
+        已解鎖進度：<span id="bag-progress-text">0 / 6</span>
       </div>
-      <div class="bag-grid" id="bag-items-box"></div>
-      <button class="modal-close-btn" onclick="closeBagModal()">返回任務</button>
+      <div class="bag-grid-layout" id="bag-items-container"></div>
+      <button class="modal-submit-btn" onclick="closeBagModal()">返回任務</button>
     </div>
   </div>
 
   <script>
     // ========================================================
-    // ⚙️ 關卡歷史資料庫 (每週課後在最上面新增一週即可)
+    // ⚙️ 關卡歷史資料庫 (每週直接在陣列頂部新增即可)
     // ========================================================
     const ALL_QUESTS = [
       {
         id: "w4",
         label: "第 4 關",
         words: [
-          { en: "rain", display: "r · ain", zh: "下雨" },
-          { en: "weather", display: "wea · ther", zh: "天氣" },
-          { en: "outside", display: "out · side", zh: "外面" }
+          { en: "rain", display: "r · ain", zh: "下雨", hint: "發音重點：ai 發長母音 /eɪ/，拼寫拆為 r + ain。" },
+          { en: "weather", display: "wea · ther", zh: "天氣", hint: "音節拆解：wea-（短母音 /ɛ/）+ -ther（咬舌濁音 /ðər/）。" },
+          { en: "outside", display: "out · side", zh: "外面", hint: "複合字：out（出去）+ side（邊/面）＝ 外面。" }
         ],
         sentence: {
           en: "It is raining outside.",
@@ -245,9 +716,9 @@
         id: "w3",
         label: "第 3 關 (複習)",
         words: [
-          { en: "happy", display: "hap · py", zh: "高興的" },
-          { en: "school", display: "school", zh: "學校" },
-          { en: "friend", display: "friend", zh: "朋友" }
+          { en: "happy", display: "hap · py", zh: "高興的", hint: "雙子音 pp，前母音 a 發蝴蝶音 /æ/。" },
+          { en: "school", display: "school", zh: "學校", hint: "ch 在這裡發硬音 /k/，oo 發長母音 /u/。" },
+          { en: "friend", display: "friend", zh: "朋友", hint: "ie 在此發短母音 /ɛ/，結尾 d 輕聲釋放。" }
         ],
         sentence: {
           en: "I see my friend at school.",
@@ -256,390 +727,30 @@
       }
     ];
 
-    // 全服寵物圖鑑庫 (含 ID、數值、圖示、稀有度)
+    // 全服寵物圖鑑庫 (含 ID、稀有度、戰鬥力、幽默說明)
     const PET_CATALOG = [
-      { id: "p1", name: "TITANIC RAINBOW DRAGON", rarity: "MYTHIC", color: 0xec4899, power: "999,999", icon: "🐉", quote: "傳奇彩虹神龍！全服只有 0.1% 掉落率" },
-      { id: "p2", name: "GOLDEN BANANA DOG", rarity: "LEGENDARY", color: 0xf59e0b, power: "88,000", icon: "🐕", quote: "黃金香蕉狗！走路自帶滑倒音效" },
-      { id: "p3", name: "BLIZZARD UNICORN", rarity: "LEGENDARY", color: 0x38bdf8, power: "52,000", icon: "🦄", quote: "能把考卷全部冰凍的極地神獸" },
-      { id: "p4", name: "CYBER GLITCH CAT", rarity: "RARE", color: 0x06b6d4, power: "12,500", icon: "🐱", quote: "賽博駭客貓，能把題目直接格式化" },
-      { id: "p5", name: "RADIOACTIVE TOILET", rarity: "RARE", color: 0xa855f7, power: "4,800", icon: "🚽", quote: "按下沖水鍵會發射超強音波攻擊！" },
-      { id: "p6", name: "MOLDY TOAST", rarity: "COMMON", color: 0x94a3b8, power: "25", icon: "🍞", quote: "雖然戰鬥力很低，但烤過挺好吃的" }
+      { id: "p1", name: "彩虹霸王龍", rarity: "神話級 MYTHIC", rClass: "r-mythic", icon: "🦖", power: "⚡ 888,888", quote: "自帶彩虹軌跡的終極神龍，走到哪亮到哪。" },
+      { id: "p2", name: "黃金香蕉狗", rarity: "傳奇級 LEGENDARY", rClass: "r-legendary", icon: "🐕", power: "⚡ 65,000", quote: "香蕉皮做的小狗，跑得飛快但容易打滑。" },
+      { id: "p3", name: "暴風雪獨角獸", rarity: "傳奇級 LEGENDARY", rClass: "r-legendary", icon: "🦄", power: "⚡ 52,000", quote: "能發射冰錐光束，把無聊的考卷全部凍結！" },
+      { id: "p4", name: "發光的馬桶怪", rarity: "稀有級 RARE", rClass: "r-rare", icon: "🚽", power: "⚡ 4,800", quote: "按下沖水鍵會發射超強音波攻擊！" },
+      { id: "p5", name: "爆炸西瓜怪", rarity: "稀有級 RARE", rClass: "r-rare", icon: "🍉", power: "⚡ 2,300", quote: "受到驚嚇會吐出大量西瓜籽機關槍。" },
+      { id: "p6", name: "發霉的生吐司", rarity: "普通級 COMMON", rClass: "r-common", icon: "🍞", power: "⚡ 15", quote: "雖然戰鬥力極低，但看起來挺好吃的。" }
     ];
 
     let currentQuestIdx = 0;
     let currentMode = 'EGG';
-    let phaserGame = null;
+    let chargedSet = new Set();
     let unlockedPets = JSON.parse(localStorage.getItem("unlocked_pet_ids") || "[]");
 
-    // --------------------------------------------------------
-    // Phaser 3 場景引擎
-    // --------------------------------------------------------
-    class GameScene extends Phaser.Scene {
-      constructor() {
-        super({ key: 'GameScene' });
-      }
-
-      preload() {
-        this.createVectorAssets();
-      }
-
-      create() {
-        this.chargedCount = 0;
-        this.maxCharges = 4;
-        this.completedItems = new Set();
-
-        const W = 400;
-        const H = 720;
-        const activeQuest = ALL_QUESTS[currentQuestIdx];
-
-        // 1. 背景網格
-        this.add.rectangle(W / 2, H / 2, W, H, 0x0a0f1d);
-        this.grid = this.add.grid(W / 2, H / 2, W, H, 32, 32, 0x000000, 0, 0x1e293b, 0.25);
-
-        // 2. 頂部能量槽
-        this.createHUD(W, activeQuest);
-
-        // 3. 依模式建立中央舞台
-        this.buildStageByMode(W / 2, H * 0.35);
-
-        // 4. 建立 3 單字 ＋ 1 句子任務符文
-        this.createRuneDeck(W / 2, H * 0.61, activeQuest);
-
-        // 5. 粒子發射器
-        this.particleEmitter = this.add.particles(0, 0, 'glowParticle', {
-          speed: { min: 80, max: 200 },
-          scale: { start: 0.8, end: 0 },
-          blendMode: 'ADD',
-          lifespan: 600,
-          emitting: false
-        });
-      }
-
-      createVectorAssets() {
-        const pGfx = this.make.graphics({ x: 0, y: 0, add: false });
-        pGfx.fillStyle(0x00f0ff, 1);
-        pGfx.fillCircle(8, 8, 8);
-        pGfx.generateTexture('glowParticle', 16, 16);
-
-        const rGfx = this.make.graphics({ x: 0, y: 0, add: false });
-        rGfx.fillStyle(0x162032, 1);
-        rGfx.fillRoundedRect(0, 0, 360, 52, 14);
-        rGfx.lineStyle(3, 0x2a3b5c, 1);
-        rGfx.strokeRoundedRect(0, 0, 360, 52, 14);
-        rGfx.generateTexture('runeBase', 360, 52);
-
-        const aGfx = this.make.graphics({ x: 0, y: 0, add: false });
-        aGfx.fillStyle(0x064e3b, 1);
-        aGfx.fillRoundedRect(0, 0, 360, 52, 14);
-        aGfx.lineStyle(3, 0x10b981, 1);
-        aGfx.strokeRoundedRect(0, 0, 360, 52, 14);
-        aGfx.generateTexture('runeCharged', 360, 52);
-      }
-
-      createHUD(w, quest) {
-        this.add.text(w / 2, 28, `${quest.label} · QUEST ENERGIZER`, {
-          fontFamily: 'sans-serif',
-          fontSize: '13px',
-          fontStyle: 'bold',
-          color: '#38bdf8'
-        }).setOrigin(0.5);
-
-        this.add.rectangle(w / 2, 54, 220, 22, 0x0f172a).setStrokeStyle(2, 0x334155);
-        this.energyFill = this.add.rectangle(w / 2 - 108, 54, 0, 18, 0x00f0ff).setOrigin(0, 0.5);
-        this.energyText = this.add.text(w / 2, 54, 'PROGRESS 0 / 4', {
-          fontFamily: 'sans-serif',
-          fontSize: '11px',
-          fontStyle: 'bold',
-          color: '#ffffff'
-        }).setOrigin(0.5);
-      }
-
-      buildStageByMode(cx, cy) {
-        this.stageContainer = this.add.container(cx, cy);
-
-        if (currentMode === 'EGG') {
-          this.pedestal = this.add.ellipse(0, 75, 150, 36, 0x38bdf8, 0.2);
-          this.eggGfx = this.add.graphics();
-          this.drawEgg(0x38bdf8, 0x1d4ed8);
-          this.stageContainer.add([this.pedestal, this.eggGfx]);
-
-          this.idleTween = this.tweens.add({
-            targets: this.stageContainer,
-            y: cy - 12,
-            duration: 1400,
-            yoyo: true,
-            repeat: -1,
-            ease: 'Sine.easeInOut'
-          });
-
-          this.stageContainer.setSize(120, 140);
-          this.stageContainer.setInteractive(new Phaser.Geom.Circle(0, 0, 60), Phaser.Geom.Circle.Contains);
-          this.stageContainer.on('pointerdown', () => this.handleActionTrigger());
-          this.stageLabel = this.add.text(cx, cy + 110, '⚡ 點擊下方單字注入能量開蛋', { fontFamily: 'sans-serif', fontSize: '13px', color: '#94a3b8', fontStyle: 'bold' }).setOrigin(0.5);
-
-        } else if (currentMode === 'DOORS') {
-          this.doorBox = this.add.rectangle(0, 0, 110, 150, 0x334155).setStrokeStyle(4, 0x64748b);
-          this.doorText = this.add.text(0, -20, 'DOOR 01', { fontFamily: 'sans-serif', fontSize: '18px', fontStyle: 'bold', color: '#facc15' }).setOrigin(0.5);
-          this.doorLock = this.add.text(0, 30, '🔒 LOCKED', { fontFamily: 'sans-serif', fontSize: '13px', color: '#ef4444', fontStyle: 'bold' }).setOrigin(0.5);
-          this.stageContainer.add([this.doorBox, this.doorText, this.doorLock]);
-
-          this.stageContainer.setSize(110, 150);
-          this.stageContainer.setInteractive();
-          this.stageContainer.on('pointerdown', () => this.handleActionTrigger());
-          this.stageLabel = this.add.text(cx, cy + 110, '🏃 解開 4 道密碼破門逃脫！', { fontFamily: 'sans-serif', fontSize: '13px', color: '#94a3b8', fontStyle: 'bold' }).setOrigin(0.5);
-
-        } else if (currentMode === 'SLAP') {
-          this.monster = this.add.circle(0, 0, 55, 0xec4899).setStrokeStyle(4, 0xffffff);
-          this.monsterFace = this.add.text(0, -5, '🤪', { fontSize: '46px' }).setOrigin(0.5);
-          this.stageContainer.add([this.monster, this.monsterFace]);
-
-          this.idleTween = this.tweens.add({ targets: this.stageContainer, scaleX: 1.06, duration: 600, yoyo: true, repeat: -1 });
-          this.stageContainer.setSize(110, 110);
-          this.stageContainer.setInteractive();
-          this.stageContainer.on('pointerdown', () => this.handleActionTrigger());
-          this.stageLabel = this.add.text(cx, cy + 110, '🥊 聽讀蓄力，把怪獸打飛到太空！', { fontFamily: 'sans-serif', fontSize: '13px', color: '#94a3b8', fontStyle: 'bold' }).setOrigin(0.5);
-
-        } else if (currentMode === 'SLOT') {
-          this.slotFrame = this.add.rectangle(0, 0, 180, 110, 0x1e293b).setStrokeStyle(4, 0xfacc15);
-          this.slotReel = this.add.text(0, 0, '💎 | 💎 | 💎', { fontFamily: 'sans-serif', fontSize: '20px', fontStyle: 'bold', color: '#ffffff' }).setOrigin(0.5);
-          this.stageContainer.add([this.slotFrame, this.slotReel]);
-
-          this.stageContainer.setSize(180, 110);
-          this.stageContainer.setInteractive();
-          this.stageContainer.on('pointerdown', () => this.handleActionTrigger());
-          this.stageLabel = this.add.text(cx, cy + 110, '🎰 湊滿 4 顆幸運代幣啟動拉霸！', { fontFamily: 'sans-serif', fontSize: '13px', color: '#94a3b8', fontStyle: 'bold' }).setOrigin(0.5);
-        }
-      }
-
-      drawEgg(topColor, bottomColor) {
-        this.eggGfx.clear();
-        this.eggGfx.fillStyle(bottomColor, 1);
-        this.eggGfx.fillCircle(0, 10, 50);
-        this.eggGfx.fillStyle(topColor, 1);
-        this.eggGfx.fillCircle(0, -10, 42);
-        this.eggGfx.lineStyle(4, 0xffffff, 0.85);
-        this.eggGfx.strokeCircle(0, 0, 52);
-      }
-
-      createRuneDeck(centerX, startY, quest) {
-        quest.words.forEach((item, idx) => {
-          this.createRuneButton(centerX, startY + idx * 62, item, `word_${idx}`);
-        });
-        const sentenceY = startY + 3 * 62 + 8;
-        this.createSentenceRune(centerX, sentenceY, quest.sentence);
-      }
-
-      createRuneButton(x, y, item, key) {
-        const container = this.add.container(x, y);
-        const bg = this.add.image(0, 0, 'runeBase').setInteractive({ useHandCursor: true });
-        const textEn = this.add.text(-150, -4, item.display, { fontFamily: 'sans-serif', fontSize: '19px', fontStyle: 'bold', color: '#ffffff' }).setOrigin(0, 0.5);
-        const textZh = this.add.text(50, -4, item.zh, { fontFamily: 'sans-serif', fontSize: '14px', color: '#94a3b8' }).setOrigin(0, 0.5);
-        const icon = this.add.text(145, -4, '🔊', { fontSize: '18px' }).setOrigin(0.5);
-
-        container.add([bg, textEn, textZh, icon]);
-        bg.on('pointerdown', () => {
-          this.triggerJuicyPress(container);
-          this.speak(item.en);
-          this.awardProgress(key, bg, container.x, container.y);
-        });
-      }
-
-      createSentenceRune(x, y, sentenceObj) {
-        const container = this.add.container(x, y);
-        const bg = this.add.image(0, 0, 'runeBase').setInteractive({ useHandCursor: true });
-        const label = this.add.text(-150, -14, '📜 本週密碼句：', { fontFamily: 'sans-serif', fontSize: '11px', color: '#38bdf8' });
-        const sentenceText = this.add.text(-150, 6, sentenceObj.en, { fontFamily: 'sans-serif', fontSize: '15px', fontStyle: 'bold', color: '#ffffff' });
-        const icon = this.add.text(145, 0, '⚡', { fontSize: '18px' }).setOrigin(0.5);
-
-        container.add([bg, label, sentenceText, icon]);
-        bg.on('pointerdown', () => {
-          this.triggerJuicyPress(container);
-          this.speak(sentenceObj.en);
-          this.awardProgress('sentence', bg, container.x, container.y);
-        });
-      }
-
-      triggerJuicyPress(target) {
-        this.tweens.add({ targets: target, scaleX: 0.94, scaleY: 0.94, duration: 80, yoyo: true });
-      }
-
-      awardProgress(key, bgImage, originX, originY) {
-        this.playAudioSynth(880, 'sine', 0.15);
-
-        if (!this.completedItems.has(key)) {
-          this.completedItems.add(key);
-          bgImage.setTexture('runeCharged');
-          this.chargedCount++;
-
-          const progressRatio = this.chargedCount / this.maxCharges;
-          this.tweens.add({
-            targets: this.energyFill,
-            width: 216 * progressRatio,
-            duration: 300,
-            ease: 'Cubic.easeOut'
-          });
-          this.energyText.setText(`PROGRESS ${this.chargedCount} / ${this.maxCharges}`);
-
-          this.particleEmitter.explode(16, originX, originY);
-          this.tweens.add({
-            targets: { x: originX, y: originY },
-            x: this.stageContainer.x,
-            y: this.stageContainer.y,
-            duration: 380,
-            onUpdate: (tween) => {
-              const val = tween.getValue();
-              this.particleEmitter.emitParticleAt(val.x, val.y);
-            }
-          });
-
-          if (currentMode === 'DOORS') {
-            this.doorText.setText(`DOOR 0${this.chargedCount}`);
-          }
-
-          if (this.chargedCount === this.maxCharges) {
-            this.setStageReady();
-          }
-        }
-      }
-
-      setStageReady() {
-        this.playAudioSynth(587.33, 'triangle', 0.4);
-
-        if (currentMode === 'EGG') {
-          this.drawEgg(0xfde047, 0xea580c);
-          if (this.idleTween) this.idleTween.stop();
-          this.tweens.add({ targets: this.stageContainer, scaleX: 1.15, scaleY: 0.9, angle: 10, duration: 90, yoyo: true, repeat: -1 });
-          this.stageLabel.setText('🔥 能量充飽！點擊狂暴開蛋！').setColor('#facc15');
-
-        } else if (currentMode === 'DOORS') {
-          this.doorBox.setStrokeStyle(4, 0x22c55e);
-          this.doorLock.setText('🔓 UNLOCKED!').setColor('#22c55e');
-          this.stageLabel.setText('🚪 鎖已全開！點擊大門逃出！').setColor('#22c55e');
-
-        } else if (currentMode === 'SLAP') {
-          this.monsterFace.setText('😱');
-          this.tweens.add({ targets: this.stageContainer, scaleX: 1.25, scaleY: 1.25, angle: 15, duration: 80, yoyo: true, repeat: -1 });
-          this.stageLabel.setText('💥 大招蓄滿！點擊一拳揍飛！').setColor('#facc15');
-
-        } else if (currentMode === 'SLOT') {
-          this.stageLabel.setText('🎰 金幣到位！點擊拉桿開獎！').setColor('#facc15');
-        }
-      }
-
-      handleActionTrigger() {
-        if (this.chargedCount < this.maxCharges) {
-          this.cameras.main.shake(120, 0.01);
-          this.playAudioSynth(220, 'square', 0.15);
-          return;
-        }
-
-        this.cameras.main.shake(400, 0.035);
-        this.cameras.main.flash(400, 255, 255, 255);
-        this.playVictoryFanfare();
-
-        // 保底抽卡機制：優先掉落未獲得寵物
-        let candidatePool = PET_CATALOG;
-        if (unlockedPets.length < PET_CATALOG.length) {
-          const unowned = PET_CATALOG.filter(p => !unlockedPets.includes(p.id));
-          if (Math.random() < 0.7 && unowned.length > 0) {
-            candidatePool = unowned;
-          }
-        }
-        const loot = candidatePool[Math.floor(Math.random() * candidatePool.length)];
-
-        // 存入背包 localStorage
-        if (!unlockedPets.includes(loot.id)) {
-          unlockedPets.push(loot.id);
-          localStorage.setItem("unlocked_pet_ids", JSON.stringify(unlockedPets));
-        }
-
-        this.showGachaCardModal(loot);
-      }
-
-      showGachaCardModal(loot) {
-        const W = 400;
-        const H = 720;
-        const overlay = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0.9).setInteractive();
-        const cardBox = this.add.container(W / 2, H / 2);
-
-        const cardBg = this.add.rectangle(0, 0, 310, 440, 0x111827).setStrokeStyle(4, loot.color);
-        const badge = this.add.text(0, -180, `★ ${loot.rarity} ★`, { fontFamily: 'sans-serif', fontSize: '14px', fontStyle: 'bold', color: '#ffffff' }).setOrigin(0.5);
-
-        // 寵物立繪圖示
-        const orb = this.add.circle(0, -90, 50, loot.color, 0.3);
-        const avatar = this.add.text(0, -90, loot.icon, { fontSize: '50px' }).setOrigin(0.5);
-
-        const nameLabel = this.add.text(0, -15, loot.name, { fontFamily: 'sans-serif', fontSize: '16px', fontStyle: 'bold', color: '#ffffff', align: 'center' }).setOrigin(0.5);
-        const powerLabel = this.add.text(0, 15, `⚡ POWER: ${loot.power}`, { fontFamily: 'sans-serif', fontSize: '14px', color: '#facc15', fontStyle: 'bold' }).setOrigin(0.5);
-        const quoteLabel = this.add.text(0, 60, loot.quote, { fontFamily: 'sans-serif', fontSize: '12px', color: '#cbd5e1', wordWrap: { width: 260 }, align: 'center' }).setOrigin(0.5);
-
-        // 阿嬤安心免死標籤 (大框放大)
-        const passBox = this.add.rectangle(0, 125, 270, 52, 0x052e16).setStrokeStyle(2, 0x22c55e);
-        const passText = this.add.text(0, 125, '✨ 今日跟讀任務已通關！\n拿這張神寵給阿嬤看換放鬆時間', {
-          fontFamily: 'sans-serif',
-          fontSize: '12px',
-          fontWeight: 'bold',
-          color: '#86efac',
-          align: 'center'
-        }).setOrigin(0.5);
-
-        const closeBtn = this.add.rectangle(0, 185, 220, 38, 0x22c55e).setInteractive({ useHandCursor: true });
-        const closeTxt = this.add.text(0, 185, '收進背包圖鑑 🎮', { fontFamily: 'sans-serif', fontSize: '14px', fontWeight: 'bold', color: '#052e16' }).setOrigin(0.5);
-
-        cardBox.add([cardBg, badge, orb, avatar, nameLabel, powerLabel, quoteLabel, passBox, passText, closeBtn, closeTxt]);
-
-        cardBox.setScale(0);
-        this.tweens.add({ targets: cardBox, scale: 1, duration: 350, ease: 'Back.easeOut' });
-
-        closeBtn.on('pointerdown', () => {
-          overlay.destroy();
-          cardBox.destroy();
-        });
-      }
-
-      speak(text) {
-        if ('speechSynthesis' in window) {
-          window.speechSynthesis.cancel();
-          const utter = new SpeechSynthesisUtterance(text);
-          utter.lang = 'en-US';
-          utter.rate = 0.8;
-          window.speechSynthesis.speak(utter);
-        }
-      }
-
-      playAudioSynth(freq, type, duration) {
-        try {
-          const ctx = new (window.AudioContext || window.webkitAudioContext)();
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.type = type;
-          osc.frequency.setValueAtTime(freq, ctx.currentTime);
-          gain.gain.setValueAtTime(0.2, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
-          osc.start();
-          osc.stop(ctx.currentTime + duration);
-        } catch (e) {}
-      }
-
-      playVictoryFanfare() {
-        const notes = [523.25, 659.25, 783.99, 1046.50];
-        notes.forEach((freq, idx) => {
-          setTimeout(() => this.playAudioSynth(freq, 'triangle', 0.3), idx * 90);
-        });
-      }
-    }
-
-    // --------------------------------------------------------
-    // HTML 介面控制（關卡切換 ＋ 圖鑑背包）
-    // --------------------------------------------------------
-    function initQuestTabs() {
+    // ----------------------------------------------------
+    // 初始化與關卡切換
+    // ----------------------------------------------------
+    function initQuestNav() {
       const box = document.getElementById("quest-nav-box");
       box.innerHTML = "";
       ALL_QUESTS.forEach((q, idx) => {
         const btn = document.createElement("button");
-        btn.className = `q-tab ${idx === currentQuestIdx ? 'active' : ''}`;
+        btn.className = `q-btn ${idx === currentQuestIdx ? 'active' : ''}`;
         btn.innerText = q.label;
         btn.onclick = () => switchQuest(idx);
         box.appendChild(btn);
@@ -647,40 +758,197 @@
     }
 
     function switchQuest(idx) {
-      if (currentQuestIdx === idx) return;
       currentQuestIdx = idx;
-      initQuestTabs();
-      if (phaserGame && phaserGame.scene) {
-        phaserGame.scene.scenes[0].scene.restart();
-      }
+      document.querySelectorAll(".q-btn").forEach((b, i) => b.classList.toggle("active", i === idx));
+      loadQuestData(ALL_QUESTS[idx]);
     }
 
-    function switchGameMode(modeKey) {
-      if (currentMode === modeKey) return;
-      currentMode = modeKey;
+    function loadQuestData(quest) {
+      chargedSet.clear();
+      updateProgressUI();
 
-      document.querySelectorAll('.mode-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.getAttribute('onclick').includes(modeKey));
+      // 更新句子
+      document.getElementById("target-sentence-en").innerText = quest.sentence.en;
+      document.getElementById("target-sentence-zh").innerText = quest.sentence.zh;
+      document.getElementById("sentence-card").classList.remove("charged");
+
+      // 渲染單字（含音素拆解提示抽屜）
+      const wordsBox = document.getElementById("words-cards-deck");
+      wordsBox.innerHTML = "";
+      quest.words.forEach((item, idx) => {
+        const card = document.createElement("div");
+        card.className = "task-card-item";
+        card.id = `card-word-${idx}`;
+        card.innerHTML = `
+          <div class="task-row-top">
+            <div>
+              <div class="word-main-display">${item.display}</div>
+              <div class="word-zh-sub">${item.zh}</div>
+            </div>
+            <div class="sound-trigger-badge" onclick="handleWordClick(${idx}, '${item.en}')">🔊</div>
+          </div>
+          <div class="scaffold-drawer-trigger" onclick="toggleHint(this)">
+            💡 音素提示與拆解
+          </div>
+          <div class="scaffold-drawer-content">${item.hint}</div>
+        `;
+        wordsBox.appendChild(card);
       });
 
-      if (phaserGame && phaserGame.scene) {
-        phaserGame.scene.scenes[0].scene.restart();
+      renderStageActor();
+    }
+
+    function toggleHint(btn) {
+      const drawer = btn.nextElementSibling;
+      const isOpen = drawer.classList.toggle("open");
+      btn.innerText = isOpen ? "收合提示" : "💡 音素提示與拆解";
+    }
+
+    // ----------------------------------------------------
+    // 4 大遊戲模式舞台渲染 (徹底拉開視覺與反饋)
+    // ----------------------------------------------------
+    function setMode(modeKey, btn) {
+      currentMode = modeKey;
+      document.querySelectorAll(".g-mode-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderStageActor();
+    }
+
+    function renderStageActor() {
+      const actorBox = document.getElementById("stage-actor-element");
+      const title = document.getElementById("stage-prompt-title");
+      const sub = document.getElementById("stage-prompt-sub");
+      const isReady = chargedSet.size === 4;
+
+      if (currentMode === 'EGG') {
+        actorBox.innerHTML = `<div class="actor-egg ${isReady ? 'ready' : ''}">${isReady ? '✨' : '🔒'}</div>`;
+        title.innerText = isReady ? "🔥 能量充飽！快點擊開蛋！" : "幸運開蛋任務";
+        sub.innerText = isReady ? "神秘神寵即將孵化！" : "點下方 3 個字＋1 個句子注滿能量！";
+
+      } else if (currentMode === 'DOORS') {
+        actorBox.innerHTML = `
+          <div class="actor-door ${isReady ? 'ready' : ''}">
+            <div style="font-size: 1.1rem; font-weight: 800; color: #facc15;">DOOR 0${chargedSet.size}</div>
+            <div style="font-size: 1.8rem;">${isReady ? '🔓' : '🔒'}</div>
+          </div>
+        `;
+        title.innerText = isReady ? "🚪 密碼全解開！點擊破門逃脫！" : "密室逃脫破門";
+        sub.innerText = isReady ? "點擊大門衝出房間！" : `目前破鎖進度：${chargedSet.size} / 4`;
+
+      } else if (currentMode === 'SLAP') {
+        actorBox.innerHTML = `<div class="actor-monster ${isReady ? 'ready' : ''}">${isReady ? '😱' : '🤪'}</div>`;
+        title.innerText = isReady ? "💥 大招蓄滿！點擊一拳揍飛！" : "巴掌大亂鬥";
+        sub.innerText = isReady ? "一拳把它打飛到外太空！" : "聽讀累積怒氣值！";
+
+      } else if (currentMode === 'SLOT') {
+        actorBox.innerHTML = `
+          <div class="actor-slot ${isReady ? 'ready' : ''}">
+            ${isReady ? '7️⃣ 7️⃣ 7️⃣' : '💎 ❓ 💎'}
+          </div>
+        `;
+        title.innerText = isReady ? "🎰 代幣集齊！點擊拉桿開獎！" : "幸運拉霸機";
+        sub.innerText = isReady ? "大獎即將噴出！" : "湊齊 4 枚代幣啟動拉霸！";
       }
     }
 
-    // 開啟圖鑑背包 Modal
+    // ----------------------------------------------------
+    // 點擊注能與發音邏輯
+    // ----------------------------------------------------
+    function handleWordClick(idx, word) {
+      playCoinSound();
+      speakTTS(word);
+
+      const key = `w-${idx}`;
+      if (!chargedSet.has(key)) {
+        chargedSet.add(key);
+        document.getElementById(`card-word-${idx}`).classList.add("charged");
+        updateProgressUI();
+      }
+    }
+
+    function handleSentenceClick() {
+      const sentence = ALL_QUESTS[currentQuestIdx].sentence.en;
+      playCoinSound();
+      speakTTS(sentence);
+
+      const key = "sentence";
+      if (!chargedSet.has(key)) {
+        chargedSet.add(key);
+        document.getElementById("sentence-card").classList.add("charged");
+        updateProgressUI();
+      }
+    }
+
+    function updateProgressUI() {
+      const count = chargedSet.size;
+      const percent = (count / 4) * 100;
+      document.getElementById("energy-progress-fill").style.width = `${percent}%`;
+
+      renderStageActor();
+
+      if (count === 4) {
+        playFanfareSound();
+      }
+    }
+
+    // 點擊中央舞台觸發開獎
+    function handleStageInteract() {
+      if (chargedSet.size < 4) {
+        alert("請先將 3 個單字與 1 個句子點擊聽完，注滿 4 顆能量！");
+        return;
+      }
+
+      // 觸發白閃光、開箱音效、全螢幕彩帶
+      triggerWhiteFlash();
+      playChestSound();
+      launchConfetti();
+
+      // 保底機制：70% 機率優先掉落未擁有的寵物
+      let pool = PET_CATALOG;
+      if (unlockedPets.length < PET_CATALOG.length) {
+        const unowned = PET_CATALOG.filter(p => !unlockedPets.includes(p.id));
+        if (Math.random() < 0.7 && unowned.length > 0) {
+          pool = unowned;
+        }
+      }
+      const loot = pool[Math.floor(Math.random() * pool.length)];
+
+      if (!unlockedPets.includes(loot.id)) {
+        unlockedPets.push(loot.id);
+        localStorage.setItem("unlocked_pet_ids", JSON.stringify(unlockedPets));
+      }
+
+      // 渲染開獎彈窗
+      const badge = document.getElementById("loot-rarity-badge");
+      badge.innerText = loot.rarity;
+      badge.className = `loot-rarity-badge ${loot.rClass}`;
+      document.getElementById("loot-avatar-icon").innerText = loot.icon;
+      document.getElementById("loot-name-title").innerText = loot.name;
+      document.getElementById("loot-power-tag").innerText = loot.power;
+      document.getElementById("loot-quote-box").innerText = loot.quote;
+
+      document.getElementById("loot-modal").style.display = "flex";
+    }
+
+    function closeLootModal() {
+      document.getElementById("loot-modal").style.display = "none";
+    }
+
+    // ----------------------------------------------------
+    // 圖鑑背包與長輩指南
+    // ----------------------------------------------------
     function openBagModal() {
-      const box = document.getElementById("bag-items-box");
+      const box = document.getElementById("bag-items-container");
       box.innerHTML = "";
-      document.getElementById("bag-progress").innerText = `${unlockedPets.length} / ${PET_CATALOG.length}`;
+      document.getElementById("bag-progress-text").innerText = `${unlockedPets.length} / ${PET_CATALOG.length}`;
 
       PET_CATALOG.forEach(p => {
         const isUnlocked = unlockedPets.includes(p.id);
         const cell = document.createElement("div");
-        cell.className = `bag-cell ${isUnlocked ? 'unlocked' : 'locked'}`;
+        cell.className = `bag-card-cell ${isUnlocked ? 'unlocked' : 'locked'}`;
         cell.innerHTML = `
-          <div class="bag-cell-icon">${isUnlocked ? p.icon : '❓'}</div>
-          <div class="bag-cell-name">${isUnlocked ? p.name.split(' ')[0] : '未解鎖'}</div>
+          <div class="bag-icon-img">${isUnlocked ? p.icon : '❓'}</div>
+          <div class="bag-name-text">${isUnlocked ? p.name.split(' ')[0] : '未解鎖'}</div>
         `;
         box.appendChild(cell);
       });
@@ -692,21 +960,125 @@
       document.getElementById("bag-modal").style.display = "none";
     }
 
-    // 啟動程式
-    window.addEventListener('load', () => {
-      initQuestTabs();
-      const config = {
-        type: Phaser.AUTO,
-        parent: 'game-canvas-container',
-        width: 400,
-        height: 720,
-        scale: {
-          mode: Phaser.Scale.FIT,
-          autoCenter: Phaser.Scale.CENTER_BOTH
-        },
-        scene: GameScene
-      };
-      phaserGame = new Phaser.Game(config);
+    function toggleElderGuide() {
+      const banner = document.getElementById("elder-guide-box");
+      const btn = document.getElementById("elder-btn");
+      const isShow = banner.classList.toggle("show");
+      btn.classList.toggle("active", isShow);
+    }
+
+    // ----------------------------------------------------
+    // 音訊與特效引擎 (極致流暢，零延遲)
+    // ----------------------------------------------------
+    function speakTTS(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'en-US';
+        utter.rate = 0.8;
+        window.speechSynthesis.speak(utter);
+      }
+    }
+
+    function triggerWhiteFlash() {
+      const flash = document.getElementById("flash-overlay");
+      flash.style.opacity = "0.9";
+      setTimeout(() => { flash.style.opacity = "0"; }, 250);
+    }
+
+    function playCoinSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.setValueAtTime(987.77, ctx.currentTime);
+        osc.frequency.setValueAtTime(1318.51, ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.3);
+      } catch (e) {}
+    }
+
+    function playFanfareSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        [523.25, 659.25, 783.99].forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.1);
+          gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.1 + 0.25);
+          osc.start(ctx.currentTime + i * 0.1);
+          osc.stop(ctx.currentTime + i * 0.1 + 0.25);
+        });
+      } catch (e) {}
+    }
+
+    function playChestSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        [440, 554.37, 659.25, 880, 1108.73].forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.07);
+          gain.gain.setValueAtTime(0.25, ctx.currentTime + idx * 0.07);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.07 + 0.3);
+          osc.start(ctx.currentTime + idx * 0.07);
+          osc.stop(ctx.currentTime + idx * 0.07 + 0.3);
+        });
+      } catch (e) {}
+    }
+
+    function launchConfetti() {
+      const canvas = document.getElementById("confetti-canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const pieces = [];
+      const colors = ["#facc15", "#38bdf8", "#22c55e", "#ec4899", "#a855f7"];
+      for (let i = 0; i < 90; i++) {
+        pieces.push({
+          x: canvas.width / 2,
+          y: canvas.height / 2,
+          r: Math.random() * 6 + 4,
+          dx: (Math.random() - 0.5) * 14,
+          dy: (Math.random() - 0.8) * 16,
+          color: colors[Math.floor(Math.random() * colors.length)]
+        });
+      }
+
+      let frame = 0;
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(p => {
+          p.x += p.dx;
+          p.y += p.dy;
+          p.dy += 0.35;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = p.color;
+          ctx.fill();
+        });
+        frame++;
+        if (frame < 110) requestAnimationFrame(animate);
+        else ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      animate();
+    }
+
+    // 啟動程序
+    window.addEventListener("DOMContentLoaded", () => {
+      initQuestNav();
+      loadQuestData(ALL_QUESTS[0]);
     });
   </script>
 </body>
