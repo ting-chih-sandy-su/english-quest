@@ -57,7 +57,6 @@
       z-index: 10;
     }
 
-    /* 頂部列 */
     .control-header {
       display: flex;
       justify-content: space-between;
@@ -105,7 +104,7 @@
     .pill-btn.parent-btn { background: rgba(34, 197, 94, 0.15); border-color: #22c55e; color: #86efac; }
     .pill-btn.parent-btn.active { background: #22c55e; color: #052e16; }
 
-    /* 家長面板 */
+    /* 全自動生成的家長大綱面板 */
     .parent-overview-panel {
       display: none;
       background: linear-gradient(135deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.98));
@@ -117,9 +116,8 @@
       line-height: 1.45;
     }
     .parent-overview-panel.show { display: block; }
-    .parent-overview-panel h4 { color: #86efac; font-size: 0.85rem; margin-bottom: 2px; }
+    .parent-overview-panel h4 { color: #86efac; font-size: 0.85rem; margin-bottom: 3px; }
 
-    /* 聽辨核心舞台 */
     .challenge-arena {
       background: linear-gradient(180deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98));
       border: 2px solid var(--border-dark);
@@ -151,7 +149,6 @@
       margin-bottom: 8px;
     }
 
-    /* 核心大喇叭 */
     .audio-speaker-pulse {
       width: 60px;
       height: 60px;
@@ -169,7 +166,6 @@
     }
     .audio-speaker-pulse:active { transform: scale(0.9); }
 
-    /* 防亂猜二選一按鈕 */
     .choices-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -198,6 +194,25 @@
       75% { transform: translateX(6px); }
     }
 
+    .ready-gacha-btn {
+      width: 100%;
+      background: linear-gradient(180deg, #f59e0b, #d97706);
+      border: 3px solid #fef08a;
+      color: #000;
+      padding: 14px;
+      border-radius: 16px;
+      font-size: 1.2rem;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 0 25px rgba(245, 158, 11, 0.8);
+      animation: pulseGacha 0.8s infinite alternate;
+      margin-top: 6px;
+    }
+    @keyframes pulseGacha {
+      from { transform: scale(1); }
+      to { transform: scale(1.04); }
+    }
+
     .progress-status-box {
       width: 100%;
       display: flex;
@@ -224,7 +239,6 @@
       transition: width 0.3s;
     }
 
-    /* 下方卡片區 */
     .reference-deck {
       display: flex;
       flex-direction: column;
@@ -268,7 +282,6 @@
       white-space: nowrap;
     }
 
-    /* 課文 MP3 聽力鎖定卡片 */
     .article-full-card {
       background: linear-gradient(180deg, #1e293b, #0f172a);
       border: 2px solid var(--border-dark);
@@ -316,13 +329,13 @@
     }
     @keyframes pulsePlay { from { transform: scale(1); } to { transform: scale(1.05); } }
 
-    /* 成果聯絡簿 Modal */
+    /* 通關聯絡簿 Modal */
     .modal-overlay {
       display: none;
       position: fixed;
       top: 0; left: 0;
       width: 100vw; height: 100vh;
-      background: rgba(0, 0, 0, 0.9);
+      background: rgba(0, 0, 0, 0.92);
       backdrop-filter: blur(8px);
       z-index: 100;
       align-items: center;
@@ -337,6 +350,7 @@
       border-radius: 22px;
       padding: 18px 16px;
       text-align: center;
+      box-shadow: 0 0 40px rgba(250, 204, 21, 0.4);
     }
 
     .report-card-wrap {
@@ -357,9 +371,9 @@
       background: linear-gradient(180deg, var(--green), #15803d);
       border: none;
       color: #fff;
-      padding: 10px;
+      padding: 12px;
       border-radius: 12px;
-      font-size: 0.95rem;
+      font-size: 1rem;
       font-weight: 900;
       cursor: pointer;
     }
@@ -417,35 +431,21 @@
       </div>
     </div>
 
-    <!-- 家長大綱面板 -->
+    <!-- 系統全自動組合的家長大綱 -->
     <div class="parent-overview-panel" id="parent-panel">
-      <h4>📌 本週學習目標（家長查核專用）</h4>
+      <h4>📌 本週學習目標（系統自動生成）</h4>
       <div id="parent-overview-content"></div>
     </div>
 
     <!-- 聽力挑戰核心舞台 -->
-    <div class="challenge-arena">
-      <div class="stage-badge" id="stage-level-tag">STAGE 1 / 4 · 音素殘酷聽辨</div>
-      <div class="challenge-title" id="challenge-prompt">點擊喇叭，聽出哪個是目標字！</div>
+    <div class="challenge-arena" id="main-challenge-arena"></div>
 
-      <div class="audio-speaker-pulse" onclick="replayChallengeAudio()">🔊</div>
-      <div class="choices-grid" id="choices-container"></div>
-
-      <div class="progress-status-box">
-        <span>驗收進度</span>
-        <span id="progress-text">0 / 4 關</span>
-      </div>
-      <div class="progress-bar-wrap">
-        <div class="progress-bar-fill" id="progress-fill"></div>
-      </div>
-    </div>
-
-    <!-- 下方教材區 (含極慢音素拆解與整篇課文聽畢鎖定) -->
+    <!-- 下方教材區 -->
     <div class="reference-deck">
       <div class="section-title">🔤 核心單字慢速拆解（卡關可點此先聽嘴型）：</div>
       <div id="ref-cards-box" style="display:flex; flex-direction:column; gap:5px;"></div>
 
-      <div class="section-title">📖 整篇課文朗讀（必須完整聽完）：</div>
+      <div class="section-title">📖 整篇課文朗讀：</div>
       <div class="article-full-card" id="article-card-box">
         <div>
           <div class="article-tag">課文音檔</div>
@@ -497,11 +497,14 @@
   </div>
 
   <script>
+    // ========================================================
+    // ⚙️ 題庫極簡架構：完全不用手寫任何大綱！
+    // 系統會根據 words 與 sentence 自動組合成專業家長說明
+    // ========================================================
     const ALL_QUESTS = [
       {
         id: "w4",
         label: "第 4 關",
-        overview: "• 本週主題：天氣與室內活動<br>• 音素目標：ai 長母音 /eɪ/ 與 /r/ vs /l/ 區辨<br>• 驗收標準：聽出最小音素差異並聽完課文錄音",
         words: [
           { en: "rain", display: "r · ain", zh: "下雨", audio: "", distractor: "lane", hint: "開頭是 /r/ 不是 /l/；ai 發長母音 /eɪ/！" },
           { en: "weather", display: "wea · ther", zh: "天氣", audio: "", distractor: "feather", hint: "開頭是 /w/ 不是 /f/；結尾 -ther 有咬舌濁音！" },
@@ -516,7 +519,6 @@
       {
         id: "w3",
         label: "第 3 關 (複習)",
-        overview: "• 本週主題：校園朋友<br>• 音素目標：雙子音群 /sk/ 與爆破音 /p/<br>• 驗收標準：校園詞彙音素盲測",
         words: [
           { en: "happy", display: "hap · py", zh: "高興的", audio: "", distractor: "heavy", hint: "注意雙子音 pp 是爆破音 /p/ 不是 /v/！" },
           { en: "school", display: "school", zh: "學校", audio: "", distractor: "cool", hint: "開頭有 /sk/ 雙子音群，不是只有 cool！" },
@@ -582,8 +584,15 @@
       generateChallengeStage();
     }
 
+    // 💡 做法 2：系統動態自動組裝大綱，免手寫任何字！
     function renderAllModules(quest) {
-      document.getElementById("parent-overview-content").innerHTML = quest.overview;
+      const wordsList = quest.words.map(w => `<b>${w.en}</b> (${w.zh})`).join("、");
+      const autoOverview = `
+        • <b>重點詞彙</b>：${wordsList}<br>
+        • <b>語境實用語句</b>：${quest.sentence.en}<br>
+        • <b>驗收目標</b>：完成 4 階音素聽辨盲測並完整聽畢課文錄音。
+      `;
+      document.getElementById("parent-overview-content").innerHTML = autoOverview;
 
       const box = document.getElementById("ref-cards-box");
       box.innerHTML = "";
@@ -635,6 +644,10 @@
       const quest = ALL_QUESTS[currentQuestIdx];
       const audioPath = quest.sentence.audio;
 
+      const btn = document.getElementById("article-action-btn");
+      const icon = document.getElementById("article-btn-icon");
+      const text = document.getElementById("article-btn-text");
+
       if (audioPath && audioPath.trim() !== "") {
         if (articleAudioElement) {
           articleAudioElement.pause();
@@ -643,10 +656,6 @@
 
         const audio = new Audio(audioPath);
         articleAudioElement = audio;
-
-        const btn = document.getElementById("article-action-btn");
-        const icon = document.getElementById("article-btn-icon");
-        const text = document.getElementById("article-btn-text");
         
         btn.className = "article-btn-action playing";
         icon.innerText = "⏳";
@@ -662,12 +671,14 @@
             playCoinSound();
           };
         }).catch(err => {
-          console.warn("課文音檔無法播放：", err);
           speakTTS(quest.sentence.en, 0.8);
-          hasCompletedArticleAudio = true;
-          btn.className = "article-btn-action done";
-          icon.innerText = "✅";
-          text.innerText = "已完成";
+          setTimeout(() => {
+            hasCompletedArticleAudio = true;
+            btn.className = "article-btn-action done";
+            icon.innerText = "✅";
+            text.innerText = "已完成";
+            document.getElementById("article-card-box").className = "article-full-card listened-completed";
+          }, 2500);
         });
       } else {
         speakTTS(quest.sentence.en, 0.8);
@@ -677,15 +688,37 @@
 
     function generateChallengeStage() {
       const quest = ALL_QUESTS[currentQuestIdx];
+      const arena = document.getElementById("main-challenge-arena");
+
+      if (currentStage >= 4) {
+        arena.innerHTML = `
+          <div class="stage-badge">🎉 聽力驗收全數通關！</div>
+          <div class="challenge-title" style="color:var(--gold);">🔥 神秘寶箱能量已滿！</div>
+          <button class="ready-gacha-btn" onclick="executeVictory()">🎁 點擊狂暴開箱抽神寵！</button>
+        `;
+        return;
+      }
+
+      arena.innerHTML = `
+        <div class="stage-badge" id="stage-level-tag">STAGE ${currentStage + 1} / 4 · 單字音素盲測</div>
+        <div class="challenge-title" id="challenge-prompt">仔細聽喇叭！哪一個才是目標字？</div>
+        <div class="audio-speaker-pulse" onclick="replayChallengeAudio()">🔊</div>
+        <div class="choices-grid" id="choices-container"></div>
+        <div class="progress-status-box">
+          <span>驗收進度</span>
+          <span id="progress-text">${currentStage} / 4 關</span>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" id="progress-fill" style="width:${(currentStage/4)*100}%"></div>
+        </div>
+      `;
+
       const choicesBox = document.getElementById("choices-container");
-      choicesBox.innerHTML = "";
 
       if (currentStage < 3) {
         const wordData = quest.words[currentStage];
         currentTargetWord = wordData.en;
         currentTargetAudio = wordData.audio || "";
-        
-        document.getElementById("stage-level-tag").innerText = `STAGE ${currentStage + 1} / 4 · 單字音素盲測`;
         document.getElementById("challenge-prompt").innerText = `仔細聽喇叭！哪一個是「${wordData.zh}」？`;
 
         const options = Math.random() > 0.5 ? 
@@ -724,23 +757,16 @@
       playSmartAudio(currentTargetAudio, currentTargetWord, 0.75);
     }
 
-    // 防瞎猜判定：猜錯必須罰聽 0.6x 慢速音素拆解，杜絕無腦碰運氣
     function checkAnswer(isCorrect, btnElement) {
       if (isCorrect) {
         btnElement.classList.add("correct");
         playCoinSound();
         currentStage++;
         updateProgress();
-
-        if (currentStage === 4) {
-          checkFinalVictoryCondition();
-        } else {
-          setTimeout(generateChallengeStage, 600);
-        }
+        setTimeout(generateChallengeStage, 400);
       } else {
         btnElement.classList.add("wrong");
         playBuzzerSound();
-        // 答錯立即以 0.55 倍極慢速播放正確發音，逼他聽清音素
         speakTTS(currentTargetWord, 0.55);
         alert("❌ 聽錯了！發音完全不同！\n\n系統正在播放極慢速發音，請把耳朵貼近聽清楚，不能用猜的！");
         btnElement.classList.remove("wrong");
@@ -754,7 +780,7 @@
         playFanfareSound();
         currentStage++;
         updateProgress();
-        checkFinalVictoryCondition();
+        setTimeout(generateChallengeStage, 400);
       } else {
         btnElement.classList.add("wrong");
         playBuzzerSound();
@@ -764,19 +790,11 @@
       }
     }
 
-    function checkFinalVictoryCondition() {
-      const quest = ALL_QUESTS[currentQuestIdx];
-      if (quest.sentence.audio && quest.sentence.audio.trim() !== "" && !hasCompletedArticleAudio) {
-        alert("⚠️ 還差最後一步！本週有「課文原音錄音」，請先點擊下方黃色的「🔒 聽完解鎖」按鈕，完整聽完錄音才能開箱！");
-        return;
-      }
-      setTimeout(executeVictory, 500);
-    }
-
     function updateProgress() {
-      const percent = (currentStage / 4) * 100;
-      document.getElementById("progress-fill").style.width = `${percent}%`;
-      document.getElementById("progress-text").innerText = `${currentStage} / 4 關`;
+      const fill = document.getElementById("progress-fill");
+      const text = document.getElementById("progress-text");
+      if (fill) fill.style.width = `${(currentStage / 4) * 100}%`;
+      if (text) text.innerText = `${currentStage} / 4 關`;
     }
 
     function executeVictory() {
@@ -796,14 +814,13 @@
       document.getElementById("loot-name").innerText = loot.name;
       document.getElementById("loot-power").innerText = loot.power;
 
-      document.getElementById("report-article-check").innerText = quest.sentence.audio ? "100% 完整聽畢 (MP3)" : "已朗讀複習";
+      document.getElementById("report-article-check").innerText = quest.sentence.audio ? "100% 完整聽畢" : "已朗讀複習";
       document.getElementById("loot-modal").style.display = "flex";
     }
 
     function closeLootModal() {
       document.getElementById("loot-modal").style.display = "none";
       currentStage = 0;
-      updateProgress();
       generateChallengeStage();
     }
 
